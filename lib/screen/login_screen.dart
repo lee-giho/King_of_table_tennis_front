@@ -1,4 +1,8 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
+import 'dart:convert';
+import 'package:king_of_table_tennis/api/login_api.dart';
 import 'package:king_of_table_tennis/util/appColors.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -31,6 +35,20 @@ class _LoginScreenState extends State<LoginScreen> {
     passwordFocus.dispose();
     
     super.dispose();
+  }
+
+  void handleLogin(String id, String password) async {
+    final response = await login(id, password);
+
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
+      final accessToken = data["accessToken"];
+      final refreshToken = data["refreshToken"];
+
+      print(data);
+    } else {
+      log("로그인 실패");
+    }
   }
 
   @override
@@ -243,6 +261,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           onPressed: () {
                             if (formKey.currentState!.validate()) {
                               print("로그인 버튼 클릭!!");
+                              handleLogin(idController.value.text, passwordController.value.text);
                             }
                           },
                           style: ElevatedButton.styleFrom(
