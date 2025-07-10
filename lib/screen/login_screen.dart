@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:king_of_table_tennis/api/login_api.dart';
 import 'package:king_of_table_tennis/util/appColors.dart';
+import 'package:king_of_table_tennis/util/secure_storage.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -44,6 +45,11 @@ class _LoginScreenState extends State<LoginScreen> {
       final data = json.decode(response.body);
       final accessToken = data["accessToken"];
       final refreshToken = data["refreshToken"];
+
+      // secure_storage에 저장
+      await SecureStorage.saveIsAutoLogin(isAutoLogin);
+      await SecureStorage.saveAccessToken(accessToken);
+      await SecureStorage.saveRefreshToken(refreshToken);
 
       print(data);
     } else {
