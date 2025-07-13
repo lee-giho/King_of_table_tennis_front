@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:king_of_table_tennis/api/login_api.dart';
 import 'package:king_of_table_tennis/screen/register_screen.dart';
-import 'package:king_of_table_tennis/util/appColors.dart';
+import 'package:king_of_table_tennis/util/AppColors.dart';
 import 'package:king_of_table_tennis/util/secure_storage.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -135,7 +135,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                           Radius.circular(5)
                                         ),
                                         borderSide: BorderSide(
-                                          color: Appcolors.racketBlack
+                                          color: AppColors.racketBlack
                                         )
                                       ),
                                       focusedBorder: OutlineInputBorder(
@@ -143,7 +143,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                           Radius.circular(5)
                                         ),
                                         borderSide: BorderSide(
-                                          color: Appcolors.racketRed
+                                          color: AppColors.racketRed
                                         )
                                       ),
                                       errorBorder: OutlineInputBorder(
@@ -199,7 +199,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                           Radius.circular(5)
                                         ),
                                         borderSide: BorderSide(
-                                          color: Appcolors.racketBlack
+                                          color: AppColors.racketBlack
                                         )
                                       ),
                                       focusedBorder: OutlineInputBorder(
@@ -207,7 +207,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                           Radius.circular(5)
                                         ),
                                         borderSide: BorderSide(
-                                          color: Appcolors.racketRed
+                                          color: AppColors.racketRed
                                         )
                                       ),
                                       errorBorder: OutlineInputBorder(
@@ -273,7 +273,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           },
                           style: ElevatedButton.styleFrom(
                             minimumSize: const Size.fromHeight(50),
-                            backgroundColor: Appcolors.racketRed,
+                            backgroundColor: AppColors.racketRed,
                             foregroundColor: Colors.white,
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(5)

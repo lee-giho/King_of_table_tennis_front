@@ -3,7 +3,9 @@ import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:king_of_table_tennis/api/register_api.dart';
-import 'package:king_of_table_tennis/util/appColors.dart';
+import 'package:king_of_table_tennis/model/register_dto.dart';
+import 'package:king_of_table_tennis/screen/register_email_screen.dart';
+import 'package:king_of_table_tennis/util/AppColors.dart';
 import 'package:king_of_table_tennis/util/checkValidate.dart';
 
 class RegisterScreen extends StatefulWidget {
@@ -185,7 +187,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                                 : null,
                                               style: ElevatedButton.styleFrom(
                                                 minimumSize: const Size(100, 50),
-                                                backgroundColor: Appcolors.racketRed,
+                                                backgroundColor: AppColors.racketRed,
                                                 foregroundColor: Colors.white,
                                                 shape: RoundedRectangleBorder(
                                                   borderRadius: BorderRadius.circular(5)
@@ -309,18 +311,43 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       ? () {
                           // signUp();
                           print("회원가입 버튼 클릭!!");
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => RegisterEmailScreen(
+                                registerDTO: RegisterDTO(
+                                  id: idController.text,
+                                  password: passwordController.text,
+                                  name: nameController.text,
+                                  nickName: "",
+                                  email: "",
+                                  profileImage: ""
+                                )
+                              )
+                            )
+                          );
+                          // handleRegister(
+                          //   RegisterDTO(
+                          //     id: idController.text,
+                          //     password: passwordController.text,
+                          //     name: nameController.text,
+                          //     nickName: "",
+                          //     email: "",
+                          //     profileImage: ""
+                          //   )
+                          // );
                         }
                       : null,
                       style: ElevatedButton.styleFrom(
                         minimumSize: const Size.fromHeight(50),
-                        backgroundColor: Appcolors.racketRed,
+                        backgroundColor: AppColors.racketRed,
                         foregroundColor: Colors.white,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(5)
                         )
                       ),
                     child: const Text(
-                      "회원가입",
+                      "다음",
                       style: TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.bold
