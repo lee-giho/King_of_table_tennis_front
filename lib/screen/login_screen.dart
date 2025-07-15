@@ -3,6 +3,7 @@ import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:king_of_table_tennis/api/login_api.dart';
+import 'package:king_of_table_tennis/screen/find_id_screen.dart';
 import 'package:king_of_table_tennis/screen/register_screen.dart';
 import 'package:king_of_table_tennis/util/AppColors.dart';
 import 'package:king_of_table_tennis/util/secure_storage.dart';
@@ -295,6 +296,12 @@ class _LoginScreenState extends State<LoginScreen> {
                           TextButton(
                             onPressed: () {
                               print("아이디 찾기 클릭!!");
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => const FindIdScreen()
+                                )
+                              );
                             },
                             child: Text(
                               "아이디 찾기",

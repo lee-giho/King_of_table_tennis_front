@@ -16,7 +16,7 @@ class RegisterEmailApi {
 
   Future<Response> sendVerificationCode(String email) async {
     // .env에서 서버 URL 가져오기
-    final apiAddress = Uri.parse("${dotenv.get("API_ADDRESS")}/api/auth/email/code/register/$email");
+    final apiAddress = Uri.parse("${dotenv.get("API_ADDRESS")}/api/auth/email/code/register?email=$email");
 
     try {
       final response = await dio.get(
@@ -32,7 +32,7 @@ class RegisterEmailApi {
 
   Future<Response> checkVerificationCode(String code, String sessionId) async {
     // .env에서 서버 URL 가져오기
-    final apiAddress = Uri.parse("${dotenv.get("API_ADDRESS")}/api/auth/email/code/verify/$code");
+    final apiAddress = Uri.parse("${dotenv.get("API_ADDRESS")}/api/auth/email/code/verify?code=$code");
 
     try {
       final response = await dio.get(
