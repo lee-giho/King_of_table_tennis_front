@@ -14,9 +14,9 @@ class RegisterEmailApi {
     dio.interceptors.add(CookieManager(cookieJar));
   }
 
-  Future<Response> sendVerificationCode(String email) async {
+  Future<Response> sendVerificationCode(String type, String email) async {
     // .env에서 서버 URL 가져오기
-    final apiAddress = Uri.parse("${dotenv.get("API_ADDRESS")}/api/auth/email/code/register?email=$email");
+    final apiAddress = Uri.parse("${dotenv.get("API_ADDRESS")}/api/auth/email/code/$type?email=$email");
 
     try {
       final response = await dio.get(

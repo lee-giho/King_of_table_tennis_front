@@ -3,6 +3,7 @@ import 'dart:developer';
 
 import 'package:flutter/material.dart';
 import 'package:king_of_table_tennis/api/email_api.dart';
+import 'package:king_of_table_tennis/enum/email_type.dart';
 import 'package:king_of_table_tennis/model/change_password_dto.dart';
 import 'package:king_of_table_tennis/screen/find_password_change_screen.dart';
 import 'package:king_of_table_tennis/util/AppColors.dart';
@@ -111,7 +112,7 @@ class _FindPasswordScreenState extends State<FindPasswordScreen> {
   }
 
   void handleSendVerificationCode(String email) async {
-    final response = await emailApi.sendVerificationCode(email);
+    final response = await emailApi.sendVerificationCode(EmailType.findPassword.value, email);
 
     if (response.statusCode == 200) {
       startTimer();

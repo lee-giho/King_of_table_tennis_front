@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:king_of_table_tennis/api/register_api.dart';
 import 'package:king_of_table_tennis/api/email_api.dart';
+import 'package:king_of_table_tennis/enum/email_type.dart';
 import 'package:king_of_table_tennis/model/register_dto.dart';
 import 'package:king_of_table_tennis/util/AppColors.dart';
 import 'package:king_of_table_tennis/util/checkValidate.dart';
@@ -99,7 +100,7 @@ class _RegisterEmailScreenState extends State<RegisterEmailScreen> {
   }
 
   void handleSendVerificationCode(String email) async {
-    final response = await emailApi.sendVerificationCode(email);
+    final response = await emailApi.sendVerificationCode(EmailType.register.value, email);
 
     if (response.statusCode == 200) {
       startTimer();

@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:king_of_table_tennis/api/email_api.dart';
 import 'package:king_of_table_tennis/api/find_id_api.dart';
+import 'package:king_of_table_tennis/enum/email_type.dart';
 import 'package:king_of_table_tennis/screen/find_id_result_screen.dart';
 import 'package:king_of_table_tennis/util/AppColors.dart';
 import 'package:king_of_table_tennis/util/checkValidate.dart';
@@ -104,7 +105,7 @@ class _FindIdScreenState extends State<FindIdScreen> {
   }
 
   void handleSendVerificationCode(String email) async {
-    final response = await emailApi.sendVerificationCode(email);
+    final response = await emailApi.sendVerificationCode(EmailType.findId.value, email);
 
     if (response.statusCode == 200) {
       startTimer();
