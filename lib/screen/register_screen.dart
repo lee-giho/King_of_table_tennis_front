@@ -326,16 +326,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
                               )
                             )
                           );
-                          // handleRegister(
-                          //   RegisterDTO(
-                          //     id: idController.text,
-                          //     password: passwordController.text,
-                          //     name: nameController.text,
-                          //     nickName: "",
-                          //     email: "",
-                          //     profileImage: ""
-                          //   )
-                          // );
                         }
                       : null,
                       style: ElevatedButton.styleFrom(

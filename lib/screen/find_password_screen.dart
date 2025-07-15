@@ -2,48 +2,52 @@ import 'dart:async';
 import 'dart:developer';
 
 import 'package:flutter/material.dart';
-import 'dart:convert';
 import 'package:king_of_table_tennis/api/email_api.dart';
-import 'package:king_of_table_tennis/api/find_id_api.dart';
-import 'package:king_of_table_tennis/screen/find_id_result_screen.dart';
+import 'package:king_of_table_tennis/model/change_password_dto.dart';
+import 'package:king_of_table_tennis/screen/find_password_change_screen.dart';
 import 'package:king_of_table_tennis/util/AppColors.dart';
 import 'package:king_of_table_tennis/util/checkValidate.dart';
 
-class FindIdScreen extends StatefulWidget {
-  const FindIdScreen({super.key});
+class FindPasswordScreen extends StatefulWidget {
+  const FindPasswordScreen({super.key});
 
   @override
-  State<FindIdScreen> createState() => _FindIdScreenState();
+  State<FindPasswordScreen> createState() => _FindPasswordScreenState();
 }
 
-class _FindIdScreenState extends State<FindIdScreen> {
+class _FindPasswordScreenState extends State<FindPasswordScreen> {
 
   final emailApi = RegisterEmailApi();
   String emailSessionId = "";
 
-  // 이름, 이메일, 인증번호 입력 값 저장
+  // 이름, 아이디, 이메일, 인증번호 입력 값 저장
   var nameController = TextEditingController();
+  var idController = TextEditingController();
   var emailController = TextEditingController();
   var codeController = TextEditingController();
 
-  // 이름, 이메일, 인증번호 FocusNode
+  // 이름, 아이디, 이메일, 인증번호 FocusNode
   FocusNode nameFocus = FocusNode();
+  FocusNode idFocus = FocusNode();
   FocusNode emailFocus = FocusNode();
   FocusNode codeFocus = FocusNode();
 
   GlobalKey<FormState> formKey = GlobalKey<FormState>();
 
-  // 이름 입력 유효성 상태
+  // 이름 유효성 상태
   bool isNameValid = false;
 
-  // 이메일 입력 유효성 상태
-  bool isEmailValid = false;
+  // 아아디 유효성 상태
+  bool isIdValid = false;
 
-  // 인증번호 입력 유효성 상태
-  bool isCodeValid = false;
+  // 이메일 유효성 상태
+  bool isEmailValid = false;
 
   // 인증번호 전송 상태
   bool isCodeSent = false;
+
+  // 인증번호 유효성 상태
+  bool isCodeValid = false;
 
   // 인증번호 확인 상태
   bool isCodeCheck = false;
@@ -57,10 +61,12 @@ class _FindIdScreenState extends State<FindIdScreen> {
     timer?.cancel();
 
     nameController.dispose();
+    idController.dispose();
     emailController.dispose();
     codeController.dispose();
 
     nameFocus.dispose();
+    idFocus.dispose();
     emailFocus.dispose();
     codeFocus.dispose();
     
@@ -70,6 +76,7 @@ class _FindIdScreenState extends State<FindIdScreen> {
   void checkFormValid() {
     setState(() {
       isNameValid = Checkvalidate().validateName(nameController.text) == null;
+      isIdValid = Checkvalidate().validateId(idController.text, false, false) == null;
       isEmailValid = Checkvalidate().validateEmail(emailController.text) == null;
       isCodeValid = Checkvalidate().validateCode(codeController.text) == null && (remainingTime > 0 && remainingTime < 180);
     });
@@ -134,34 +141,12 @@ class _FindIdScreenState extends State<FindIdScreen> {
     }
   }
 
-  void handleFindId(String name, String email) async {
-    final response = await findId(nameController.text, emailController.text);
-
-    if (response.statusCode == 200) {
-      final data = json.decode(response.body);
-      
-      String id = data["id"];
-
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => FindIdResultScreen(
-            data: {
-              "id": id,
-              "name": nameController.text
-            }
-          )
-        )
-      );
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text(
-          "아이디 찾기",
+          "비밀번호 찾기",
           style: TextStyle(
             fontWeight: FontWeight.bold
           ),
@@ -206,6 +191,36 @@ class _FindIdScreenState extends State<FindIdScreen> {
                                     },
                                     decoration: const InputDecoration(
                                       hintText: "이름을 입력해주세요."
+                                    ),
+                                  )
+                                ],
+                              ),
+                            ),
+                            Container( // 아이디 입력 부분
+                              margin: const EdgeInsets.fromLTRB(0, 0, 0, 20),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Text(
+                                    "아이디 *",
+                                    style: TextStyle(
+                                      fontSize: 20,
+                                      fontWeight: FontWeight.bold
+                                    ),
+                                  ),
+                                  TextFormField(
+                                    controller: idController,
+                                    focusNode: idFocus,
+                                    keyboardType: TextInputType.text,
+                                    autovalidateMode: AutovalidateMode.onUserInteraction,
+                                    validator: (value) {
+                                      return Checkvalidate().validateId(idController.text, false, false);
+                                    },
+                                    onChanged: (value) {
+                                      checkFormValid();
+                                    },
+                                    decoration: const InputDecoration(
+                                      hintText: "아이디를 입력해주세요."
                                     ),
                                   )
                                 ],
@@ -355,7 +370,19 @@ class _FindIdScreenState extends State<FindIdScreen> {
                   child: ElevatedButton(
                     onPressed: (formKey.currentState?.validate() ?? false) && isCodeSent && isCodeCheck
                       ? () {
-                          handleFindId(nameController.text, emailController.text);
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => FindPasswordChangeScreen(
+                                changePasswordDTO: ChangePasswordDTO(
+                                  id: idController.text,
+                                  password: "",
+                                  name: nameController.text,
+                                  email: emailController.text
+                                )
+                              )
+                            )
+                          );
                         }
                       : null,
                     style: ElevatedButton.styleFrom(
@@ -367,7 +394,7 @@ class _FindIdScreenState extends State<FindIdScreen> {
                       )
                     ),
                     child: const Text(
-                      "아이디 찾기",
+                      "다음",
                       style: TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.bold

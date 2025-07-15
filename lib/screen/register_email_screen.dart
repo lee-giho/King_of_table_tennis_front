@@ -193,7 +193,7 @@ class _RegisterEmailScreenState extends State<RegisterEmailScreen> {
                                         crossAxisAlignment: CrossAxisAlignment.start,
                                         children: [
                                           const Text(
-                                            "이메일",
+                                            "이메일 *",
                                             style: TextStyle(
                                               fontSize: 20,
                                               fontWeight: FontWeight.bold
@@ -257,7 +257,7 @@ class _RegisterEmailScreenState extends State<RegisterEmailScreen> {
                                             crossAxisAlignment: CrossAxisAlignment.start,
                                             children: [
                                               const Text(
-                                                "인증번호",
+                                                "인증번호 *",
                                                 style: TextStyle(
                                                   fontSize: 20,
                                                   fontWeight: FontWeight.bold
