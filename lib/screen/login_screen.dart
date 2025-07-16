@@ -5,6 +5,7 @@ import 'dart:convert';
 import 'package:king_of_table_tennis/api/login_api.dart';
 import 'package:king_of_table_tennis/screen/find_id_screen.dart';
 import 'package:king_of_table_tennis/screen/find_password_screen.dart';
+import 'package:king_of_table_tennis/screen/profile_registration_screen.dart';
 import 'package:king_of_table_tennis/screen/register_screen.dart';
 import 'package:king_of_table_tennis/util/AppColors.dart';
 import 'package:king_of_table_tennis/util/secure_storage.dart';
@@ -46,15 +47,27 @@ class _LoginScreenState extends State<LoginScreen> {
 
     if (response.statusCode == 200) {
       final data = json.decode(response.body);
+      print(data);
+
       final accessToken = data["accessToken"];
       final refreshToken = data["refreshToken"];
+      final isFirstLogin = data["firstLogin"];
 
       // secure_storage에 저장
       await SecureStorage.saveIsAutoLogin(isAutoLogin);
       await SecureStorage.saveAccessToken(accessToken);
       await SecureStorage.saveRefreshToken(refreshToken);
 
-      print(data);
+      if (isFirstLogin) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => const ProfileRegistrationScreen()
+          )
+        );
+      } else {
+        print("홈 화면으로 이동");
+      }
     } else {
       log("로그인 실패");
     }

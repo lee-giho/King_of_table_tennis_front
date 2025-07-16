@@ -309,7 +309,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   child: ElevatedButton(
                     onPressed: isFormValid
                       ? () {
-                          // signUp();
                           print("회원가입 버튼 클릭!!");
                           Navigator.push(
                             context,

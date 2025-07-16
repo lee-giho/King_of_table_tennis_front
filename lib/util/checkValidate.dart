@@ -92,7 +92,7 @@ class Checkvalidate {
     }
   }
 
-  String? validateNickName(String? nickName, bool? nickNameValid) {
+  String? validateNickName(String? nickName, bool? isNickNameDuplication, bool? isNickNameChanged) {
     String pattern = r'^[^\s](\S*(\s\S+)*)?$';
     RegExp regExp = RegExp(pattern);
     if (nickName == null || nickName.isEmpty) {
@@ -100,11 +100,21 @@ class Checkvalidate {
     } else if (!regExp.hasMatch(nickName)) {
       return "앞/뒤 공백 없이 한 글자 이상 입력해주세요.";
     } else {
-      if (nickNameValid == false) {
+      if (isNickNameChanged == true) {
         return "중복확인을 해주세요.";
       } else {
-        return null;
+        if (isNickNameDuplication == true) {
+          return "사용중인 닉네임입니다.";
+        } else {
+          return null;
+        }
       }
     }
+  }
+
+  bool checkNickNameInput(String nickName) {
+    String pattern = r'^[^\s](\S*(\s\S+)*)?$';
+    RegExp regExp = RegExp(pattern);
+    return regExp.hasMatch(nickName); // true이면 유효한 닉네임, false이면 비유효한 닉네임
   }
 }
