@@ -1,6 +1,7 @@
+import 'dart:developer';
 import 'package:flutter/material.dart';
+import 'package:king_of_table_tennis/api/profile_registration_api.dart';
 import 'package:king_of_table_tennis/model/profile_registration_dto.dart';
-import 'package:king_of_table_tennis/model/table_tennis_info_registration_dto.dart';
 import 'package:king_of_table_tennis/util/appColors.dart';
 
 class TableTennisInfoRegistrationScreen extends StatefulWidget {
@@ -122,6 +123,16 @@ class _TableTennisInfoRegistrationScreenState extends State<TableTennisInfoRegis
     );
   }
 
+  void handleProfileRegistration(ProfileRegistrationDTO profileRegistrationDTO) async {
+    final response = await saveProfileImageAndNickName(profileRegistrationDTO);
+
+    if (response.statusCode == 200) {
+      log("프로필 사진, 닉네임 등록 완료");
+    } else {
+      log("프로필 사진, 닉네임 등록 실패: ${response.body}");
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     print("data: ${widget.profileRegistrationDTO.profileImage}");
@@ -141,88 +152,85 @@ class _TableTennisInfoRegistrationScreenState extends State<TableTennisInfoRegis
           child: Column(
             children: [
               Expanded(
-                child: Column(
-                  children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          "라켓 선택",
-                          style: TextStyle(
-                            fontSize: 24,
-                            fontWeight: FontWeight.bold
+                child: SingleChildScrollView(
+                  physics: const ClampingScrollPhysics(),
+                  child: Column(
+                    children: [
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            "라켓 선택",
+                            style: TextStyle(
+                              fontSize: 24,
+                              fontWeight: FontWeight.bold
+                            ),
                           ),
-                        ),
-                        SizedBox(height: 10),
-                        Container(
-                          padding: EdgeInsets.all(5),
-                          child: GridView.builder(
+                          SizedBox(height: 10),
+                          Container(
+                            padding: EdgeInsets.all(5),
+                            child: GridView.builder(
+                              shrinkWrap: true,
+                              physics: const NeverScrollableScrollPhysics(),
+                              itemCount: racketType.length,
+                              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                                crossAxisCount: 2,
+                                crossAxisSpacing: 16,
+                                mainAxisSpacing: 16,
+                                childAspectRatio: 0.7
+                              ),
+                              itemBuilder: (context, index) {
+                                final entry = racketType.entries.elementAt(index);
+                                return buildRacketTypeContainer(
+                                  value: entry.key,
+                                  label: entry.value
+                                );
+                              }
+                            ),
+                          ),
+                        ],
+                      ),
+                      SizedBox(height: 30),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            "실력 선택",
+                            style: TextStyle(
+                              fontSize: 24,
+                              fontWeight: FontWeight.bold
+                            ),
+                          ),
+                          SizedBox(height: 10),
+                          GridView.builder(
                             shrinkWrap: true,
                             physics: const NeverScrollableScrollPhysics(),
-                            itemCount: racketType.length,
+                            itemCount: levelType.length,
                             gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                              crossAxisCount: 2,
+                              crossAxisCount: 1,
                               crossAxisSpacing: 16,
                               mainAxisSpacing: 16,
-                              childAspectRatio: 0.7
+                              childAspectRatio: 5
                             ),
                             itemBuilder: (context, index) {
-                              final entry = racketType.entries.elementAt(index);
-                              return buildRacketTypeContainer(
+                              final entry = levelType.entries.elementAt(index);
+                              return buildLevelContainer(
                                 value: entry.key,
                                 label: entry.value
                               );
                             }
                           ),
-                        ),
-                      ],
-                    ),
-                    SizedBox(height: 30),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          "실력 선택",
-                          style: TextStyle(
-                            fontSize: 24,
-                            fontWeight: FontWeight.bold
-                          ),
-                        ),
-                        SizedBox(height: 10),
-                        GridView.builder(
-                          shrinkWrap: true,
-                          physics: const NeverScrollableScrollPhysics(),
-                          itemCount: levelType.length,
-                          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                            crossAxisCount: 1,
-                            crossAxisSpacing: 16,
-                            mainAxisSpacing: 16,
-                            childAspectRatio: 5
-                          ),
-                          itemBuilder: (context, index) {
-                            final entry = levelType.entries.elementAt(index);
-                            return buildLevelContainer(
-                              value: entry.key,
-                              label: entry.value
-                            );
-                          }
-                        ),
-                      ],
-                    ),
-                  ],
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
               ),
-              Container( // 회원가입 버튼
+              Container( // 시작하기 버튼
                 child: ElevatedButton(
                   onPressed: selectedRacketType != null && selectedLevel != null
                     ? () { 
-                        print("시작하기 클릭!!!");
-                        TableTennisInfoRegistrationDTO tableTennisInfoRegistrationDTO = TableTennisInfoRegistrationDTO(
-                          racketType: racketType[selectedRacketType]!,
-                          level: levelType[selectedLevel]!
-                        );
-                        print("data: ${tableTennisInfoRegistrationDTO.racketType}");
-                        print("data: ${tableTennisInfoRegistrationDTO.level}");
+                        handleProfileRegistration(widget.profileRegistrationDTO);
                       }
                     : null,
                     style: ElevatedButton.styleFrom(
