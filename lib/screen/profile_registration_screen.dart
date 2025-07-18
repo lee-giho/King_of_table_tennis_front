@@ -5,6 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:convert';
 import 'package:king_of_table_tennis/api/profile_registration_api.dart';
+import 'package:king_of_table_tennis/model/profile_registration_dto.dart';
+import 'package:king_of_table_tennis/screen/table_tennis_info_registration_screen.dart';
 import 'package:king_of_table_tennis/util/appColors.dart';
 import 'package:king_of_table_tennis/util/checkValidate.dart';
 
@@ -296,9 +298,20 @@ class _ProfileRegistrationScreenState extends State<ProfileRegistrationScreen> {
                   ),
                   Container( // 회원가입 버튼
                     child: ElevatedButton(
-                      onPressed: isNickNameValid
+                      onPressed: !isNickNameDuplication
                         ? () {
                             print("다음 클릭!!!");
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => TableTennisInfoRegistrationScreen(
+                                  profileRegistrationDTO: ProfileRegistrationDTO(
+                                    profileImage: selectProfileImage,
+                                    nickName: nickNameController.text
+                                  ),
+                                )
+                              )
+                            );
                           }
                         : null,
                         style: ElevatedButton.styleFrom(
