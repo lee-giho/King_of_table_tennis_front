@@ -1,7 +1,9 @@
 import 'dart:developer';
 import 'package:flutter/material.dart';
+import 'dart:convert';
 import 'package:king_of_table_tennis/api/profile_registration_api.dart';
 import 'package:king_of_table_tennis/model/profile_registration_dto.dart';
+import 'package:king_of_table_tennis/model/table_tennis_info_registration_dto.dart';
 import 'package:king_of_table_tennis/util/appColors.dart';
 
 class TableTennisInfoRegistrationScreen extends StatefulWidget {
@@ -127,9 +129,33 @@ class _TableTennisInfoRegistrationScreenState extends State<TableTennisInfoRegis
     final response = await saveProfileImageAndNickName(profileRegistrationDTO);
 
     if (response.statusCode == 200) {
-      log("프로필 사진, 닉네임 등록 완료");
+      final data = json.decode(response.body);
+      bool success = data["success"];
+
+      if (success) {
+        log("프로필 사진, 닉네임 등록 완료");
+      } else {
+        log("프로필 사진, 닉네임 등록 실패");  
+      }
     } else {
       log("프로필 사진, 닉네임 등록 실패: ${response.body}");
+    }
+  }
+
+  void handleTableTennisInfoRegistration(TableTennisInfoRegistrationDTO tableTennisInfoRegistrationDTO) async {
+    final response = await saveTableTennisInfo(tableTennisInfoRegistrationDTO);
+
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
+      bool success = data["success"];
+
+      if (success) {
+        log("탁구 정보 등록 완료");
+      } else {
+        log("탁구 정보 등록 실패");  
+      }
+    } else {
+      log("탁구 정보 등록 실패: ${response.body}");
     }
   }
 
@@ -231,6 +257,14 @@ class _TableTennisInfoRegistrationScreenState extends State<TableTennisInfoRegis
                   onPressed: selectedRacketType != null && selectedLevel != null
                     ? () { 
                         handleProfileRegistration(widget.profileRegistrationDTO);
+                        TableTennisInfoRegistrationDTO tableTennisInfoRegistrationDTO = TableTennisInfoRegistrationDTO(
+                          racketType: racketType[selectedRacketType]!,
+                          userLevel: levelType[selectedLevel]!
+                        );
+                        log("tableTennisInfoRegistrationDTO: ${tableTennisInfoRegistrationDTO.toJson()}");
+                        handleTableTennisInfoRegistration(
+                          tableTennisInfoRegistrationDTO
+                        );
                       }
                     : null,
                     style: ElevatedButton.styleFrom(

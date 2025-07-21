@@ -1,19 +1,19 @@
 class TableTennisInfoRegistrationDTO {
   final String racketType;
-  final String level;
+  final String userLevel;
 
   TableTennisInfoRegistrationDTO({
     required this.racketType,
-    required this.level
+    required this.userLevel
   });
 
   TableTennisInfoRegistrationDTO copyWith({
     String? racketType,
-    String? level
+    String? userLevel
   }) {
     return TableTennisInfoRegistrationDTO(
       racketType: racketType ?? this.racketType,
-      level: level ?? this.level
+      userLevel: userLevel ?? this.userLevel
     );
   }
 
@@ -21,7 +21,7 @@ class TableTennisInfoRegistrationDTO {
   factory TableTennisInfoRegistrationDTO.fromJson(Map<String, dynamic> json) {
     return TableTennisInfoRegistrationDTO(
       racketType: json['racketType'] ?? '',
-      level: json['level'] ?? ''
+      userLevel: json['userLevel'] ?? ''
     );
   }
 
@@ -29,7 +29,7 @@ class TableTennisInfoRegistrationDTO {
   Map<String, dynamic> toJson() {
     return {
       'racketType': racketType,
-      'level': level
+      'userLevel': userLevel
     };
   }
 }
