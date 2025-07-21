@@ -40,6 +40,15 @@ class SecureStorage {
     );
   }
 
+  // accessToken 삭제 후 다시 저장
+  static Future<void> replaceAccessToken(String accessToken) async {
+    await storage.delete(key: 'accessToken');
+    await storage.write(
+      key: 'accessToken',
+      value: accessToken
+    );
+  }
+
   // accessToken 읽기
   static Future<String?> getAccessToken() async {
     return await storage.read(key: 'accessToken');

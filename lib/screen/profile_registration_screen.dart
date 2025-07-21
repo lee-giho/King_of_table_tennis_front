@@ -7,6 +7,7 @@ import 'dart:convert';
 import 'package:king_of_table_tennis/api/profile_registration_api.dart';
 import 'package:king_of_table_tennis/model/profile_registration_dto.dart';
 import 'package:king_of_table_tennis/screen/table_tennis_info_registration_screen.dart';
+import 'package:king_of_table_tennis/util/apiRequest.dart';
 import 'package:king_of_table_tennis/util/appColors.dart';
 import 'package:king_of_table_tennis/util/checkValidate.dart';
 
@@ -150,7 +151,7 @@ class _ProfileRegistrationScreenState extends State<ProfileRegistrationScreen> {
   }
 
   void handleCheckNickNameDuplication(String nickName) async {
-    final response = await checkNickNameDuplication(nickName);
+    final response = await apiRequest(() => checkNickNameDuplication(nickName), context);
 
     if (response.statusCode == 200) {
       final data = json.decode(response.body);

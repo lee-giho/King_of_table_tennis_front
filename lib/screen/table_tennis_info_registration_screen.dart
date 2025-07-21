@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'package:king_of_table_tennis/api/profile_registration_api.dart';
 import 'package:king_of_table_tennis/model/profile_registration_dto.dart';
 import 'package:king_of_table_tennis/model/table_tennis_info_registration_dto.dart';
+import 'package:king_of_table_tennis/util/apiRequest.dart';
 import 'package:king_of_table_tennis/util/appColors.dart';
 
 class TableTennisInfoRegistrationScreen extends StatefulWidget {
@@ -126,7 +127,7 @@ class _TableTennisInfoRegistrationScreenState extends State<TableTennisInfoRegis
   }
 
   void handleProfileRegistration(ProfileRegistrationDTO profileRegistrationDTO) async {
-    final response = await saveProfileImageAndNickName(profileRegistrationDTO);
+    final response = await apiRequest(() => saveProfileImageAndNickName(profileRegistrationDTO), context);
 
     if (response.statusCode == 200) {
       final data = json.decode(response.body);
@@ -143,7 +144,7 @@ class _TableTennisInfoRegistrationScreenState extends State<TableTennisInfoRegis
   }
 
   void handleTableTennisInfoRegistration(TableTennisInfoRegistrationDTO tableTennisInfoRegistrationDTO) async {
-    final response = await saveTableTennisInfo(tableTennisInfoRegistrationDTO);
+    final response = await apiRequest(() => saveTableTennisInfo(tableTennisInfoRegistrationDTO), context);
 
     if (response.statusCode == 200) {
       final data = json.decode(response.body);
@@ -257,11 +258,11 @@ class _TableTennisInfoRegistrationScreenState extends State<TableTennisInfoRegis
                   onPressed: selectedRacketType != null && selectedLevel != null
                     ? () { 
                         handleProfileRegistration(widget.profileRegistrationDTO);
+                        
                         TableTennisInfoRegistrationDTO tableTennisInfoRegistrationDTO = TableTennisInfoRegistrationDTO(
                           racketType: racketType[selectedRacketType]!,
                           userLevel: levelType[selectedLevel]!
                         );
-                        log("tableTennisInfoRegistrationDTO: ${tableTennisInfoRegistrationDTO.toJson()}");
                         handleTableTennisInfoRegistration(
                           tableTennisInfoRegistrationDTO
                         );
