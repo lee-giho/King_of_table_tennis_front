@@ -4,6 +4,8 @@ import 'dart:convert';
 import 'package:king_of_table_tennis/api/profile_registration_api.dart';
 import 'package:king_of_table_tennis/model/profile_registration_dto.dart';
 import 'package:king_of_table_tennis/model/table_tennis_info_registration_dto.dart';
+import 'package:king_of_table_tennis/screen/home_screen.dart';
+import 'package:king_of_table_tennis/screen/main_screen.dart';
 import 'package:king_of_table_tennis/util/apiRequest.dart';
 import 'package:king_of_table_tennis/util/appColors.dart';
 
@@ -126,7 +128,7 @@ class _TableTennisInfoRegistrationScreenState extends State<TableTennisInfoRegis
     );
   }
 
-  void handleProfileRegistration(ProfileRegistrationDTO profileRegistrationDTO) async {
+  Future<void> handleProfileRegistration(ProfileRegistrationDTO profileRegistrationDTO) async {
     final response = await apiRequest(() => saveProfileImageAndNickName(profileRegistrationDTO), context);
 
     if (response.statusCode == 200) {
@@ -143,7 +145,7 @@ class _TableTennisInfoRegistrationScreenState extends State<TableTennisInfoRegis
     }
   }
 
-  void handleTableTennisInfoRegistration(TableTennisInfoRegistrationDTO tableTennisInfoRegistrationDTO) async {
+  Future<void> handleTableTennisInfoRegistration(TableTennisInfoRegistrationDTO tableTennisInfoRegistrationDTO) async {
     final response = await apiRequest(() => saveTableTennisInfo(tableTennisInfoRegistrationDTO), context);
 
     if (response.statusCode == 200) {
@@ -158,6 +160,25 @@ class _TableTennisInfoRegistrationScreenState extends State<TableTennisInfoRegis
     } else {
       log("탁구 정보 등록 실패: ${response.body}");
     }
+  }
+
+  void handleStartButton() async {
+    await handleProfileRegistration(widget.profileRegistrationDTO);
+                        
+    TableTennisInfoRegistrationDTO tableTennisInfoRegistrationDTO = TableTennisInfoRegistrationDTO(
+      racketType: racketType[selectedRacketType]!,
+      userLevel: levelType[selectedLevel]!
+    );
+    
+    await handleTableTennisInfoRegistration(
+      tableTennisInfoRegistrationDTO
+    );
+
+    Navigator.pushAndRemoveUntil( // 메인 화면으로 이동
+      context,
+      MaterialPageRoute(builder: (context) => const MainScreen()),
+      (route) => false // 스택에 남는 페이지 없이 전체 초기화
+    );
   }
 
   @override
@@ -257,15 +278,7 @@ class _TableTennisInfoRegistrationScreenState extends State<TableTennisInfoRegis
                 child: ElevatedButton(
                   onPressed: selectedRacketType != null && selectedLevel != null
                     ? () { 
-                        handleProfileRegistration(widget.profileRegistrationDTO);
-                        
-                        TableTennisInfoRegistrationDTO tableTennisInfoRegistrationDTO = TableTennisInfoRegistrationDTO(
-                          racketType: racketType[selectedRacketType]!,
-                          userLevel: levelType[selectedLevel]!
-                        );
-                        handleTableTennisInfoRegistration(
-                          tableTennisInfoRegistrationDTO
-                        );
+                        handleStartButton();
                       }
                     : null,
                     style: ElevatedButton.styleFrom(

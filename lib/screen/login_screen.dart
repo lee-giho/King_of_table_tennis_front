@@ -5,6 +5,7 @@ import 'dart:convert';
 import 'package:king_of_table_tennis/api/login_api.dart';
 import 'package:king_of_table_tennis/screen/find_id_screen.dart';
 import 'package:king_of_table_tennis/screen/find_password_screen.dart';
+import 'package:king_of_table_tennis/screen/main_screen.dart';
 import 'package:king_of_table_tennis/screen/profile_registration_screen.dart';
 import 'package:king_of_table_tennis/screen/register_screen.dart';
 import 'package:king_of_table_tennis/util/AppColors.dart';
@@ -66,7 +67,11 @@ class _LoginScreenState extends State<LoginScreen> {
           )
         );
       } else {
-        print("홈 화면으로 이동");
+        Navigator.pushAndRemoveUntil( // 홈 화면으로 이동
+          context,
+          MaterialPageRoute(builder: (context) => const MainScreen()),
+          (route) => false // 스택에 남는 페이지 없이 전체 초기화
+        );
       }
     } else {
       log("로그인 실패");
