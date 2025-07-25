@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:king_of_table_tennis/api/game_api.dart';
 import 'package:king_of_table_tennis/model/table_tennis_court_dto.dart';
+import 'package:king_of_table_tennis/screen/table_tennis_court_detail_screen.dart';
 import 'package:king_of_table_tennis/util/apiRequest.dart';
 import 'package:king_of_table_tennis/widget/tableTennisCourtTile.dart';
 
@@ -57,7 +58,7 @@ class _SearchTableTennisCourtScreenState extends State<SearchTableTennisCourtScr
         ),
       ),
       body: SafeArea(
-        child: Container(
+        child: Container( // 전체화면
           padding: const EdgeInsets.symmetric(horizontal: 20),
           child: tableTennisCourts.isEmpty
             ? const Center(
@@ -76,8 +77,25 @@ class _SearchTableTennisCourtScreenState extends State<SearchTableTennisCourtScr
                               final tableTennisCourt = tableTennisCourts[index];
                               return Padding(
                                 padding: const EdgeInsets.symmetric(vertical: 5),
-                                child: TableTennisCourtTile(
-                                  tableTennisCourtDTO: tableTennisCourt
+                                child: Material(
+                                  color: Colors.transparent,
+                                  borderRadius: BorderRadius.circular(15),
+                                  child: InkWell(
+                                    onTap: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) => TableTennisCourtDetailScreen(
+                                            tableTennisCourtDTO: tableTennisCourt
+                                          )
+                                        )
+                                      );
+                                    },
+                                    borderRadius: BorderRadius.circular(15),
+                                    child: TableTennisCourtTile(
+                                      tableTennisCourtDTO: tableTennisCourt
+                                    ),
+                                  ),
                                 ),
                               );
                             },
