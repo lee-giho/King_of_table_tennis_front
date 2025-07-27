@@ -39,7 +39,8 @@ class _TableTennisCourtDetailScreenState extends State<TableTennisCourtDetailScr
             context,
             MaterialPageRoute(
               builder: (context) => GameRegistrationScreen(
-                tableTennisCourtId: widget.tableTennisCourtDTO.id
+                tableTennisCourtId: widget.tableTennisCourtDTO.id,
+                tableTennisCourtName: widget.tableTennisCourtDTO.name
               )
             )
           );
