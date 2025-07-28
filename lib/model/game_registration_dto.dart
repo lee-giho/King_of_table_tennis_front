@@ -36,7 +36,7 @@ class GameRegistrationDTO {
       gameScore: json['gameScore'] ?? 0,
       place: json['place'] ?? '',
       acceptanceType: json['acceptanceType'] ?? '',
-      gameDate: DateTime.tryParse(json['gameDate'] ?? '') ?? DateTime.now()
+      gameDate: DateTime.tryParse(json['gameDate'] ?? '') ?? DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day, DateTime.now().hour+1)
     );
   }
 

@@ -28,6 +28,7 @@ class _GameRegistrationScreenState extends State<GameRegistrationScreen> {
 
   DateTime now = DateTime.now();
   late DateTime selectDate;
+  List<DateTime> selectedGameDate = [];
 
   late int selectGameSet;
   List<int> gameSet = [3, 5];
@@ -49,12 +50,32 @@ class _GameRegistrationScreenState extends State<GameRegistrationScreen> {
     super.initState();
 
     setState(() {
-      selectPlace = widget.tableTennisCourtName;
+      selectPlace = widget.tableTennisCourtId;
       selectDate = DateTime(now.year, now.month, now.day, now.hour+1);
       selectGameSet = gameSet[0];
       selectGameScore = gameScore[0];
       selectAcceptanceType = acceptanceType[0];
     });
+
+    handleGetBlackListDateTime(widget.tableTennisCourtId);
+  }
+
+  void handleGetBlackListDateTime(String tableTennisCourtId) async {
+    final response = await apiRequest(() => getBlackListDateTime(tableTennisCourtId), context);
+
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
+      final selectedGameDateList = data["selectedGameDateList"];
+      
+      setState(() {
+        selectedGameDate = (selectedGameDateList as List)
+        .map<DateTime>((item) => DateTime.parse(item as String))
+        .toList();
+      });
+
+    } else {
+      log("선택 불가능한 날짜 가져오기 실패: ${response.body}");
+    }
   }
 
   void handleCreateGame(GameRegistrationDTO gameRegistrationDTO) async {
@@ -112,7 +133,7 @@ class _GameRegistrationScreenState extends State<GameRegistrationScreen> {
                           ),
                           SizedBox(height: 5),
                           Text(
-                            selectPlace,
+                            widget.tableTennisCourtName,
                             style: TextStyle(
                               fontSize: 20,
                               color: Colors.black
@@ -136,7 +157,7 @@ class _GameRegistrationScreenState extends State<GameRegistrationScreen> {
                               final DateTime? picked = await showCustomDateTimePicker(
                                 context: context,
                                 selectDate: selectDate,
-                                blackList: []
+                                blackList: selectedGameDate
                               );
                       
                               if (picked != null) {

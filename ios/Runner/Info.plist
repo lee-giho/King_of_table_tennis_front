@@ -49,5 +49,11 @@
   <!-- 갤러리 권한 -->
   <key>NSPhotoLibraryUsageDescription</key>
   <string>사진 업로드를 위해 사진 접근 권한을 허용하시겠습니까?</string>
+
+  <key>NSappTransportSecurity</key>
+  <dict>
+    <key>NSAllowsArbitraryLoads</key>
+    <true/>
+  </dict>
 </dict>
 </plist>

@@ -1,6 +1,8 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:king_of_table_tennis/main.dart';
 import 'package:king_of_table_tennis/util/AppColors.dart';
+import 'package:king_of_table_tennis/util/toastMessage.dart';
 
 Future<DateTime?> showCustomDateTimePicker({
   required BuildContext context,
@@ -11,7 +13,7 @@ Future<DateTime?> showCustomDateTimePicker({
   final now = DateTime.now();
   final roundedNow = DateTime(now.year, now.month, now.day, now.hour+1);
 
-  DateTime tempSelectedDate = DateTime.now();
+  DateTime tempSelectedDate = DateTime(now.year, now.month, now.day, now.hour+1);
 
   return await showModalBottomSheet(
     context: context,
@@ -28,7 +30,7 @@ Future<DateTime?> showCustomDateTimePicker({
                   height: 200,
                   child: CupertinoDatePicker(
                     mode: CupertinoDatePickerMode.dateAndTime,
-                    initialDateTime: selectDate,
+                    initialDateTime: DateTime(selectDate.year, selectDate.month, selectDate.day, selectDate.hour+1),
                     minimumDate: roundedNow,
                     maximumDate: roundedNow.add(const Duration(days: 30)),
                     use24hFormat: true,
@@ -69,11 +71,12 @@ Future<DateTime?> showCustomDateTimePicker({
                           blocked.day == tempSelectedDate.day &&
                           blocked.hour == tempSelectedDate.hour
                         );
-                    
+
+                        print("isBlocked: $isBlocked");
+                        print("blackList: $blackList");
+
                         if (isBlocked) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text("선택할 수 없는 시간입니다. 다시 선택해주세요."))
-                          );
+                          ToastMessage.show("이미 예약된 시간입니다. 다시 선택해주세요.");
                         } else {
                           Navigator.pop(
                             context,
