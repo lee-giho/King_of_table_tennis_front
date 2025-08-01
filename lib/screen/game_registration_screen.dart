@@ -168,6 +168,11 @@ class _GameRegistrationScreenState extends State<GameRegistrationScreen> {
                             },
                             style: ElevatedButton.styleFrom(
                               elevation: 4,
+                              side: BorderSide(
+                                width: 0.2,
+                                color: Colors.black
+                              ),
+                              foregroundColor: AppColors.tableBlue,
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(10)
                               )
@@ -214,6 +219,11 @@ class _GameRegistrationScreenState extends State<GameRegistrationScreen> {
                                     },
                                     style: ElevatedButton.styleFrom(
                                       elevation: 4,
+                                      side: BorderSide(
+                                        width: 0.2,
+                                        color: Colors.black
+                                      ),
+                                      foregroundColor: AppColors.tableBlue,
                                       shape: RoundedRectangleBorder(
                                         borderRadius: BorderRadius.circular(10)
                                       )
@@ -254,6 +264,11 @@ class _GameRegistrationScreenState extends State<GameRegistrationScreen> {
                                     },
                                     style: ElevatedButton.styleFrom(
                                       elevation: 4,
+                                      side: BorderSide(
+                                        width: 0.2,
+                                        color: Colors.black
+                                      ),
+                                      foregroundColor: AppColors.tableBlue,
                                       shape: RoundedRectangleBorder(
                                         borderRadius: BorderRadius.circular(10)
                                       )
@@ -307,6 +322,11 @@ class _GameRegistrationScreenState extends State<GameRegistrationScreen> {
                             },
                             style: ElevatedButton.styleFrom(
                               elevation: 4,
+                              side: BorderSide(
+                                width: 0.2,
+                                color: Colors.black
+                              ),
+                              foregroundColor: AppColors.tableBlue,
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(10)
                               )
@@ -339,8 +359,12 @@ class _GameRegistrationScreenState extends State<GameRegistrationScreen> {
                 },
                 style: ElevatedButton.styleFrom(
                   minimumSize: const Size.fromHeight(50),
+                  side: BorderSide(
+                    width: 0.2,
+                    color: Colors.black
+                  ),
                   backgroundColor: AppColors.racketRed,
-                  foregroundColor: Colors.white,
+                  foregroundColor: AppColors.tableBlue,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(5)
                   )

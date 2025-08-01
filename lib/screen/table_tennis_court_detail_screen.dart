@@ -90,7 +90,10 @@ class _TableTennisCourtDetailScreenState extends State<TableTennisCourtDetailScr
                                   },
                                   borderRadius: BorderRadius.circular(15),
                                   child: RecruitingGameTile(
-                                    recruitingGameDTO: recruitingGame
+                                    recruitingGameDTO: recruitingGame,
+                                    onApplyComplete: () {
+                                      handleGetRecruitingGameList(widget.tableTennisCourtDTO.id);
+                                    }
                                   )
                                 ),
                               ),
