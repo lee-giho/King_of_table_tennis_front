@@ -3,7 +3,7 @@ import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:king_of_table_tennis/api/game_api.dart';
-import 'package:king_of_table_tennis/model/game_info.dart';
+import 'package:king_of_table_tennis/model/game_info_dto.dart';
 import 'package:king_of_table_tennis/model/recruiting_game_dto.dart';
 import 'package:king_of_table_tennis/util/apiRequest.dart';
 import 'package:king_of_table_tennis/util/appColors.dart';
@@ -48,7 +48,7 @@ class _RecruitingGameTileState extends State<RecruitingGameTile> {
   @override
   Widget build(BuildContext context) {
 
-    final GameInfo gameInfo = widget.recruitingGameDTO.gameInfo;
+    final GameInfoDTO gameInfo = widget.recruitingGameDTO.gameInfo;
     final String creatorId = widget.recruitingGameDTO.creatorId;
     final String gameState = widget.recruitingGameDTO.gameState;
 

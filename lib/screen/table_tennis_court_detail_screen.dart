@@ -6,6 +6,7 @@ import 'package:king_of_table_tennis/api/game_api.dart';
 import 'package:king_of_table_tennis/model/recruiting_game_dto.dart';
 import 'package:king_of_table_tennis/model/table_tennis_court_dto.dart';
 import 'package:king_of_table_tennis/screen/game_registration_screen.dart';
+import 'package:king_of_table_tennis/screen/table_tennis_game_info_detail_screen.dart';
 import 'package:king_of_table_tennis/util/apiRequest.dart';
 import 'package:king_of_table_tennis/util/appColors.dart';
 import 'package:king_of_table_tennis/widget/recruitingGameTile.dart';
@@ -64,49 +65,78 @@ class _TableTennisCourtDetailScreenState extends State<TableTennisCourtDetailScr
       body: SafeArea(
         child: Container( // 전체화면
           padding: const EdgeInsets.symmetric(horizontal: 20),
-          child: recruitingGames.isEmpty
-            ? const Center(
-                child: Text(
-                  "등록된 경기가 없습니다."
-                )
-              )
-            : Column(
-              children: [
-                Expanded(
-                  child: CustomScrollView(
-                    slivers: [
-                      SliverList(
-                        delegate: SliverChildBuilderDelegate(
-                          (context, index) {
-                            final recruitingGame = recruitingGames[index];
-                            return Padding(
-                              padding: const EdgeInsets.symmetric(vertical: 5),
-                              child: Material(
-                                color: Colors.transparent,
-                                borderRadius: BorderRadius.circular(15),
-                                child: InkWell(
-                                  onTap: () {
-
-                                  },
-                                  borderRadius: BorderRadius.circular(15),
-                                  child: RecruitingGameTile(
-                                    recruitingGameDTO: recruitingGame,
-                                    onApplyComplete: () {
-                                      handleGetRecruitingGameList(widget.tableTennisCourtDTO.id);
-                                    }
-                                  )
-                                ),
-                              ),
-                            );
-                          },
-                          childCount: recruitingGames.length
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                "등록된 경기",
+                style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold
+                ),
+              ),
+              Container(
+                height: 400,
+                padding: EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  border: Border.all(
+                    width: 1
+                  ),
+                  borderRadius: BorderRadius.circular(15)
+                ),
+                child: recruitingGames.isEmpty
+                  ? const Center(
+                      child: Text(
+                        "등록된 경기가 없습니다."
+                      )
+                    )
+                  : Column(
+                    children: [
+                      Expanded(
+                        child: CustomScrollView(
+                          slivers: [
+                            SliverList(
+                              delegate: SliverChildBuilderDelegate(
+                                (context, index) {
+                                  final recruitingGame = recruitingGames[index];
+                                  return Padding(
+                                    padding: const EdgeInsets.symmetric(vertical: 5),
+                                    child: Material(
+                                      color: Colors.transparent,
+                                      borderRadius: BorderRadius.circular(15),
+                                      child: InkWell(
+                                        onTap: () {
+                                          Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                              builder: (context) => TableTennisGameInfoDetailScreen(
+                                                gameInfoId: recruitingGame.gameInfo.id
+                                              )
+                                            )
+                                          );
+                                        },
+                                        borderRadius: BorderRadius.circular(15),
+                                        child: RecruitingGameTile(
+                                          recruitingGameDTO: recruitingGame,
+                                          onApplyComplete: () {
+                                            handleGetRecruitingGameList(widget.tableTennisCourtDTO.id);
+                                          }
+                                        )
+                                      ),
+                                    ),
+                                  );
+                                },
+                                childCount: recruitingGames.length
+                              )
+                            )
+                          ],
                         )
                       )
                     ],
                   )
-                )
-              ],
-            )
+              ),
+            ],
+          ),
         )
       ),
       floatingActionButton: FloatingActionButton(

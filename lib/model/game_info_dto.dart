@@ -1,4 +1,4 @@
-class GameInfo {
+class GameInfoDTO {
   final String id;
   final int gameSet;
   final int gameScore;
@@ -6,7 +6,7 @@ class GameInfo {
   final String acceptanceType;
   final DateTime gameDate;
 
-  GameInfo({
+  GameInfoDTO({
     required this.id,
     required this.gameSet,
     required this.gameScore,
@@ -15,8 +15,8 @@ class GameInfo {
     required this.gameDate,
   });
 
-  factory GameInfo.fromJson(Map<String, dynamic> json) {
-    return GameInfo(
+  factory GameInfoDTO.fromJson(Map<String, dynamic> json) {
+    return GameInfoDTO(
       id: json['id'],
       gameSet: json['gameSet'],
       gameScore: json['gameScore'],
