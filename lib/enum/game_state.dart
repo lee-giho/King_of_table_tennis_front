@@ -12,4 +12,17 @@ extension GameStateExtension on GameState {
       orElse: () => GameState.RECRUITING // 기본값
     );
   }
+
+  String get toKorean {
+    switch (this) {
+      case GameState.RECRUITING:
+        return "상대 모집 중";
+      case GameState.WAITING:
+        return "경기 대기 중";
+      case GameState.DOING:
+        return "경기 진행 중";
+      case GameState.END:
+        return "경기 종료";
+    }
+  }
 }
