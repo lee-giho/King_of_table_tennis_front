@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:king_of_table_tennis/screen/search_table_tennis_court_screen.dart';
-import 'package:king_of_table_tennis/util/AppColors.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -46,7 +45,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 focusNode: searchKeywordFocus,
                                 keyboardType: TextInputType.text,
                                 decoration: const InputDecoration(
-                                  hintText: "찾고 있는 잔치집이 있나요?",
+                                  hintText: "체육관을 검색해보세요.",
                                   hintStyle: TextStyle(fontSize: 15),
                                   contentPadding: EdgeInsets.symmetric(vertical: 0, horizontal: 10),
                                   enabledBorder: OutlineInputBorder(

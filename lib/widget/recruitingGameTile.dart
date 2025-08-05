@@ -111,7 +111,7 @@ class _RecruitingGameTileState extends State<RecruitingGameTile> {
               ],
             ),
           ),
-          if (gameState == "RECRUITING")
+          if (gameState == "RECRUITING" && !widget.recruitingGameDTO.isMine)
             Container(
               height: 50,
               child: ElevatedButton(

@@ -14,10 +14,12 @@ import 'package:king_of_table_tennis/widget/customStringPicker.dart';
 class GameRegistrationScreen extends StatefulWidget {
   final String tableTennisCourtId;
   final String tableTennisCourtName;
+  final VoidCallback onApplyComplete;
   const GameRegistrationScreen({
     super.key,
     required this.tableTennisCourtId,
-    required this.tableTennisCourtName
+    required this.tableTennisCourtName,
+    required this.onApplyComplete
   });
 
   @override
@@ -90,6 +92,7 @@ class _GameRegistrationScreenState extends State<GameRegistrationScreen> {
         ScaffoldMessenger.of(context) .showSnackBar(
           SnackBar(content: Text("탁구 경기 등록 성공"))
         );
+        widget.onApplyComplete.call();
         Navigator.pop(context);
       } else {
         log("탁구 경기 등록 실패");  

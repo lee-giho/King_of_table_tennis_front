@@ -7,6 +7,7 @@ import 'package:king_of_table_tennis/enum/game_state.dart';
 import 'package:king_of_table_tennis/model/game_detail_info_dto.dart';
 import 'package:king_of_table_tennis/util/apiRequest.dart';
 import 'package:king_of_table_tennis/util/intl.dart';
+import 'package:king_of_table_tennis/widget/gameInfoDetailUserTile.dart';
 
 class TableTennisGameInfoDetailScreen extends StatefulWidget {
   final String gameInfoId;
@@ -64,6 +65,27 @@ class _TableTennisGameInfoDetailScreenState extends State<TableTennisGameInfoDet
               )
             : Column(
                 children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 50),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        GameInfoDetailUserTile(
+                          userInfo: gameDetailInfo!.defenderInfo
+                        ),
+                        Text(
+                          "VS",
+                          style: TextStyle(
+                            fontSize: 26,
+                            fontWeight: FontWeight.bold
+                          ),
+                        ),
+                        GameInfoDetailUserTile(
+                          userInfo: gameDetailInfo!.challengerInfo
+                        )
+                      ],
+                    ),
+                  ),
                   Column( // 경기 정보 부분
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -102,14 +124,7 @@ class _TableTennisGameInfoDetailScreenState extends State<TableTennisGameInfoDet
                                 )
                               ],
                             ),
-                            Padding(
-                              padding: const EdgeInsets.symmetric(vertical: 8),
-                              child: Container(
-                                height: 1,
-                                width: double.infinity,
-                                color: Colors.black,
-                              ),
-                            ),
+                            Divider(),
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
@@ -150,14 +165,7 @@ class _TableTennisGameInfoDetailScreenState extends State<TableTennisGameInfoDet
                                 ),
                               ],
                             ),
-                            Padding(
-                              padding: const EdgeInsets.symmetric(vertical: 8),
-                              child: Container(
-                                height: 1,
-                                width: double.infinity,
-                                color: Colors.black,
-                              ),
-                            ),
+                            Divider(),
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
@@ -178,14 +186,7 @@ class _TableTennisGameInfoDetailScreenState extends State<TableTennisGameInfoDet
                                 )
                               ],
                             ),
-                            Padding(
-                              padding: const EdgeInsets.symmetric(vertical: 8),
-                              child: Container(
-                                height: 1,
-                                width: double.infinity,
-                                color: Colors.black,
-                              ),
-                            ),
+                            Divider(),
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [

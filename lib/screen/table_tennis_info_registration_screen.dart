@@ -4,7 +4,6 @@ import 'dart:convert';
 import 'package:king_of_table_tennis/api/profile_registration_api.dart';
 import 'package:king_of_table_tennis/model/profile_registration_dto.dart';
 import 'package:king_of_table_tennis/model/table_tennis_info_registration_dto.dart';
-import 'package:king_of_table_tennis/screen/home_screen.dart';
 import 'package:king_of_table_tennis/screen/main_screen.dart';
 import 'package:king_of_table_tennis/util/apiRequest.dart';
 import 'package:king_of_table_tennis/util/appColors.dart';
