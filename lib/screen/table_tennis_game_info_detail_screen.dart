@@ -1,6 +1,7 @@
 import 'dart:developer';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'dart:convert';
 import 'package:king_of_table_tennis/api/game_api.dart';
 import 'package:king_of_table_tennis/enum/game_state.dart';
@@ -8,6 +9,7 @@ import 'package:king_of_table_tennis/model/game_detail_info_dto.dart';
 import 'package:king_of_table_tennis/util/apiRequest.dart';
 import 'package:king_of_table_tennis/util/intl.dart';
 import 'package:king_of_table_tennis/widget/gameInfoDetailUserTile.dart';
+import 'package:stomp_dart_client/stomp_dart_client.dart';
 
 class TableTennisGameInfoDetailScreen extends StatefulWidget {
   final String gameInfoId;
@@ -24,11 +26,23 @@ class _TableTennisGameInfoDetailScreenState extends State<TableTennisGameInfoDet
 
   GameDetailInfoDTO? gameDetailInfo;
 
+  late StompClient stompClient;
+
+  GameState gameState = GameState.RECRUITING;
+
   @override
   void initState() {
     super.initState();
 
+    wsConnect();
     handleGetGameDetailInfo(widget.gameInfoId);
+  }
+
+  @override
+  void dispose() {
+    stompClient.deactivate();
+
+    super.dispose();
   }
 
   void handleGetGameDetailInfo(String gameInfoId) async {
@@ -39,14 +53,41 @@ class _TableTennisGameInfoDetailScreenState extends State<TableTennisGameInfoDet
 
       setState(() {
         gameDetailInfo = GameDetailInfoDTO.fromJson(data);
+        gameState = gameDetailInfo!.gameState.state;
       });
     } else {
       log("탁구장 경기 리스트 가져오기 실패");
     }
   }
 
+  void wsConnect() {
+    final wsAddress = dotenv.get("WS_ADDRESS");
+
+    stompClient = StompClient(
+      config: StompConfig(
+        url: "$wsAddress/ws",
+        onConnect: (StompFrame frame) {
+          print("연결 성공");
+          stompClient.subscribe(
+            destination: "/topic/game/state/${widget.gameInfoId}",
+            callback: (frame) {
+              final body = frame.body;
+              if (body != null) {
+                final decodedData = jsonDecode(body);
+                print("응답 데이터: $decodedData");
+              }
+            }
+          );
+        }
+      )
+    );
+
+    stompClient.activate();
+  }
+
   @override
   Widget build(BuildContext context) {
+
     return Scaffold(
       appBar: AppBar(
         title: Align(
@@ -209,7 +250,11 @@ class _TableTennisGameInfoDetailScreenState extends State<TableTennisGameInfoDet
                         ),
                       )
                     ],
-                  )
+                  ),
+                  if (gameState == GameState.RECRUITING)
+                    Text(
+                      gameState.toKorean
+                    )
                 ],
               )
         )

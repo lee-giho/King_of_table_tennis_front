@@ -74,7 +74,7 @@ class _GameInfoDetailUserTileState extends State<GameInfoDetailUserTile> {
                   Text(
                     widget.userInfo.id.isEmpty
                       ? ""
-                      : "라켓 타입:",
+                      : "라켓:",
                     style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.bold
@@ -100,7 +100,7 @@ class _GameInfoDetailUserTileState extends State<GameInfoDetailUserTile> {
                   Text(
                     widget.userInfo.id.isEmpty
                       ? ""
-                      : "라켓 타입:",
+                      : "실력:",
                     style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.bold
