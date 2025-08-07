@@ -110,7 +110,8 @@ class _TableTennisCourtDetailScreenState extends State<TableTennisCourtDetailScr
                                             context,
                                             MaterialPageRoute(
                                               builder: (context) => TableTennisGameInfoDetailScreen(
-                                                gameInfoId: recruitingGame.gameInfo.id
+                                                gameInfoId: recruitingGame.gameInfo.id,
+                                                isMine: recruitingGame.isMine
                                               )
                                             )
                                           );

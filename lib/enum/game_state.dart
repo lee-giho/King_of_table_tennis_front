@@ -25,4 +25,6 @@ extension GameStateExtension on GameState {
         return "경기 종료";
     }
   }
+
+  String get toValue => name;
 }
