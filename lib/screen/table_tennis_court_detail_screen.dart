@@ -39,7 +39,7 @@ class _TableTennisCourtDetailScreenState extends State<TableTennisCourtDetailScr
     if (response.statusCode == 200) {
       final data = json.decode(response.body);
       final recruitingGameList = data["recruitingGames"] as List;
-
+print(recruitingGameList);
       setState(() {
         recruitingGames = recruitingGameList
           .map((json) => RecruitingGameDTO.fromJson(json))

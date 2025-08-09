@@ -2,6 +2,7 @@ import 'dart:developer';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:king_of_table_tennis/api/broadcast_api.dart';
 import 'dart:convert';
 import 'package:king_of_table_tennis/api/game_api.dart';
 import 'package:king_of_table_tennis/enum/game_state.dart';
@@ -101,6 +102,15 @@ class _TableTennisGameInfoDetailScreenState extends State<TableTennisGameInfoDet
         'Authorization': 'Bearer $accessToken'
       }
     );
+
+    final response = await apiRequest(() => createBroadcastRoom(gameInfoId), context);
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
+
+      print(data);
+    } else {
+      log("방송 방 만들기 실패");
+    }
 
   }
 
