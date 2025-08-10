@@ -6,7 +6,9 @@ import 'package:king_of_table_tennis/api/broadcast_api.dart';
 import 'dart:convert';
 import 'package:king_of_table_tennis/api/game_api.dart';
 import 'package:king_of_table_tennis/enum/game_state.dart';
+import 'package:king_of_table_tennis/model/broadcastRoomInfo.dart';
 import 'package:king_of_table_tennis/model/game_detail_info_dto.dart';
+import 'package:king_of_table_tennis/screen/broadcast_shower_screen.dart';
 import 'package:king_of_table_tennis/util/apiRequest.dart';
 import 'package:king_of_table_tennis/util/appColors.dart';
 import 'package:king_of_table_tennis/util/intl.dart';
@@ -106,8 +108,16 @@ class _TableTennisGameInfoDetailScreenState extends State<TableTennisGameInfoDet
     final response = await apiRequest(() => createBroadcastRoom(gameInfoId), context);
     if (response.statusCode == 200) {
       final data = json.decode(response.body);
-
-      print(data);
+      BroadcastRoomInfo broadcastRoomInfo = BroadcastRoomInfo.fromJson(data);
+      
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => BroadcastShowerScreen(
+            broadcastRoomInfo: broadcastRoomInfo
+          )
+        )
+      );
     } else {
       log("방송 방 만들기 실패");
     }
