@@ -1,13 +1,14 @@
 import 'dart:developer';
 
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:flutter/services.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
+import 'package:king_of_table_tennis/api/broadcast_api.dart';
 import 'package:king_of_table_tennis/model/broadcastRoomInfo.dart';
-import 'package:king_of_table_tennis/util/secure_storage.dart';
+import 'package:king_of_table_tennis/util/apiRequest.dart';
+import 'package:king_of_table_tennis/widget/scoreBoard.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:stomp_dart_client/stomp_dart_client.dart';
 
@@ -32,6 +33,8 @@ class _BroadcastShowerScreenState extends State<BroadcastShowerScreen> {
   bool frontCamera = true;
   bool micEnabled = true;
   bool rendererInitialized = false;
+
+  bool leftIsDefender = true;
 
     @override
   void initState() {
@@ -209,21 +212,9 @@ class _BroadcastShowerScreenState extends State<BroadcastShowerScreen> {
   }
 
   Future<void> _deleteBroadcastRoom() async {
-    String? accessToken = await SecureStorage.getAccessToken();
-
-    // .env에서 서버 주소 가져오기
-    final apiAddress = Uri.parse("${dotenv.get("API_ADDRESS")}/api/broadcast?roomId=${widget.broadcastRoomInfo.roomId}");
-    final headers = {'Authorization': 'Bearer $accessToken'};
-
-    try {
-      final response = await http.delete(
-        apiAddress,
-        headers: headers,
-      );
-
-      log("response data = ${utf8.decode(response.bodyBytes)}");
-
-      if (response.statusCode == 200) {
+    final response = await apiRequest(() => deleteBroadcastRoom(widget.broadcastRoomInfo.gameInfoId), context);
+    
+    if (response.statusCode == 200) {
         log("delete broadcast room: ${response.body}");
 
         _endBroadcast();
@@ -234,13 +225,13 @@ class _BroadcastShowerScreenState extends State<BroadcastShowerScreen> {
           const SnackBar(content: Text("친구 방송 삭제를 실패했습니다."))
         );
       }
-    } catch (e) {
-      // 예외 처리
-      log(e.toString());
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("네트워크 오류: ${e.toString()}"))
-      );
-    }
+  }
+
+  void changeSeats() {
+    setState(() {
+      leftIsDefender = !leftIsDefender;
+    });
+    print(leftIsDefender);
   }
 
   @override
@@ -258,6 +249,64 @@ class _BroadcastShowerScreenState extends State<BroadcastShowerScreen> {
                 child: CircularProgressIndicator()
               ),
           Positioned(
+            child: SizedBox(
+              width: MediaQuery.of(context).size.width,
+              height: MediaQuery.of(context).size.height,
+              child: Row(
+                children: [
+                  Expanded(
+                    flex: 1,
+                    child: InkWell(
+                      onTap: () {
+                        print("왼쪽 +1!!");
+                        setState(() {
+                          leftIsDefender
+                            ? widget.broadcastRoomInfo.defender.incrementScore()
+                            : widget.broadcastRoomInfo.challenger.incrementScore();
+                        });
+                      },
+                      onLongPress: () {
+                        print("왼쪽 -1!!");
+                        setState(() {
+                          leftIsDefender
+                            ? widget.broadcastRoomInfo.defender.decrementScore()
+                            : widget.broadcastRoomInfo.challenger.decrementScore();
+                        });
+                      },
+                      child: Container(
+
+                      ),
+                    ),
+                  ),
+                  Expanded(
+                    flex: 1,
+                    child: InkWell(
+                      onTap: () {
+                        print("오른쪽 +1!!");
+                        setState(() {
+                          leftIsDefender
+                            ? widget.broadcastRoomInfo.challenger.incrementScore()
+                            : widget.broadcastRoomInfo.defender.incrementScore();
+                        });
+                      },
+                      onLongPress: () {
+                        print("오른쪽 -1!!");
+                        setState(() {
+                          leftIsDefender
+                            ? widget.broadcastRoomInfo.challenger.decrementScore()
+                            : widget.broadcastRoomInfo.defender.decrementScore();
+                        });
+                      },
+                      child: Container(
+
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            )
+          ),
+          Positioned(
             top: 15,
             left: 15,
             child: IconButton(
@@ -269,6 +318,17 @@ class _BroadcastShowerScreenState extends State<BroadcastShowerScreen> {
                 Icons.arrow_back_ios,
                 size: 30,
               )
+            )
+          ),
+          Positioned(
+            top: 0,
+            left: 0,
+            right: 0,
+            child: ScoreBoard(
+              defender: widget.broadcastRoomInfo.defender,
+              challenger: widget.broadcastRoomInfo.challenger,
+              leftIsDefender: leftIsDefender,
+              onChangeSeats: changeSeats,
             )
           ),
           Positioned(
@@ -296,7 +356,7 @@ class _BroadcastShowerScreenState extends State<BroadcastShowerScreen> {
                 )
               ]
             ),
-          ),
+          )
         ]
       )
     );

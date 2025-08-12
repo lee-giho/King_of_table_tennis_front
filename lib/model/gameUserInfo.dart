@@ -4,7 +4,7 @@ class GameUserInfo {
   final String profileImage;
   final String racketType;
   final int setScore;
-  final int score;
+  int score;
 
   GameUserInfo({
     required this.id,
@@ -35,5 +35,13 @@ class GameUserInfo {
       setScore: 0,
       score: 0
     );
+  }
+
+  void incrementScore() {
+    score += 1;
+  }
+
+  void decrementScore() {
+    score -= 1;
   }
 }
