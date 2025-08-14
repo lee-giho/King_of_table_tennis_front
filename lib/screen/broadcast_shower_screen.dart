@@ -7,6 +7,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
 import 'package:king_of_table_tennis/api/broadcast_api.dart';
 import 'package:king_of_table_tennis/model/broadcastRoomInfo.dart';
+import 'package:king_of_table_tennis/model/update_score.dart';
 import 'package:king_of_table_tennis/util/apiRequest.dart';
 import 'package:king_of_table_tennis/widget/scoreBoard.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -154,6 +155,15 @@ class _BroadcastShowerScreenState extends State<BroadcastShowerScreen> {
         }
       }
     );
+
+    client.subscribe(
+      destination: "/topic/broadcast/score/$roomId",
+      callback: (frame) async {
+        final data = jsonDecode(frame.body!);
+        
+        UpdateScore updateScore = UpdateScore.fromJson(data);
+      }
+    );
   }
 
   Future<RTCPeerConnection> _createPeerConnection(String viewerId, String roomId) async {
@@ -227,6 +237,13 @@ class _BroadcastShowerScreenState extends State<BroadcastShowerScreen> {
       }
   }
 
+  void updateScore(UpdateScore updateScore) {
+    stompClient.send(
+      destination: "/app//broadcast/score/${widget.broadcastRoomInfo.roomId}",
+      body: json.encode(updateScore.toJson())
+    );
+  }
+
   void changeSeats() {
     setState(() {
       leftIsDefender = !leftIsDefender;
@@ -260,18 +277,30 @@ class _BroadcastShowerScreenState extends State<BroadcastShowerScreen> {
                       onTap: () {
                         print("왼쪽 +1!!");
                         setState(() {
-                          leftIsDefender
-                            ? widget.broadcastRoomInfo.defender.incrementScore()
-                            : widget.broadcastRoomInfo.challenger.incrementScore();
+                          if (leftIsDefender) {
+                            widget.broadcastRoomInfo.defender.incrementScore();
+                            updateScore(UpdateScore(side: "defender", newScore: widget.broadcastRoomInfo.defender.score));
+                          } else {
+                            widget.broadcastRoomInfo.challenger.incrementScore();
+                            updateScore(UpdateScore(side: "challenger", newScore: widget.broadcastRoomInfo.challenger.score));
+                          }
                         });
+                        print(widget.broadcastRoomInfo.defender.score);
+                        print(widget.broadcastRoomInfo.challenger.score);
                       },
                       onLongPress: () {
                         print("왼쪽 -1!!");
                         setState(() {
-                          leftIsDefender
-                            ? widget.broadcastRoomInfo.defender.decrementScore()
-                            : widget.broadcastRoomInfo.challenger.decrementScore();
+                          if (leftIsDefender) {
+                            widget.broadcastRoomInfo.defender.decrementScore();
+                            updateScore(UpdateScore(side: "defender", newScore: widget.broadcastRoomInfo.defender.score));
+                          } else {
+                            widget.broadcastRoomInfo.challenger.decrementScore();
+                            updateScore(UpdateScore(side: "challenger", newScore: widget.broadcastRoomInfo.challenger.score));
+                          }
                         });
+                        print(widget.broadcastRoomInfo.defender.score);
+                        print(widget.broadcastRoomInfo.challenger.score);
                       },
                       child: Container(
 
@@ -284,18 +313,30 @@ class _BroadcastShowerScreenState extends State<BroadcastShowerScreen> {
                       onTap: () {
                         print("오른쪽 +1!!");
                         setState(() {
-                          leftIsDefender
-                            ? widget.broadcastRoomInfo.challenger.incrementScore()
-                            : widget.broadcastRoomInfo.defender.incrementScore();
+                          if (leftIsDefender) {
+                            widget.broadcastRoomInfo.challenger.incrementScore();
+                            updateScore(UpdateScore(side: "challenger", newScore: widget.broadcastRoomInfo.challenger.score));
+                          } else {
+                            widget.broadcastRoomInfo.defender.incrementScore();
+                            updateScore(UpdateScore(side: "defender", newScore: widget.broadcastRoomInfo.defender.score));
+                          }
                         });
+                        print(widget.broadcastRoomInfo.defender.score);
+                        print(widget.broadcastRoomInfo.challenger.score);
                       },
                       onLongPress: () {
                         print("오른쪽 -1!!");
                         setState(() {
-                          leftIsDefender
-                            ? widget.broadcastRoomInfo.challenger.decrementScore()
-                            : widget.broadcastRoomInfo.defender.decrementScore();
+                          if (leftIsDefender) {
+                            widget.broadcastRoomInfo.challenger.decrementScore();
+                            updateScore(UpdateScore(side: "challenger", newScore: widget.broadcastRoomInfo.challenger.score));
+                          } else {
+                            widget.broadcastRoomInfo.defender.decrementScore();
+                            updateScore(UpdateScore(side: "defender", newScore: widget.broadcastRoomInfo.defender.score));
+                          }
                         });
+                        print(widget.broadcastRoomInfo.defender.score);
+                        print(widget.broadcastRoomInfo.challenger.score);
                       },
                       child: Container(
 
