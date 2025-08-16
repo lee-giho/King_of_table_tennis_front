@@ -1,17 +1,15 @@
 import 'package:king_of_table_tennis/model/gameUserInfo.dart';
 
 class BroadcastRoomInfo {
-  final String roomId;
-  final String roomName;
   final String gameInfoId;
+  final String roomName;
   final GameUserInfo defender;
   final GameUserInfo challenger;
   final DateTime createdAt;
 
   BroadcastRoomInfo({
-    required this.roomId,
-    required this.roomName,
     required this.gameInfoId,
+    required this.roomName,
     required this.defender,
     required this.challenger,
     required this.createdAt
@@ -19,9 +17,8 @@ class BroadcastRoomInfo {
 
   factory BroadcastRoomInfo.fromJson(Map<String, dynamic> json) {
     return BroadcastRoomInfo(
-      roomId: json['roomId'],
-      roomName: json['roomName'],
       gameInfoId: json['gameInfoId'],
+      roomName: json['roomName'],
       defender: json['defender'] != null
         ? GameUserInfo.fromJson(json['defender'])
         : GameUserInfo.empty(),

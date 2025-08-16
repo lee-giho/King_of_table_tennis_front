@@ -31,7 +31,7 @@ class _BroadcastShowerScreenState extends State<BroadcastShowerScreen> {
   final Map<String, List<RTCIceCandidate>> _candidateQueue = {};
   late StompClient stompClient;
 
-  bool frontCamera = true;
+  bool frontCamera = false;
   bool micEnabled = true;
   bool rendererInitialized = false;
 
@@ -53,7 +53,7 @@ class _BroadcastShowerScreenState extends State<BroadcastShowerScreen> {
 
   @override
   void dispose() {
-    // 가로모드 고정
+    // 세로모드 고정
     SystemChrome.setPreferredOrientations([
       DeviceOrientation.portraitUp,
       DeviceOrientation.portraitDown
@@ -103,7 +103,7 @@ class _BroadcastShowerScreenState extends State<BroadcastShowerScreen> {
   }
 
   void _onConnect(StompClient client) {
-    final roomId = widget.broadcastRoomInfo.roomId;
+    final roomId = widget.broadcastRoomInfo.gameInfoId;
 
     client.subscribe(
       destination: "/topic/broadcast/peer/offer/$roomId",
@@ -213,7 +213,7 @@ class _BroadcastShowerScreenState extends State<BroadcastShowerScreen> {
   void _endBroadcast() {
     for (final viewer in _peerConnections.keys) {
       stompClient.send(
-        destination: "/app/broadcast/end/${widget.broadcastRoomInfo.roomId}",
+        destination: "/app/broadcast/end/${widget.broadcastRoomInfo.gameInfoId}",
         headers: {},
         body: 'end'
       );
@@ -239,7 +239,7 @@ class _BroadcastShowerScreenState extends State<BroadcastShowerScreen> {
 
   void updateScore(UpdateScore updateScore) {
     stompClient.send(
-      destination: "/app//broadcast/score/${widget.broadcastRoomInfo.roomId}",
+      destination: "/app//broadcast/score/${widget.broadcastRoomInfo.gameInfoId}",
       body: json.encode(updateScore.toJson())
     );
   }
@@ -259,7 +259,7 @@ class _BroadcastShowerScreenState extends State<BroadcastShowerScreen> {
           rendererInitialized
             ? RTCVideoView(
               _localRenderer,
-              mirror: true,
+              mirror: frontCamera,
               objectFit: RTCVideoViewObjectFit.RTCVideoViewObjectFitCover,
             )
             : const Center(

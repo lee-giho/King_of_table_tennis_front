@@ -6,13 +6,13 @@ class ScoreBoard extends StatefulWidget {
   final GameUserInfo defender;
   final GameUserInfo challenger;
   final bool leftIsDefender;
-  final VoidCallback onChangeSeats;
+  final VoidCallback? onChangeSeats;
   const ScoreBoard({
     super.key,
     required this.defender,
     required this.challenger,
     required this.leftIsDefender,
-    required this.onChangeSeats
+    this.onChangeSeats
   });
 
   @override
@@ -37,42 +37,48 @@ class _ScoreBoardState extends State<ScoreBoard> {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
-              Row( // 왼쪽 사용자
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: ClipOval(
-                      child: leftUser.profileImage == "default"
-                        ? Container(   
-                            decoration: BoxDecoration(
-                              border: Border.all(
-                                width: 1
+              Expanded(
+                child: Row( // 왼쪽 사용자
+                mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: ClipOval(
+                        child: leftUser.profileImage == "default"
+                          ? Container(   
+                              decoration: BoxDecoration(
+                                border: Border.all(
+                                  width: 1
+                                ),
+                                borderRadius: BorderRadius.circular(100)
                               ),
-                              borderRadius: BorderRadius.circular(100)
-                            ),
-                            child: const Icon(
-                              Icons.person,
-                              size: 60
-                            ),
-                          )
-                        : Image(
-                            width: 60,
-                            height: 60,
-                            fit: BoxFit.cover,
-                            image: NetworkImage(
-                              "${dotenv.env["API_ADDRESS"]}/image/profile/${leftUser.profileImage}"
+                              child: const Icon(
+                                Icons.person,
+                                size: 60
+                              ),
                             )
-                          )
+                          : Image(
+                              width: 60,
+                              height: 60,
+                              fit: BoxFit.cover,
+                              image: NetworkImage(
+                                "${dotenv.env["API_ADDRESS"]}/image/profile/${leftUser.profileImage}"
+                              )
+                            )
+                      ),
                     ),
-                  ),
-                  Text(
-                    "가나다",
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold
-                    ),
-                  )
-                ],
+                    Text(
+                      leftUser.nickName,
+                      overflow: TextOverflow.ellipsis,
+                      maxLines: 1,
+                      softWrap: false,
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold
+                      ),
+                    )
+                  ],
+                ),
               ),
               Row( // 점수판
               mainAxisAlignment: MainAxisAlignment.center,
@@ -119,15 +125,19 @@ class _ScoreBoardState extends State<ScoreBoard> {
                       ),
                     ],
                   ),
-                  IconButton(
-                    onPressed: () {
-                      widget.onChangeSeats.call();
-                    },
-                    icon: Icon(
-                      Icons.autorenew,
-                      size: 40,
-                    )
-                  ),
+                  widget.onChangeSeats != null
+                    ? IconButton(
+                        onPressed: () {
+                          widget.onChangeSeats!.call();
+                        },
+                        icon: Icon(
+                          Icons.autorenew,
+                          size: 40,
+                        )
+                      )
+                    : SizedBox(
+                        width: 10
+                      ),
                   Row( // 오른쪽 사용자 점수판
                   crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
@@ -172,42 +182,48 @@ class _ScoreBoardState extends State<ScoreBoard> {
                   )
                 ],
               ),
-              Row( // 오른쪽 사용자
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: ClipOval(
-                      child: rightUser.profileImage == "default"
-                        ? Container(   
-                            decoration: BoxDecoration(
-                              border: Border.all(
-                                width: 1
+              Expanded(
+                child: Row( // 오른쪽 사용자
+                mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: ClipOval(
+                        child: rightUser.profileImage == "default"
+                          ? Container(   
+                              decoration: BoxDecoration(
+                                border: Border.all(
+                                  width: 1
+                                ),
+                                borderRadius: BorderRadius.circular(100)
                               ),
-                              borderRadius: BorderRadius.circular(100)
-                            ),
-                            child: const Icon(
-                              Icons.person,
-                              size: 60
-                            ),
-                          )
-                        : Image(
-                            width: 60,
-                            height: 60,
-                            fit: BoxFit.cover,
-                            image: NetworkImage(
-                              "${dotenv.env["API_ADDRESS"]}/image/profile/${rightUser.profileImage}"
+                              child: const Icon(
+                                Icons.person,
+                                size: 60
+                              ),
                             )
-                          )
+                          : Image(
+                              width: 60,
+                              height: 60,
+                              fit: BoxFit.cover,
+                              image: NetworkImage(
+                                "${dotenv.env["API_ADDRESS"]}/image/profile/${rightUser.profileImage}"
+                              )
+                            )
+                      ),
                     ),
-                  ),
-                  Text(
-                    "가나다",
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold
-                    ),
-                  )
-                ],
+                    Text(
+                      rightUser.nickName,
+                      overflow: TextOverflow.ellipsis,
+                      maxLines: 1,
+                      softWrap: false,
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold
+                      ),
+                    )
+                  ],
+                ),
               ),
             ],
           ),

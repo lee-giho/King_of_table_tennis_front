@@ -9,6 +9,7 @@ import 'package:king_of_table_tennis/enum/game_state.dart';
 import 'package:king_of_table_tennis/model/broadcastRoomInfo.dart';
 import 'package:king_of_table_tennis/model/game_detail_info_dto.dart';
 import 'package:king_of_table_tennis/screen/broadcast_shower_screen.dart';
+import 'package:king_of_table_tennis/screen/broadcast_viewer_screen.dart';
 import 'package:king_of_table_tennis/util/apiRequest.dart';
 import 'package:king_of_table_tennis/util/appColors.dart';
 import 'package:king_of_table_tennis/util/intl.dart';
@@ -121,8 +122,28 @@ class _TableTennisGameInfoDetailScreenState extends State<TableTennisGameInfoDet
     } else {
       log("방송 방 만들기 실패");
     }
-
   }
+
+    Future<void> enterBroadcast(String gameInfoId) async {
+      String? accessToken = await SecureStorage.getAccessToken();
+
+      final response = await apiRequest(() => enterBroadcastRoom(gameInfoId), context);
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        BroadcastRoomInfo broadcastRoomInfo = BroadcastRoomInfo.fromJson(data);
+        
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => BroadcastViewerScreen(
+              broadcastRoomInfo: broadcastRoomInfo
+            )
+          )
+        );
+      } else {
+        log("방송 방 입장 실패");
+      }
+    }
 
   @override
   Widget build(BuildContext context) {
@@ -300,10 +321,14 @@ class _TableTennisGameInfoDetailScreenState extends State<TableTennisGameInfoDet
                   ),
                   ElevatedButton(
                     onPressed: gameDetailInfo!.gameState.state == GameState.WAITING && gameDetailInfo!.gameInfo.gameDate.isAfter(DateTime.now()) && widget.isMine
-                    ? () {
-                        startBroadcast(widget.gameInfoId, GameState.DOING);
-                      }
-                    : null,
+                      ? () {
+                          startBroadcast(widget.gameInfoId, GameState.DOING);
+                        }
+                      : gameDetailInfo!.gameState.state == GameState.DOING
+                        ? () {
+                            enterBroadcast(widget.gameInfoId);
+                          }
+                        : null,
                     style: ElevatedButton.styleFrom(
                         minimumSize: const Size.fromHeight(50),
                         backgroundColor: AppColors.racketRed,

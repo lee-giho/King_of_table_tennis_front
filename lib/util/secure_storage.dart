@@ -67,6 +67,19 @@ class SecureStorage {
     return await storage.read(key: 'refreshToken');
   }
 
+  // 아아디 저장
+  static Future<void> saveUserId(String id) async {
+    await storage.write(
+      key: 'id',
+      value: id
+    );
+  }
+
+  // 아이디 읽기
+  static Future<String?> getId() async {
+    return await storage.read(key: 'id');
+  }
+
   // 로그아웃 처리
   static Future<void> logout() async {
     await storage.delete(key: 'accessToken');

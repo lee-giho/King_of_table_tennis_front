@@ -58,6 +58,7 @@ class _LoginScreenState extends State<LoginScreen> {
       await SecureStorage.saveIsAutoLogin(isAutoLogin);
       await SecureStorage.saveAccessToken(accessToken);
       await SecureStorage.saveRefreshToken(refreshToken);
+      await SecureStorage.saveUserId(id);
 
       if (isFirstLogin) {
         Navigator.push(
