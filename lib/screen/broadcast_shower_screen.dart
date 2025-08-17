@@ -35,8 +35,6 @@ class _BroadcastShowerScreenState extends State<BroadcastShowerScreen> {
   bool micEnabled = true;
   bool rendererInitialized = false;
 
-  bool leftIsDefender = true;
-
     @override
   void initState() {
     super.initState();
@@ -232,7 +230,7 @@ class _BroadcastShowerScreenState extends State<BroadcastShowerScreen> {
         log(response.body);
 
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("친구 방송 삭제를 실패했습니다."))
+          const SnackBar(content: Text("방송 삭제를 실패했습니다."))
         );
       }
   }
@@ -245,10 +243,14 @@ class _BroadcastShowerScreenState extends State<BroadcastShowerScreen> {
   }
 
   void changeSeats() {
-    setState(() {
-      leftIsDefender = !leftIsDefender;
-    });
-    print(leftIsDefender);
+    widget.broadcastRoomInfo.leftIsDefender = !widget.broadcastRoomInfo.leftIsDefender;
+    print("leftIsDefender: $widget.broadcastRoomInfo.leftIsDefender");
+    stompClient.send(
+      destination: "/app/broadcast/leftIsDefender/${widget.broadcastRoomInfo.gameInfoId}",
+      body: jsonEncode({
+        'leftIsDefender': widget.broadcastRoomInfo.leftIsDefender
+      })
+    );
   }
 
   @override
@@ -277,7 +279,7 @@ class _BroadcastShowerScreenState extends State<BroadcastShowerScreen> {
                       onTap: () {
                         print("왼쪽 +1!!");
                         setState(() {
-                          if (leftIsDefender) {
+                          if (widget.broadcastRoomInfo.leftIsDefender) {
                             widget.broadcastRoomInfo.defender.incrementScore();
                             updateScore(UpdateScore(side: "defender", newScore: widget.broadcastRoomInfo.defender.score));
                           } else {
@@ -291,7 +293,7 @@ class _BroadcastShowerScreenState extends State<BroadcastShowerScreen> {
                       onLongPress: () {
                         print("왼쪽 -1!!");
                         setState(() {
-                          if (leftIsDefender) {
+                          if (widget.broadcastRoomInfo.leftIsDefender) {
                             widget.broadcastRoomInfo.defender.decrementScore();
                             updateScore(UpdateScore(side: "defender", newScore: widget.broadcastRoomInfo.defender.score));
                           } else {
@@ -313,7 +315,7 @@ class _BroadcastShowerScreenState extends State<BroadcastShowerScreen> {
                       onTap: () {
                         print("오른쪽 +1!!");
                         setState(() {
-                          if (leftIsDefender) {
+                          if (widget.broadcastRoomInfo.leftIsDefender) {
                             widget.broadcastRoomInfo.challenger.incrementScore();
                             updateScore(UpdateScore(side: "challenger", newScore: widget.broadcastRoomInfo.challenger.score));
                           } else {
@@ -327,7 +329,7 @@ class _BroadcastShowerScreenState extends State<BroadcastShowerScreen> {
                       onLongPress: () {
                         print("오른쪽 -1!!");
                         setState(() {
-                          if (leftIsDefender) {
+                          if (widget.broadcastRoomInfo.leftIsDefender) {
                             widget.broadcastRoomInfo.challenger.decrementScore();
                             updateScore(UpdateScore(side: "challenger", newScore: widget.broadcastRoomInfo.challenger.score));
                           } else {
@@ -368,7 +370,7 @@ class _BroadcastShowerScreenState extends State<BroadcastShowerScreen> {
             child: ScoreBoard(
               defender: widget.broadcastRoomInfo.defender,
               challenger: widget.broadcastRoomInfo.challenger,
-              leftIsDefender: leftIsDefender,
+              leftIsDefender: widget.broadcastRoomInfo.leftIsDefender,
               onChangeSeats: changeSeats,
             )
           ),

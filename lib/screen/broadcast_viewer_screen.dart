@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
 import 'package:king_of_table_tennis/model/broadcastRoomInfo.dart';
+import 'package:king_of_table_tennis/model/update_score.dart';
 import 'package:king_of_table_tennis/util/secure_storage.dart';
 import 'package:king_of_table_tennis/widget/scoreBoard.dart';
 import 'package:stomp_dart_client/stomp_dart_client.dart';
@@ -112,6 +113,36 @@ class _BroadcastViewerScreenState extends State<BroadcastViewerScreen> {
       destination: "/topic/broadcast/end/$roomId",
       callback: (_) {
         Navigator.pop(context);
+        Navigator.pop(context);
+      }
+    );
+
+    client.subscribe(
+      destination: "/topic/broadcast/score/$roomId",
+      callback: (frame) async {
+        final data = jsonDecode(frame.body!);
+        
+        UpdateScore updateScore = UpdateScore.fromJson(data);
+
+        setState(() {
+          if (updateScore.side == "defender") {
+            widget.broadcastRoomInfo.defender.score = updateScore.newScore;
+          } else {
+            widget.broadcastRoomInfo.challenger.score = updateScore.newScore;
+          }
+        });
+      }
+    );
+
+    client.subscribe(
+      destination: "/topic/broadcast/leftIsDefender/$roomId",
+      callback: (frame) {
+        final data = jsonDecode(frame.body!);
+        bool leftIsDefender = data["leftIsDefender"];
+        setState(() {
+          widget.broadcastRoomInfo.leftIsDefender = leftIsDefender;
+        });
+        print("leftIsDefender: ${widget.broadcastRoomInfo.leftIsDefender}");
       }
     );
   }
@@ -191,7 +222,7 @@ class _BroadcastViewerScreenState extends State<BroadcastViewerScreen> {
             child: ScoreBoard(
               defender: widget.broadcastRoomInfo.defender,
               challenger: widget.broadcastRoomInfo.challenger,
-              leftIsDefender: true,
+              leftIsDefender: widget.broadcastRoomInfo.leftIsDefender,
               onChangeSeats: null,
             )
           ),

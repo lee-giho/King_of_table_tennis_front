@@ -5,6 +5,7 @@ class BroadcastRoomInfo {
   final String roomName;
   final GameUserInfo defender;
   final GameUserInfo challenger;
+  bool leftIsDefender;
   final DateTime createdAt;
 
   BroadcastRoomInfo({
@@ -12,6 +13,7 @@ class BroadcastRoomInfo {
     required this.roomName,
     required this.defender,
     required this.challenger,
+    required this.leftIsDefender,
     required this.createdAt
   });
 
@@ -25,6 +27,7 @@ class BroadcastRoomInfo {
       challenger: json['challenger'] != null
         ? GameUserInfo.fromJson(json['challenger'])
         : GameUserInfo.empty(),
+      leftIsDefender: json['leftIsDefender'] ?? true,
       createdAt: DateTime.parse(json['createdAt'])
     );
   }

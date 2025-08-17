@@ -28,7 +28,7 @@ Future<http.Response> deleteBroadcastRoom(String gameInfoId) async {
   String? accessToken = await SecureStorage.getAccessToken();
 
   // .env에서 서버 URL 가져오기
-  final apiAddress = Uri.parse("${dotenv.get("API_ADDRESS")}/api/broadcast?roomId=${gameInfoId}");
+  final apiAddress = Uri.parse("${dotenv.get("API_ADDRESS")}/api/broadcast");
   final headers = {
     'Authorization': 'Bearer ${accessToken}',
     'Content-Type': 'application/json'
@@ -36,7 +36,10 @@ Future<http.Response> deleteBroadcastRoom(String gameInfoId) async {
 
   final response = await http.delete(
     apiAddress,
-    headers: headers
+    headers: headers,
+    body: json.encode({
+      "gameInfoId": gameInfoId
+    })
   );
 
   return response;
