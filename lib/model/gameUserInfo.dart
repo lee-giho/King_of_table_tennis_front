@@ -3,7 +3,7 @@ class GameUserInfo {
   final String nickName;
   final String profileImage;
   final String racketType;
-  final int setScore;
+  int setScore;
   int score;
 
   GameUserInfo({

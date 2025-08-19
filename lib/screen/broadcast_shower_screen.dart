@@ -9,6 +9,7 @@ import 'package:king_of_table_tennis/api/broadcast_api.dart';
 import 'package:king_of_table_tennis/model/broadcastRoomInfo.dart';
 import 'package:king_of_table_tennis/model/update_score.dart';
 import 'package:king_of_table_tennis/util/apiRequest.dart';
+import 'package:king_of_table_tennis/util/checkScore.dart';
 import 'package:king_of_table_tennis/widget/scoreBoard.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:stomp_dart_client/stomp_dart_client.dart';
@@ -251,6 +252,58 @@ class _BroadcastShowerScreenState extends State<BroadcastShowerScreen> {
         'leftIsDefender': widget.broadcastRoomInfo.leftIsDefender
       })
     );
+    setState(() {});
+  }
+
+  void checkScore() {
+    String result = CheckScore().gameScore(
+      widget.broadcastRoomInfo.leftIsDefender 
+        ? widget.broadcastRoomInfo.defender.score
+        : widget.broadcastRoomInfo.challenger.score,
+      widget.broadcastRoomInfo.leftIsDefender
+        ? widget.broadcastRoomInfo.challenger.score
+        : widget.broadcastRoomInfo.defender.score,
+      11 // 이 부분 게임 생성시 등록한 승리 점수로 설정해야함
+    );
+    
+    if (result == "LEFT WIN") {
+      setState(() {
+        widget.broadcastRoomInfo.defender.score = 0;
+        widget.broadcastRoomInfo.challenger.score = 0;
+
+        widget.broadcastRoomInfo.leftIsDefender 
+          ? widget.broadcastRoomInfo.defender.setScore += 1
+          : widget.broadcastRoomInfo.challenger.setScore += 1;
+      });
+    } else if (result == "RIGHT WIN") {
+        setState(() {
+          widget.broadcastRoomInfo.defender.score = 0;
+          widget.broadcastRoomInfo.challenger.score = 0;
+
+          widget.broadcastRoomInfo.leftIsDefender 
+            ? widget.broadcastRoomInfo.challenger.setScore += 1
+            : widget.broadcastRoomInfo.defender.setScore += 1;
+        });
+    }
+
+    checkSet();
+  }
+
+  void checkSet() {
+    String result = CheckScore().gameSet(
+      widget.broadcastRoomInfo.leftIsDefender 
+        ? widget.broadcastRoomInfo.defender.setScore
+        : widget.broadcastRoomInfo.challenger.setScore,
+      widget.broadcastRoomInfo.leftIsDefender
+        ? widget.broadcastRoomInfo.challenger.setScore
+        : widget.broadcastRoomInfo.defender.setScore,
+      3 // 이 부분 게임 생성시 등록한 승리 세트로 설정해야함
+    );
+
+    if (result != "CONTINUE") {
+      // 게임 승리 로직 추가
+      print(result);
+    }
   }
 
   @override
@@ -287,8 +340,11 @@ class _BroadcastShowerScreenState extends State<BroadcastShowerScreen> {
                             updateScore(UpdateScore(side: "challenger", newScore: widget.broadcastRoomInfo.challenger.score));
                           }
                         });
+                        checkScore();
                         print(widget.broadcastRoomInfo.defender.score);
                         print(widget.broadcastRoomInfo.challenger.score);
+                        print(widget.broadcastRoomInfo.defender.setScore);
+                        print(widget.broadcastRoomInfo.challenger.setScore);
                       },
                       onLongPress: () {
                         print("왼쪽 -1!!");
@@ -301,8 +357,11 @@ class _BroadcastShowerScreenState extends State<BroadcastShowerScreen> {
                             updateScore(UpdateScore(side: "challenger", newScore: widget.broadcastRoomInfo.challenger.score));
                           }
                         });
+                        checkScore();
                         print(widget.broadcastRoomInfo.defender.score);
                         print(widget.broadcastRoomInfo.challenger.score);
+                        print(widget.broadcastRoomInfo.defender.setScore);
+                        print(widget.broadcastRoomInfo.challenger.setScore);
                       },
                       child: Container(
 
@@ -323,8 +382,11 @@ class _BroadcastShowerScreenState extends State<BroadcastShowerScreen> {
                             updateScore(UpdateScore(side: "defender", newScore: widget.broadcastRoomInfo.defender.score));
                           }
                         });
+                        checkScore();
                         print(widget.broadcastRoomInfo.defender.score);
                         print(widget.broadcastRoomInfo.challenger.score);
+                        print(widget.broadcastRoomInfo.defender.setScore);
+                        print(widget.broadcastRoomInfo.challenger.setScore);
                       },
                       onLongPress: () {
                         print("오른쪽 -1!!");
@@ -337,8 +399,11 @@ class _BroadcastShowerScreenState extends State<BroadcastShowerScreen> {
                             updateScore(UpdateScore(side: "defender", newScore: widget.broadcastRoomInfo.defender.score));
                           }
                         });
+                        checkScore();
                         print(widget.broadcastRoomInfo.defender.score);
                         print(widget.broadcastRoomInfo.challenger.score);
+                        print(widget.broadcastRoomInfo.defender.setScore);
+                        print(widget.broadcastRoomInfo.challenger.setScore);
                       },
                       child: Container(
 
