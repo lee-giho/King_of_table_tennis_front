@@ -4,7 +4,9 @@ import 'dart:convert';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
 import 'package:king_of_table_tennis/model/broadcastRoomInfo.dart';
+import 'package:king_of_table_tennis/model/end_game.dart';
 import 'package:king_of_table_tennis/model/update_score.dart';
+import 'package:king_of_table_tennis/model/update_set_score.dart';
 import 'package:king_of_table_tennis/util/secure_storage.dart';
 import 'package:king_of_table_tennis/widget/scoreBoard.dart';
 import 'package:stomp_dart_client/stomp_dart_client.dart';
@@ -111,7 +113,12 @@ class _BroadcastViewerScreenState extends State<BroadcastViewerScreen> {
 
     client.subscribe(
       destination: "/topic/broadcast/end/$roomId",
-      callback: (_) {
+      callback: (frame) async {
+        final data = jsonDecode(frame.body!);
+
+        EndGame endGame = EndGame.fromJson(data);
+        print("${endGame.winner}승리!!");
+        print("${endGame.loser}패배!!");
         Navigator.pop(context);
         Navigator.pop(context);
       }
@@ -135,6 +142,28 @@ class _BroadcastViewerScreenState extends State<BroadcastViewerScreen> {
     );
 
     client.subscribe(
+      destination: "/topic/broadcast/setScore/$roomId",
+      callback: (frame) async {
+        final data = jsonDecode(frame.body!);
+        
+        UpdateSetScore updateSetScore = UpdateSetScore.fromJson(data);
+
+        print("세트 스코어 변경 $data");
+
+        setState(() {
+          widget.broadcastRoomInfo.defender.score = 0;
+          widget.broadcastRoomInfo.challenger.score = 0;
+
+          if (updateSetScore.side == "defender") {
+            widget.broadcastRoomInfo.defender.setScore = updateSetScore.newSetScore;
+          } else {
+            widget.broadcastRoomInfo.challenger.setScore = updateSetScore.newSetScore;
+          }
+        });
+      }
+    );
+
+    client.subscribe(
       destination: "/topic/broadcast/leftIsDefender/$roomId",
       callback: (frame) {
         final data = jsonDecode(frame.body!);
@@ -143,6 +172,14 @@ class _BroadcastViewerScreenState extends State<BroadcastViewerScreen> {
           widget.broadcastRoomInfo.leftIsDefender = leftIsDefender;
         });
         print("leftIsDefender: ${widget.broadcastRoomInfo.leftIsDefender}");
+      }
+    );
+
+    client.subscribe(
+      destination: "/topic/broadcast/message/$roomId",
+      callback: (frame) {
+        final data = frame.body;
+        print("message: $data");
       }
     );
   }

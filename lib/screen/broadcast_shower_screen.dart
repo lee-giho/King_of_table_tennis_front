@@ -7,7 +7,9 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
 import 'package:king_of_table_tennis/api/broadcast_api.dart';
 import 'package:king_of_table_tennis/model/broadcastRoomInfo.dart';
+import 'package:king_of_table_tennis/model/end_game.dart';
 import 'package:king_of_table_tennis/model/update_score.dart';
+import 'package:king_of_table_tennis/model/update_set_score.dart';
 import 'package:king_of_table_tennis/util/apiRequest.dart';
 import 'package:king_of_table_tennis/util/checkScore.dart';
 import 'package:king_of_table_tennis/widget/scoreBoard.dart';
@@ -154,15 +156,6 @@ class _BroadcastShowerScreenState extends State<BroadcastShowerScreen> {
         }
       }
     );
-
-    client.subscribe(
-      destination: "/topic/broadcast/score/$roomId",
-      callback: (frame) async {
-        final data = jsonDecode(frame.body!);
-        
-        UpdateScore updateScore = UpdateScore.fromJson(data);
-      }
-    );
   }
 
   Future<RTCPeerConnection> _createPeerConnection(String viewerId, String roomId) async {
@@ -209,12 +202,12 @@ class _BroadcastShowerScreenState extends State<BroadcastShowerScreen> {
     }
   }
 
-  void _endBroadcast() {
+  void _endBroadcast(EndGame endgame) {
     for (final viewer in _peerConnections.keys) {
       stompClient.send(
         destination: "/app/broadcast/end/${widget.broadcastRoomInfo.gameInfoId}",
         headers: {},
-        body: 'end'
+        body: json.encode(endgame.toJson())
       );
     }
     Navigator.pop(context);
@@ -226,7 +219,18 @@ class _BroadcastShowerScreenState extends State<BroadcastShowerScreen> {
     if (response.statusCode == 200) {
         log("delete broadcast room: ${response.body}");
 
-        _endBroadcast();
+        bool isDefenderWin = widget.broadcastRoomInfo.defender.setScore > widget.broadcastRoomInfo.challenger.setScore;
+
+        _endBroadcast(
+          EndGame(
+            winner: isDefenderWin
+              ? "DEFENDER"
+              : "CHALLENGER",
+            loser: isDefenderWin
+              ? "CHALLENGER"
+              : "DEFENDER"
+          )
+        );
       } else {
         log(response.body);
 
@@ -243,6 +247,13 @@ class _BroadcastShowerScreenState extends State<BroadcastShowerScreen> {
     );
   }
 
+  void updateSetScore(UpdateSetScore updateSetScore) {
+    stompClient.send(
+      destination: "/app//broadcast/setScore/${widget.broadcastRoomInfo.gameInfoId}",
+      body: json.encode(updateSetScore.toJson())
+    );
+  }
+
   void changeSeats() {
     widget.broadcastRoomInfo.leftIsDefender = !widget.broadcastRoomInfo.leftIsDefender;
     print("leftIsDefender: $widget.broadcastRoomInfo.leftIsDefender");
@@ -253,6 +264,13 @@ class _BroadcastShowerScreenState extends State<BroadcastShowerScreen> {
       })
     );
     setState(() {});
+  }
+
+  void sendMessage(String message) {
+    stompClient.send(
+      destination: "/app//broadcast/message/${widget.broadcastRoomInfo.gameInfoId}",
+      body: message
+    );
   }
 
   void checkScore() {
@@ -275,15 +293,39 @@ class _BroadcastShowerScreenState extends State<BroadcastShowerScreen> {
           ? widget.broadcastRoomInfo.defender.setScore += 1
           : widget.broadcastRoomInfo.challenger.setScore += 1;
       });
+      updateSetScore(
+        UpdateSetScore(
+          side: widget.broadcastRoomInfo.leftIsDefender
+            ? "defender"
+            : "challenger",
+          newSetScore: widget.broadcastRoomInfo.leftIsDefender
+            ? widget.broadcastRoomInfo.defender.setScore
+            : widget.broadcastRoomInfo.challenger.setScore
+        )
+      );
+      sendMessage(result);
     } else if (result == "RIGHT WIN") {
-        setState(() {
-          widget.broadcastRoomInfo.defender.score = 0;
-          widget.broadcastRoomInfo.challenger.score = 0;
+      setState(() {
+        widget.broadcastRoomInfo.defender.score = 0;
+        widget.broadcastRoomInfo.challenger.score = 0;
 
-          widget.broadcastRoomInfo.leftIsDefender 
-            ? widget.broadcastRoomInfo.challenger.setScore += 1
-            : widget.broadcastRoomInfo.defender.setScore += 1;
-        });
+        widget.broadcastRoomInfo.leftIsDefender 
+          ? widget.broadcastRoomInfo.challenger.setScore += 1
+          : widget.broadcastRoomInfo.defender.setScore += 1;
+      });
+      sendMessage(result);
+      updateSetScore(
+        UpdateSetScore(
+          side: widget.broadcastRoomInfo.leftIsDefender
+            ? "challenger"
+            : "defender",
+          newSetScore: widget.broadcastRoomInfo.leftIsDefender
+            ? widget.broadcastRoomInfo.challenger.setScore
+            : widget.broadcastRoomInfo.defender.setScore
+        )
+      );
+    } else if (result == "DEUCE") {
+      sendMessage(result);
     }
 
     checkSet();
