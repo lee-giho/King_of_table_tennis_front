@@ -13,6 +13,17 @@ class ToastMessage {
     );
   }
 
+  static void showLong(String message) {
+    Fluttertoast.showToast(
+      msg: message,
+      toastLength: Toast.LENGTH_LONG,
+      gravity: ToastGravity.CENTER,
+      backgroundColor: const Color.fromARGB(146, 0, 0, 0),
+      textColor: Colors.white,
+      fontSize: 16
+    );
+  }
+
   static void showLongBottom(String message) {
     Fluttertoast.showToast(
       msg: message,

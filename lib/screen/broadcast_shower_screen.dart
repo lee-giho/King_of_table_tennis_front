@@ -202,15 +202,22 @@ class _BroadcastShowerScreenState extends State<BroadcastShowerScreen> {
     }
   }
 
-  void _endBroadcast(EndGame endgame) {
-    for (final viewer in _peerConnections.keys) {
-      stompClient.send(
-        destination: "/app/broadcast/end/${widget.broadcastRoomInfo.gameInfoId}",
-        headers: {},
-        body: json.encode(endgame.toJson())
-      );
-    }
+  void endBroadcast() {
+    stompClient.send(
+      destination: "/app/broadcast/end/${widget.broadcastRoomInfo.gameInfoId}",
+      headers: {},
+      body: "방송 종료"
+    );
     Navigator.pop(context);
+    Navigator.pop(context);
+  }
+
+  void endGame(EndGame endgame) {
+    stompClient.send(
+      destination: "/app/broadcast/result/${widget.broadcastRoomInfo.gameInfoId}",
+      headers: {},
+      body: json.encode(endgame.toJson())
+    );
   }
 
   Future<void> _deleteBroadcastRoom() async {
@@ -219,18 +226,8 @@ class _BroadcastShowerScreenState extends State<BroadcastShowerScreen> {
     if (response.statusCode == 200) {
         log("delete broadcast room: ${response.body}");
 
-        bool isDefenderWin = widget.broadcastRoomInfo.defender.setScore > widget.broadcastRoomInfo.challenger.setScore;
+        endBroadcast();
 
-        _endBroadcast(
-          EndGame(
-            winner: isDefenderWin
-              ? "DEFENDER"
-              : "CHALLENGER",
-            loser: isDefenderWin
-              ? "CHALLENGER"
-              : "DEFENDER"
-          )
-        );
       } else {
         log(response.body);
 
@@ -303,7 +300,13 @@ class _BroadcastShowerScreenState extends State<BroadcastShowerScreen> {
             : widget.broadcastRoomInfo.challenger.setScore
         )
       );
-      sendMessage(result);
+      if (widget.broadcastRoomInfo.defender.setScore < 2 && widget.broadcastRoomInfo.challenger.setScore < 2) {
+        sendMessage(
+          widget.broadcastRoomInfo.leftIsDefender
+            ? "${widget.broadcastRoomInfo.defender.nickName}님 세트 승리"
+            : "${widget.broadcastRoomInfo.challenger.nickName}님 세트 승리"
+        );
+      }
     } else if (result == "RIGHT WIN") {
       setState(() {
         widget.broadcastRoomInfo.defender.score = 0;
@@ -313,7 +316,13 @@ class _BroadcastShowerScreenState extends State<BroadcastShowerScreen> {
           ? widget.broadcastRoomInfo.challenger.setScore += 1
           : widget.broadcastRoomInfo.defender.setScore += 1;
       });
-      sendMessage(result);
+      if (widget.broadcastRoomInfo.defender.setScore < 2 && widget.broadcastRoomInfo.challenger.setScore < 2) {
+        sendMessage(
+          widget.broadcastRoomInfo.leftIsDefender
+            ? "${widget.broadcastRoomInfo.challenger.nickName}님 세트 승리"
+            : "${widget.broadcastRoomInfo.defender.nickName}님 세트 승리"
+        );
+      }
       updateSetScore(
         UpdateSetScore(
           side: widget.broadcastRoomInfo.leftIsDefender
@@ -325,7 +334,7 @@ class _BroadcastShowerScreenState extends State<BroadcastShowerScreen> {
         )
       );
     } else if (result == "DEUCE") {
-      sendMessage(result);
+      sendMessage("듀스!!");
     }
 
     checkSet();
@@ -343,8 +352,35 @@ class _BroadcastShowerScreenState extends State<BroadcastShowerScreen> {
     );
 
     if (result != "CONTINUE") {
-      // 게임 승리 로직 추가
-      print(result);
+      if (result == "LEFT WIN") {
+        // 게임 승리 로직 추가
+
+
+        endGame(
+          EndGame(
+            winner: widget.broadcastRoomInfo.leftIsDefender
+              ? widget.broadcastRoomInfo.defender.nickName
+              : widget.broadcastRoomInfo.challenger.nickName,
+            loser: widget.broadcastRoomInfo.leftIsDefender
+              ? widget.broadcastRoomInfo.challenger.nickName
+              : widget.broadcastRoomInfo.defender.nickName
+          )
+        );
+
+      } else if (result == "RIGHT WIN") {
+
+
+        endGame(
+          EndGame(
+            winner: widget.broadcastRoomInfo.leftIsDefender
+              ? widget.broadcastRoomInfo.challenger.nickName
+              : widget.broadcastRoomInfo.defender.nickName,
+            loser: widget.broadcastRoomInfo.leftIsDefender
+              ? widget.broadcastRoomInfo.defender.nickName
+              : widget.broadcastRoomInfo.challenger.nickName
+          )
+        );
+      }
     }
   }
 
@@ -362,100 +398,101 @@ class _BroadcastShowerScreenState extends State<BroadcastShowerScreen> {
             : const Center(
                 child: CircularProgressIndicator()
               ),
-          Positioned(
-            child: SizedBox(
-              width: MediaQuery.of(context).size.width,
-              height: MediaQuery.of(context).size.height,
-              child: Row(
-                children: [
-                  Expanded(
-                    flex: 1,
-                    child: InkWell(
-                      onTap: () {
-                        print("왼쪽 +1!!");
-                        setState(() {
-                          if (widget.broadcastRoomInfo.leftIsDefender) {
-                            widget.broadcastRoomInfo.defender.incrementScore();
-                            updateScore(UpdateScore(side: "defender", newScore: widget.broadcastRoomInfo.defender.score));
-                          } else {
-                            widget.broadcastRoomInfo.challenger.incrementScore();
-                            updateScore(UpdateScore(side: "challenger", newScore: widget.broadcastRoomInfo.challenger.score));
-                          }
-                        });
-                        checkScore();
-                        print(widget.broadcastRoomInfo.defender.score);
-                        print(widget.broadcastRoomInfo.challenger.score);
-                        print(widget.broadcastRoomInfo.defender.setScore);
-                        print(widget.broadcastRoomInfo.challenger.setScore);
-                      },
-                      onLongPress: () {
-                        print("왼쪽 -1!!");
-                        setState(() {
-                          if (widget.broadcastRoomInfo.leftIsDefender) {
-                            widget.broadcastRoomInfo.defender.decrementScore();
-                            updateScore(UpdateScore(side: "defender", newScore: widget.broadcastRoomInfo.defender.score));
-                          } else {
-                            widget.broadcastRoomInfo.challenger.decrementScore();
-                            updateScore(UpdateScore(side: "challenger", newScore: widget.broadcastRoomInfo.challenger.score));
-                          }
-                        });
-                        checkScore();
-                        print(widget.broadcastRoomInfo.defender.score);
-                        print(widget.broadcastRoomInfo.challenger.score);
-                        print(widget.broadcastRoomInfo.defender.setScore);
-                        print(widget.broadcastRoomInfo.challenger.setScore);
-                      },
-                      child: Container(
+          if (widget.broadcastRoomInfo.defender.setScore < 2 && widget.broadcastRoomInfo.challenger.setScore < 2)
+            Positioned(
+              child: SizedBox(
+                width: MediaQuery.of(context).size.width,
+                height: MediaQuery.of(context).size.height,
+                child: Row(
+                  children: [
+                    Expanded(
+                      flex: 1,
+                      child: InkWell(
+                        onTap: () {
+                          print("왼쪽 +1!!");
+                          setState(() {
+                            if (widget.broadcastRoomInfo.leftIsDefender) {
+                              widget.broadcastRoomInfo.defender.incrementScore();
+                              updateScore(UpdateScore(side: "defender", newScore: widget.broadcastRoomInfo.defender.score));
+                            } else {
+                              widget.broadcastRoomInfo.challenger.incrementScore();
+                              updateScore(UpdateScore(side: "challenger", newScore: widget.broadcastRoomInfo.challenger.score));
+                            }
+                          });
+                          checkScore();
+                          print(widget.broadcastRoomInfo.defender.score);
+                          print(widget.broadcastRoomInfo.challenger.score);
+                          print(widget.broadcastRoomInfo.defender.setScore);
+                          print(widget.broadcastRoomInfo.challenger.setScore);
+                        },
+                        onLongPress: () {
+                          print("왼쪽 -1!!");
+                          setState(() {
+                            if (widget.broadcastRoomInfo.leftIsDefender) {
+                              widget.broadcastRoomInfo.defender.decrementScore();
+                              updateScore(UpdateScore(side: "defender", newScore: widget.broadcastRoomInfo.defender.score));
+                            } else {
+                              widget.broadcastRoomInfo.challenger.decrementScore();
+                              updateScore(UpdateScore(side: "challenger", newScore: widget.broadcastRoomInfo.challenger.score));
+                            }
+                          });
+                          checkScore();
+                          print(widget.broadcastRoomInfo.defender.score);
+                          print(widget.broadcastRoomInfo.challenger.score);
+                          print(widget.broadcastRoomInfo.defender.setScore);
+                          print(widget.broadcastRoomInfo.challenger.setScore);
+                        },
+                        child: Container(
 
+                        ),
                       ),
                     ),
-                  ),
-                  Expanded(
-                    flex: 1,
-                    child: InkWell(
-                      onTap: () {
-                        print("오른쪽 +1!!");
-                        setState(() {
-                          if (widget.broadcastRoomInfo.leftIsDefender) {
-                            widget.broadcastRoomInfo.challenger.incrementScore();
-                            updateScore(UpdateScore(side: "challenger", newScore: widget.broadcastRoomInfo.challenger.score));
-                          } else {
-                            widget.broadcastRoomInfo.defender.incrementScore();
-                            updateScore(UpdateScore(side: "defender", newScore: widget.broadcastRoomInfo.defender.score));
-                          }
-                        });
-                        checkScore();
-                        print(widget.broadcastRoomInfo.defender.score);
-                        print(widget.broadcastRoomInfo.challenger.score);
-                        print(widget.broadcastRoomInfo.defender.setScore);
-                        print(widget.broadcastRoomInfo.challenger.setScore);
-                      },
-                      onLongPress: () {
-                        print("오른쪽 -1!!");
-                        setState(() {
-                          if (widget.broadcastRoomInfo.leftIsDefender) {
-                            widget.broadcastRoomInfo.challenger.decrementScore();
-                            updateScore(UpdateScore(side: "challenger", newScore: widget.broadcastRoomInfo.challenger.score));
-                          } else {
-                            widget.broadcastRoomInfo.defender.decrementScore();
-                            updateScore(UpdateScore(side: "defender", newScore: widget.broadcastRoomInfo.defender.score));
-                          }
-                        });
-                        checkScore();
-                        print(widget.broadcastRoomInfo.defender.score);
-                        print(widget.broadcastRoomInfo.challenger.score);
-                        print(widget.broadcastRoomInfo.defender.setScore);
-                        print(widget.broadcastRoomInfo.challenger.setScore);
-                      },
-                      child: Container(
+                    Expanded(
+                      flex: 1,
+                      child: InkWell(
+                        onTap: () {
+                          print("오른쪽 +1!!");
+                          setState(() {
+                            if (widget.broadcastRoomInfo.leftIsDefender) {
+                              widget.broadcastRoomInfo.challenger.incrementScore();
+                              updateScore(UpdateScore(side: "challenger", newScore: widget.broadcastRoomInfo.challenger.score));
+                            } else {
+                              widget.broadcastRoomInfo.defender.incrementScore();
+                              updateScore(UpdateScore(side: "defender", newScore: widget.broadcastRoomInfo.defender.score));
+                            }
+                          });
+                          checkScore();
+                          print(widget.broadcastRoomInfo.defender.score);
+                          print(widget.broadcastRoomInfo.challenger.score);
+                          print(widget.broadcastRoomInfo.defender.setScore);
+                          print(widget.broadcastRoomInfo.challenger.setScore);
+                        },
+                        onLongPress: () {
+                          print("오른쪽 -1!!");
+                          setState(() {
+                            if (widget.broadcastRoomInfo.leftIsDefender) {
+                              widget.broadcastRoomInfo.challenger.decrementScore();
+                              updateScore(UpdateScore(side: "challenger", newScore: widget.broadcastRoomInfo.challenger.score));
+                            } else {
+                              widget.broadcastRoomInfo.defender.decrementScore();
+                              updateScore(UpdateScore(side: "defender", newScore: widget.broadcastRoomInfo.defender.score));
+                            }
+                          });
+                          checkScore();
+                          print(widget.broadcastRoomInfo.defender.score);
+                          print(widget.broadcastRoomInfo.challenger.score);
+                          print(widget.broadcastRoomInfo.defender.setScore);
+                          print(widget.broadcastRoomInfo.challenger.setScore);
+                        },
+                        child: Container(
 
+                        ),
                       ),
                     ),
-                  ),
-                ],
-              ),
-            )
-          ),
+                  ],
+                ),
+              )
+            ),
           Positioned(
             top: 15,
             left: 15,
@@ -506,7 +543,30 @@ class _BroadcastShowerScreenState extends State<BroadcastShowerScreen> {
                 )
               ]
             ),
-          )
+          ),
+          if (widget.broadcastRoomInfo.defender.setScore == 2 || widget.broadcastRoomInfo.challenger.setScore == 2)
+            Center(
+              child: ElevatedButton(
+                onPressed: () {
+                  _deleteBroadcastRoom();
+                },
+                style: ElevatedButton.styleFrom(
+                  minimumSize: const Size(200, 50),
+                  backgroundColor: const Color.fromRGBO(122, 11, 11, 1),
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(5)
+                  )
+                ),
+                child: const Text(
+                  "방송 종료",
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold
+                  ),
+                )
+              ),
+            ),
         ]
       )
     );

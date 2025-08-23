@@ -8,6 +8,7 @@ import 'package:king_of_table_tennis/model/end_game.dart';
 import 'package:king_of_table_tennis/model/update_score.dart';
 import 'package:king_of_table_tennis/model/update_set_score.dart';
 import 'package:king_of_table_tennis/util/secure_storage.dart';
+import 'package:king_of_table_tennis/util/toastMessage.dart';
 import 'package:king_of_table_tennis/widget/scoreBoard.dart';
 import 'package:stomp_dart_client/stomp_dart_client.dart';
 
@@ -113,14 +114,22 @@ class _BroadcastViewerScreenState extends State<BroadcastViewerScreen> {
 
     client.subscribe(
       destination: "/topic/broadcast/end/$roomId",
+      callback: (_) {
+        Navigator.pop(context);
+        Navigator.pop(context);
+      }
+    );
+
+    client.subscribe(
+      destination: "/topic/broadcast/result/$roomId",
       callback: (frame) async {
         final data = jsonDecode(frame.body!);
 
         EndGame endGame = EndGame.fromJson(data);
+
+        ToastMessage.showLong("${endGame.winner}님 승리!!");
         print("${endGame.winner}승리!!");
         print("${endGame.loser}패배!!");
-        Navigator.pop(context);
-        Navigator.pop(context);
       }
     );
 
@@ -180,6 +189,7 @@ class _BroadcastViewerScreenState extends State<BroadcastViewerScreen> {
       callback: (frame) {
         final data = frame.body;
         print("message: $data");
+        ToastMessage.show(data!);
       }
     );
   }
