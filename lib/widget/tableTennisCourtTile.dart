@@ -43,11 +43,13 @@ class _TableTennisCourtTileState extends State<TableTennisCourtTile> {
               Icon(
                 Icons.location_on
               ),
-              Text(
-                widget.tableTennisCourtDTO.address,
-                overflow: TextOverflow.ellipsis,
-                maxLines: 1,
-                softWrap: false,
+              Expanded(
+                child: Text(
+                  widget.tableTennisCourtDTO.address,
+                  overflow: TextOverflow.ellipsis,
+                  maxLines: 1,
+                  softWrap: false,
+                ),
               ),
             ],
           ),
@@ -57,11 +59,13 @@ class _TableTennisCourtTileState extends State<TableTennisCourtTile> {
               Icon(
                 Icons.call
               ),
-              Text(
-                widget.tableTennisCourtDTO.phoneNumber,
-                overflow: TextOverflow.ellipsis,
-                maxLines: 1,
-                softWrap: false,
+              Expanded(
+                child: Text(
+                  widget.tableTennisCourtDTO.phoneNumber,
+                  overflow: TextOverflow.ellipsis,
+                  maxLines: 1,
+                  softWrap: false,
+                ),
               ),
             ],
           ),

@@ -1,5 +1,13 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
+import 'dart:convert';
+import 'package:king_of_table_tennis/api/game_api.dart';
+import 'package:king_of_table_tennis/model/game_detail_info_dto.dart';
+import 'package:king_of_table_tennis/model/page_response.dart';
 import 'package:king_of_table_tennis/screen/search_table_tennis_court_screen.dart';
+import 'package:king_of_table_tennis/util/apiRequest.dart';
+import 'package:king_of_table_tennis/widget/gamePreviewTile.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -13,6 +21,40 @@ class _HomeScreenState extends State<HomeScreen> {
   var searchKeywordController = TextEditingController();
 
   FocusNode searchKeywordFocus = FocusNode();
+
+  int gamePage = 0;
+  int gamePageSize = 1;
+  int gameTotalPages = 0;
+
+  GameDetailInfoDTO? gameDetailInfoDTO;
+
+  @override
+  void initState() {
+    super.initState();
+
+    handleGetGameDetailInfoByPage(gamePage, gamePageSize);
+  }
+
+  void handleGetGameDetailInfoByPage(int page, int size) async {
+    final response = await apiRequest(() => getGameDetailInfoByPage(page, size), context);
+
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
+      final pageResponse = PageResponse<GameDetailInfoDTO>.fromJson(
+        data,
+        (json) => GameDetailInfoDTO.fromJson(json)
+      );
+
+      setState(() {
+        gameDetailInfoDTO = pageResponse.content[0];
+        gameTotalPages = pageResponse.totalPages;
+      });
+
+      print(gameTotalPages);
+    } else {
+      log("경기 정보 가져오기 실패");
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -28,7 +70,7 @@ class _HomeScreenState extends State<HomeScreen> {
             child: Column(
               children: [
                 Center(child: Text("홈 화면")),
-                Row(
+                Row( // 검색바
                   children: [
                     Expanded(
                       child: Container(
@@ -109,6 +151,34 @@ class _HomeScreenState extends State<HomeScreen> {
                           color: Colors.black,
                         )
                       ),
+                    )
+                  ],
+                ),
+                SizedBox(height: 30),
+                Row(
+                  children: [
+                    IconButton(
+                      onPressed: gamePage == 0
+                        ? null
+                        : () {
+                            handleGetGameDetailInfoByPage(--gamePage, gamePageSize);
+                          },
+                      icon: Icon(
+                        Icons.arrow_back_ios
+                      )
+                    ),
+                    GamePreviewTile(
+                      gameDetailInfoDTO: gameDetailInfoDTO
+                    ),
+                    IconButton(
+                      onPressed: gamePage+1 == gameTotalPages
+                        ? null
+                        : () {
+                            handleGetGameDetailInfoByPage(++gamePage, gamePageSize);
+                          },
+                      icon: Icon(
+                        Icons.arrow_forward_ios
+                      )
                     )
                   ],
                 )
