@@ -6,12 +6,14 @@ import 'package:flutter/services.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
 import 'package:king_of_table_tennis/api/broadcast_api.dart';
+import 'package:king_of_table_tennis/enum/game_state.dart';
 import 'package:king_of_table_tennis/model/broadcastRoomInfo.dart';
 import 'package:king_of_table_tennis/model/end_game.dart';
 import 'package:king_of_table_tennis/model/update_score.dart';
 import 'package:king_of_table_tennis/model/update_set_score.dart';
 import 'package:king_of_table_tennis/util/apiRequest.dart';
 import 'package:king_of_table_tennis/util/checkScore.dart';
+import 'package:king_of_table_tennis/util/secure_storage.dart';
 import 'package:king_of_table_tennis/widget/scoreBoard.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:stomp_dart_client/stomp_dart_client.dart';
@@ -202,7 +204,20 @@ class _BroadcastShowerScreenState extends State<BroadcastShowerScreen> {
     }
   }
 
-  void endBroadcast() {
+  void endBroadcast() async{
+    String? accessToken = await SecureStorage.getAccessToken();
+
+    stompClient.send(
+      destination: "/app/state",
+      body: json.encode({
+        "gameInfoId": widget.broadcastRoomInfo.gameInfoId,
+        "state": GameState.END.toValue
+      }),
+      headers: {
+        'Authorization': 'Bearer $accessToken'
+      }
+    );
+
     stompClient.send(
       destination: "/app/broadcast/end/${widget.broadcastRoomInfo.gameInfoId}",
       headers: {},

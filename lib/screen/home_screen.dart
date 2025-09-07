@@ -1,6 +1,7 @@
 import 'dart:developer';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'dart:convert';
 import 'package:king_of_table_tennis/api/game_api.dart';
 import 'package:king_of_table_tennis/model/game_detail_info_dto.dart';
@@ -8,6 +9,7 @@ import 'package:king_of_table_tennis/model/page_response.dart';
 import 'package:king_of_table_tennis/screen/search_table_tennis_court_screen.dart';
 import 'package:king_of_table_tennis/util/apiRequest.dart';
 import 'package:king_of_table_tennis/widget/gamePreviewTile.dart';
+import 'package:stomp_dart_client/stomp_dart_client.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -28,11 +30,21 @@ class _HomeScreenState extends State<HomeScreen> {
 
   GameDetailInfoDTO? gameDetailInfoDTO;
 
+  StompClient? stompClient;
+  String? subscribedGameId;
+
   @override
   void initState() {
     super.initState();
 
     handleGetGameDetailInfoByPage(gamePage, gamePageSize);
+  }
+
+  @override
+  void dispose() {
+    stompClient?.deactivate();
+
+    super.dispose();
   }
 
   void handleGetGameDetailInfoByPage(int page, int size) async {
@@ -45,15 +57,63 @@ class _HomeScreenState extends State<HomeScreen> {
         (json) => GameDetailInfoDTO.fromJson(json)
       );
 
+      if (pageResponse.content.isEmpty) {
+        setState(() {
+          gameDetailInfoDTO = null;
+          gameTotalPages = pageResponse.totalPages;
+        });
+        
+        return;
+      }
+
       setState(() {
         gameDetailInfoDTO = pageResponse.content[0];
         gameTotalPages = pageResponse.totalPages;
       });
 
       print(gameTotalPages);
+
+      wsConnect();
     } else {
       log("경기 정보 가져오기 실패");
     }
+  }
+
+  void wsConnect() {
+    final currentId = gameDetailInfoDTO?.gameInfo.id;
+    if (gameDetailInfoDTO == null) return;
+
+    // 같은 게임이면 재구독 불필요
+    if (subscribedGameId == currentId && stompClient?.connected == true) return;
+
+    // 기존 연결 정리
+    stompClient?.deactivate();
+
+    final wsAddress = dotenv.get("WS_ADDRESS");
+
+    stompClient = StompClient(
+      config: StompConfig(
+        url: "$wsAddress/ws",
+        onConnect: (StompFrame frame) {
+          print("연결 성공");
+          stompClient!.subscribe(
+            destination: "/topic/game/state/$currentId",
+            callback: (frame) {
+              final body = frame.body;
+              if (body != null) {
+                final decodedData = jsonDecode(body);
+                print("응답 데이터: $decodedData");
+                handleGetGameDetailInfoByPage(gamePage, gamePageSize);
+              }
+            }
+          );
+        },
+        onStompError: (f) => debugPrint("STOMP error: ${f.body}"),
+        onWebSocketError: (e) => debugPrint("WS error: $e")
+      )
+    );
+
+    stompClient!.activate();
   }
 
   @override
