@@ -4,9 +4,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'dart:convert';
 import 'package:king_of_table_tennis/api/game_api.dart';
-import 'package:king_of_table_tennis/model/game_detail_info_dto.dart';
+import 'package:king_of_table_tennis/model/game_detail_info_by_page_dto.dart';
 import 'package:king_of_table_tennis/model/page_response.dart';
 import 'package:king_of_table_tennis/screen/search_table_tennis_court_screen.dart';
+import 'package:king_of_table_tennis/screen/table_tennis_game_info_detail_screen.dart';
 import 'package:king_of_table_tennis/util/apiRequest.dart';
 import 'package:king_of_table_tennis/widget/gamePreviewTile.dart';
 import 'package:stomp_dart_client/stomp_dart_client.dart';
@@ -28,7 +29,7 @@ class _HomeScreenState extends State<HomeScreen> {
   int gamePageSize = 1;
   int gameTotalPages = 0;
 
-  GameDetailInfoDTO? gameDetailInfoDTO;
+  GameDetailInfoByPageDTO? gameDetailInfoByPageDTO;
 
   StompClient? stompClient;
   String? subscribedGameId;
@@ -52,14 +53,14 @@ class _HomeScreenState extends State<HomeScreen> {
 
     if (response.statusCode == 200) {
       final data = json.decode(response.body);
-      final pageResponse = PageResponse<GameDetailInfoDTO>.fromJson(
+      final pageResponse = PageResponse<GameDetailInfoByPageDTO>.fromJson(
         data,
-        (json) => GameDetailInfoDTO.fromJson(json)
+        (json) => GameDetailInfoByPageDTO.fromJson(json)
       );
 
       if (pageResponse.content.isEmpty) {
         setState(() {
-          gameDetailInfoDTO = null;
+          gameDetailInfoByPageDTO = null;
           gameTotalPages = pageResponse.totalPages;
         });
         
@@ -67,7 +68,7 @@ class _HomeScreenState extends State<HomeScreen> {
       }
 
       setState(() {
-        gameDetailInfoDTO = pageResponse.content[0];
+        gameDetailInfoByPageDTO = pageResponse.content[0];
         gameTotalPages = pageResponse.totalPages;
       });
 
@@ -80,8 +81,8 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void wsConnect() {
-    final currentId = gameDetailInfoDTO?.gameInfo.id;
-    if (gameDetailInfoDTO == null) return;
+    final currentId = gameDetailInfoByPageDTO?.gameInfo.id;
+    if (gameDetailInfoByPageDTO == null) return;
 
     // 같은 게임이면 재구독 불필요
     if (subscribedGameId == currentId && stompClient?.connected == true) return;
@@ -227,8 +228,23 @@ class _HomeScreenState extends State<HomeScreen> {
                         Icons.arrow_back_ios
                       )
                     ),
-                    GamePreviewTile(
-                      gameDetailInfoDTO: gameDetailInfoDTO
+                    Expanded(
+                      child: InkWell(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => TableTennisGameInfoDetailScreen(
+                                gameInfoId: gameDetailInfoByPageDTO!.gameInfo.id,
+                                isMine: gameDetailInfoByPageDTO!.isMine
+                              )
+                            )
+                          );
+                        },
+                        child: GamePreviewTile(
+                          gameDetailInfoByPageDTO: gameDetailInfoByPageDTO
+                        ),
+                      ),
                     ),
                     IconButton(
                       onPressed: gamePage+1 == gameTotalPages
