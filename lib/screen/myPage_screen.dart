@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:king_of_table_tennis/widget/userInfoInMyPage.dart';
 
 class MyPageScreen extends StatefulWidget {
   const MyPageScreen({super.key});
@@ -11,11 +12,26 @@ class _MyPageScreenState extends State<MyPageScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        title: const Align(
+          alignment: Alignment.topLeft,
+          child: Text(
+            "마이페이지",
+            style: TextStyle(
+              fontSize: 24,
+              fontWeight: FontWeight.bold
+            ),
+          ),
+        ),
+      ),
       body: SafeArea(
-        child: Column(
-          children: [
-            Center(child: Text("마이페이지 화면"))
-          ],
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 20),
+          child: Column(
+            children: [
+              UserInfoInMyPage()
+            ],
+          ),
         )
       ),
     );
