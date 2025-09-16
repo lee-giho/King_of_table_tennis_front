@@ -55,16 +55,6 @@ class _UserInfoInMyPageState extends State<UserInfoInMyPage> {
         ),
         child: Row(
           children: [
-            // Container(
-            //   width: 100,
-            //   height: 100,
-            //   decoration: BoxDecoration(
-            //     border: Border.all(
-            //       width: 1
-            //     ),
-            //     borderRadius: BorderRadius.circular(50)
-            //   ),
-            // ),
             ClipOval(
               child: mySimpleInfo == null
                 ? Container(

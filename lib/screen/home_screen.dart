@@ -229,20 +229,25 @@ class _HomeScreenState extends State<HomeScreen> {
                       )
                     ),
                     Expanded(
-                      child: InkWell(
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => TableTennisGameInfoDetailScreen(
-                                gameInfoId: gameDetailInfoByPageDTO!.gameInfo.id,
-                                isMine: gameDetailInfoByPageDTO!.isMine
+                      child: Material(
+                        color: Colors.transparent,
+                        borderRadius: BorderRadius.circular(20),
+                        child: InkWell(
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => TableTennisGameInfoDetailScreen(
+                                  gameInfoId: gameDetailInfoByPageDTO!.gameInfo.id,
+                                  isMine: gameDetailInfoByPageDTO!.isMine
+                                )
                               )
-                            )
-                          );
-                        },
-                        child: GamePreviewTile(
-                          gameDetailInfoByPageDTO: gameDetailInfoByPageDTO
+                            );
+                          },
+                          borderRadius: BorderRadius.circular(20),
+                          child: GamePreviewTile(
+                            gameDetailInfoByPageDTO: gameDetailInfoByPageDTO
+                          ),
                         ),
                       ),
                     ),

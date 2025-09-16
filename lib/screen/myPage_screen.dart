@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:king_of_table_tennis/screen/change_myInfo_screen.dart';
 import 'package:king_of_table_tennis/widget/userInfoInMyPage.dart';
 
 class MyPageScreen extends StatefulWidget {
@@ -29,7 +30,22 @@ class _MyPageScreenState extends State<MyPageScreen> {
           padding: const EdgeInsets.symmetric(horizontal: 20),
           child: Column(
             children: [
-              UserInfoInMyPage()
+              Material(
+                color: Colors.transparent,
+                borderRadius: BorderRadius.circular(20),
+                child: InkWell(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => ChangeMyInfoScreen()
+                      )
+                    );
+                  },
+                  borderRadius: BorderRadius.circular(20),
+                  child: UserInfoInMyPage()
+                ),
+              )
             ],
           ),
         )

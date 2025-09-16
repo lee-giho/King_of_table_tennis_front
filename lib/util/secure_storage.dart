@@ -84,6 +84,7 @@ class SecureStorage {
   static Future<void> logout() async {
     await storage.delete(key: 'accessToken');
     await storage.delete(key: 'refreshToken');
+    await storage.delete(key: 'id');
     saveIsAutoLogin(false);
   }
 }
