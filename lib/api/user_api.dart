@@ -41,11 +41,12 @@ Future<http.Response> getMyInfo() async {
   return response;
 }
 
-Future<http.Response> changeNickName(String nickName) async {
+Future<http.Response> changeUserInfo(String type, String newValue) async {
+  print(newValue);
   String? accessToken = await SecureStorage.getAccessToken();
 
   // .env에서 서버 URL 가져오기
-  final apiAddress = Uri.parse("${dotenv.get("API_ADDRESS")}/api/user/nickName");
+  final apiAddress = Uri.parse("${dotenv.get("API_ADDRESS")}/api/user/$type");
   final headers = {
     'Authorization': 'Bearer ${accessToken}',
     'Content-Type': 'application/json'
@@ -55,28 +56,28 @@ Future<http.Response> changeNickName(String nickName) async {
     apiAddress,
     headers: headers,
     body: json.encode({
-      'changeValue': nickName
+      'changeValue': newValue
     })
   );
 
   return response;
 }
 
-Future<http.Response> changeRacketType(String racketType) async {
+Future<http.Response> verifyPassword(String password) async {
   String? accessToken = await SecureStorage.getAccessToken();
 
   // .env에서 서버 URL 가져오기
-  final apiAddress = Uri.parse("${dotenv.get("API_ADDRESS")}/api/user/racketType");
+  final apiAddress = Uri.parse("${dotenv.get("API_ADDRESS")}/api/user/verification/password");
   final headers = {
     'Authorization': 'Bearer ${accessToken}',
     'Content-Type': 'application/json'
   };
 
-  final response = await http.patch(
+  final response = await http.post(
     apiAddress,
     headers: headers,
     body: json.encode({
-      'changeValue': racketType
+      'password': password
     })
   );
 

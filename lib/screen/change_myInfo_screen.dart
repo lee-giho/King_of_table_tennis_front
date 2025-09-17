@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'package:king_of_table_tennis/api/user_api.dart';
 import 'package:king_of_table_tennis/model/user_info_dto.dart';
 import 'package:king_of_table_tennis/screen/change_nickName_screen.dart';
+import 'package:king_of_table_tennis/screen/change_password_screen.dart';
 import 'package:king_of_table_tennis/screen/change_racketType_screen.dart';
 import 'package:king_of_table_tennis/screen/login_screen.dart';
 import 'package:king_of_table_tennis/util/apiRequest.dart';
@@ -342,23 +343,33 @@ class _ChangeMyInfoScreenState extends State<ChangeMyInfoScreen> {
                           ),
                         ),
                         Divider(),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 5),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                "비밀번호 변경하기",
-                                style: TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold
-                                ),
-                              ),
-                              Icon(
-                                Icons.arrow_forward_ios,
-                                size: 20,
+                        InkWell(
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => ChangePasswordScreen()
                               )
-                            ],
+                            );
+                          },
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 5),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  "비밀번호 변경하기",
+                                  style: TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold
+                                  ),
+                                ),
+                                Icon(
+                                  Icons.arrow_forward_ios,
+                                  size: 20,
+                                )
+                              ],
+                            ),
                           ),
                         )
                       ],

@@ -93,8 +93,8 @@ class _ChangeRacketTypeScreenState extends State<ChangeRacketTypeScreen> {
     );
   }
 
-  void handleSubmit(String racketType) async {
-    final response = await apiRequest(() => changeRacketType(racketType), context);
+  void handleSubmit(String newRacketType) async {
+    final response = await apiRequest(() => changeUserInfo("racketType", newRacketType), context);
 
     if (response.statusCode == 200) {
       final data = json.decode(response.body);
@@ -105,6 +105,7 @@ class _ChangeRacketTypeScreenState extends State<ChangeRacketTypeScreen> {
         widget.fetchMyInfo.call();
         Navigator.pop(context);
       } else {
+        ToastMessage.show("라켓 타입 변경을 실패했습니다.");
         log("라켓 타입 변경 실패 - isSuccess: $isSuccess");
       }
     } else {

@@ -21,6 +21,14 @@ class ChangeNickNameScreen extends StatefulWidget {
 
 class _ChangeNickNameScreenState extends State<ChangeNickNameScreen> {
 
+  @override
+  void dispose() {
+    nickNameController.dispose();
+    nicKNameFocus.dispose();
+
+    super.dispose();
+  }
+
   // 닉네임 입력 값 저장
   var nickNameController = TextEditingController();
 
@@ -61,8 +69,8 @@ class _ChangeNickNameScreenState extends State<ChangeNickNameScreen> {
     }
   }
 
-  void handleSubmit(String nickName) async {
-    final response = await apiRequest(() => changeNickName(nickName), context);
+  void handleSubmit(String newNickName) async {
+    final response = await apiRequest(() => changeUserInfo("nickName", newNickName), context);
 
     if (response.statusCode == 200) {
       final data = json.decode(response.body);
@@ -73,6 +81,7 @@ class _ChangeNickNameScreenState extends State<ChangeNickNameScreen> {
         widget.fetchMyInfo.call();
         Navigator.pop(context);
       } else {
+        ToastMessage.show("닉네임을 변경을 실패했습니다.");
         log("닉네임 변경 실패 - isSuccess: $isSuccess");
       }
     } else {
