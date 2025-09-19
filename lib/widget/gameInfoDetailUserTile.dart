@@ -31,7 +31,7 @@ class _GameInfoDetailUserTileState extends State<GameInfoDetailUserTile> {
           return Column(
             children: [
               ClipOval(
-                child: widget.userInfo.id.isEmpty
+                child: widget.userInfo.id.isEmpty || widget.userInfo.profileImage == "default"
                   ? Container(
                       width: constraints.maxWidth,
                       height: constraints.maxWidth,
@@ -42,7 +42,7 @@ class _GameInfoDetailUserTileState extends State<GameInfoDetailUserTile> {
                         borderRadius: BorderRadius.circular(100)
                       ),
                       child: const Icon(
-                          Icons.question_mark,
+                          Icons.person,
                           size: 80
                         ),
                   )

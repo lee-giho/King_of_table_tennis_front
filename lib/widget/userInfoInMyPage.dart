@@ -1,14 +1,13 @@
-import 'dart:developer';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'dart:convert';
-import 'package:king_of_table_tennis/api/user_api.dart';
 import 'package:king_of_table_tennis/model/mySimpleInfo.dart';
-import 'package:king_of_table_tennis/util/apiRequest.dart';
 
 class UserInfoInMyPage extends StatefulWidget {
-  const UserInfoInMyPage({super.key});
+  final MySimpleInfo mySimpleInfo;
+  const UserInfoInMyPage({
+    super.key,
+    required this.mySimpleInfo
+  });
 
   @override
   State<UserInfoInMyPage> createState() => _UserInfoInMyPageState();
@@ -16,34 +15,9 @@ class UserInfoInMyPage extends StatefulWidget {
 
 class _UserInfoInMyPageState extends State<UserInfoInMyPage> {
 
-  MySimpleInfo? mySimpleInfo;
-
-  @override
-  void initState() {
-    super.initState();
-
-    handleMySimpleInfo();
-  }
-
-  void handleMySimpleInfo() async {
-    final response = await apiRequest(() => getMySimpleInfo(), context);
-
-    if (response.statusCode == 200) {
-      final data = json.decode(response.body);
-      final info = MySimpleInfo.fromJson(data);
-      print(data);
-      setState(() {
-        mySimpleInfo = info;
-      });
-
-    } else {
-      log("간단한 내 정보 가져오기 실패");
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
-    return mySimpleInfo == null
+    return widget.mySimpleInfo.nickName.isEmpty
     ? const CircularProgressIndicator(color: Colors.white)
     : Container(
         width: double.infinity,
@@ -56,7 +30,7 @@ class _UserInfoInMyPageState extends State<UserInfoInMyPage> {
         child: Row(
           children: [
             ClipOval(
-              child: mySimpleInfo == null
+              child: widget.mySimpleInfo.nickName.isEmpty || widget.mySimpleInfo.profileImage == "default"
                 ? Container(
                     width: 100,
                     height: 100,
@@ -67,7 +41,7 @@ class _UserInfoInMyPageState extends State<UserInfoInMyPage> {
                       borderRadius: BorderRadius.circular(100)
                     ),
                     child: const Icon(
-                        Icons.question_mark,
+                        Icons.person,
                         size: 80
                       ),
                 )
@@ -76,7 +50,7 @@ class _UserInfoInMyPageState extends State<UserInfoInMyPage> {
                     height: 100,
                     fit: BoxFit.cover,
                     image: NetworkImage(
-                      "${dotenv.env["API_ADDRESS"]}/image/profile/${mySimpleInfo!.profileImage}"
+                      "${dotenv.env["API_ADDRESS"]}/image/profile/${widget.mySimpleInfo.profileImage}"
                     )
                   )
             ),
@@ -87,7 +61,7 @@ class _UserInfoInMyPageState extends State<UserInfoInMyPage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    mySimpleInfo!.nickName,
+                    widget.mySimpleInfo.nickName,
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold
@@ -97,10 +71,10 @@ class _UserInfoInMyPageState extends State<UserInfoInMyPage> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        mySimpleInfo!.racketType,
+                        widget.mySimpleInfo.racketType,
                       ),
                       Text(
-                        "${mySimpleInfo!.winCount + mySimpleInfo!.defeatCount}전 ${mySimpleInfo!.winCount}승 ${mySimpleInfo!.defeatCount}패"
+                        "${widget.mySimpleInfo.winCount + widget.mySimpleInfo.defeatCount}전 ${widget.mySimpleInfo.winCount}승 ${widget.mySimpleInfo.defeatCount}패"
                       ),
                     ],
                   )

@@ -9,11 +9,9 @@ import 'package:king_of_table_tennis/util/toastMessage.dart';
 
 class ChangeRacketTypeScreen extends StatefulWidget {
   final String racketType;
-  final VoidCallback fetchMyInfo;
   const ChangeRacketTypeScreen({
     super.key,
-    required this.racketType,
-    required this.fetchMyInfo
+    required this.racketType
   });
 
   @override
@@ -102,8 +100,7 @@ class _ChangeRacketTypeScreenState extends State<ChangeRacketTypeScreen> {
       print("isSuccess: $isSuccess");
       if (isSuccess) {
         ToastMessage.show("라켓 타입이 변경되었습니다.");
-        widget.fetchMyInfo.call();
-        Navigator.pop(context);
+        Navigator.pop(context, true);
       } else {
         ToastMessage.show("라켓 타입 변경을 실패했습니다.");
         log("라켓 타입 변경 실패 - isSuccess: $isSuccess");

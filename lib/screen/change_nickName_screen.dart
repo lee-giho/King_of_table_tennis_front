@@ -9,11 +9,7 @@ import 'package:king_of_table_tennis/util/checkValidate.dart';
 import 'package:king_of_table_tennis/util/toastMessage.dart';
 
 class ChangeNickNameScreen extends StatefulWidget {
-  final VoidCallback fetchMyInfo;
-  const ChangeNickNameScreen({
-    super.key,
-    required this.fetchMyInfo
-  });
+  const ChangeNickNameScreen({super.key});
 
   @override
   State<ChangeNickNameScreen> createState() => _ChangeNickNameScreenState();
@@ -78,8 +74,7 @@ class _ChangeNickNameScreenState extends State<ChangeNickNameScreen> {
       print("isSuccess: $isSuccess");
       if (isSuccess) {
         ToastMessage.show("닉네임이 변경되었습니다.");
-        widget.fetchMyInfo.call();
-        Navigator.pop(context);
+        Navigator.pop(context, true);
       } else {
         ToastMessage.show("닉네임을 변경을 실패했습니다.");
         log("닉네임 변경 실패 - isSuccess: $isSuccess");
