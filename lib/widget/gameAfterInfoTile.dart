@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:king_of_table_tennis/enum/game_state.dart';
 import 'package:king_of_table_tennis/model/game_detail_info_by_user_dto.dart';
 import 'package:king_of_table_tennis/model/user_info_dto.dart';
 import 'package:king_of_table_tennis/util/intl.dart';

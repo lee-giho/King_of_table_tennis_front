@@ -8,7 +8,6 @@ import 'package:king_of_table_tennis/model/page_response.dart';
 import 'package:king_of_table_tennis/screen/table_tennis_game_info_detail_screen.dart';
 import 'package:king_of_table_tennis/util/apiRequest.dart';
 import 'package:king_of_table_tennis/widget/gameAfterInfoTile.dart';
-import 'package:king_of_table_tennis/widget/gameBeforeInfoTile.dart';
 
 class GameAfterListScreen extends StatefulWidget {
   const GameAfterListScreen({super.key});
