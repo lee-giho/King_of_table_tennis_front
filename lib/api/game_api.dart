@@ -134,3 +134,21 @@ Future<http.Response> getGameDetailInfoByPage(int page, int size) async {
 
   return response;
 }
+
+Future<http.Response> getGameDetailInfoByUser(int page, int size, String type) async {
+  String? accessToken = await SecureStorage.getAccessToken();
+
+  // .env에서 서버 URL 가져오기
+  final apiAddress = Uri.parse("${dotenv.get("API_ADDRESS")}/api/game/detailInfo/myGame/$type?page=$page&size=$size");
+  final headers = {
+    'Authorization': 'Bearer ${accessToken}',
+    'Content-Type': 'application/json'
+  };
+
+  final response = await http.get(
+    apiAddress,
+    headers: headers
+  );
+
+  return response;
+}

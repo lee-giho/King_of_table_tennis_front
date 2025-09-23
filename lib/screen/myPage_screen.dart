@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:king_of_table_tennis/screen/change_myInfo_screen.dart';
+import 'package:king_of_table_tennis/screen/my_tableTennis_info_screen.dart';
 import 'package:king_of_table_tennis/widget/userInfoInMyPage.dart';
 import 'dart:convert';
 import 'dart:developer';
@@ -41,6 +42,47 @@ class _MyPageScreenState extends State<MyPageScreen> {
     }
   }
 
+  Widget buildMenuItem(IconData icon, String label, Widget screen) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 12),
+      child: GestureDetector(
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => screen
+            )
+          );
+        },
+        child: Row(
+          children: [
+            Expanded(
+              child: Row(
+                children: [
+                  Icon(
+                    icon,
+                    size: 28,
+                  ),
+                  const SizedBox(width: 15),
+                  Text(
+                    label,
+                    style: TextStyle(
+                      fontSize: 18
+                    )
+                  )
+                ]
+              ),
+            ),
+            Icon(
+              Icons.arrow_forward_ios,
+              size: 25,
+            )
+          ]
+        )
+      )
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -63,28 +105,32 @@ class _MyPageScreenState extends State<MyPageScreen> {
             ? const CircularProgressIndicator(color: Colors.white)
             : Column(
                 children: [
-                  Material(
-                    color: Colors.transparent,
-                    borderRadius: BorderRadius.circular(20),
-                    child: InkWell(
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => ChangeMyInfoScreen(
-                              fetchMySimpleInfo: () {
-                                handleMySimpleInfo();
-                              },
-                            )
-                          )
-                        );
-                      },
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 20),
+                    child: Material(
+                      color: Colors.transparent,
                       borderRadius: BorderRadius.circular(20),
-                      child: UserInfoInMyPage(
-                        mySimpleInfo: mySimpleInfo!,
-                      )
-                    ),
-                  )
+                      child: InkWell(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => ChangeMyInfoScreen(
+                                fetchMySimpleInfo: () {
+                                  handleMySimpleInfo();
+                                },
+                              )
+                            )
+                          );
+                        },
+                        borderRadius: BorderRadius.circular(20),
+                        child: UserInfoInMyPage(
+                          mySimpleInfo: mySimpleInfo!
+                        )
+                      ),
+                    )
+                  ),
+                  buildMenuItem(Icons.sports_tennis, "탁구 경기 내역", MyTableTennisInfoScreen())
                 ],
               ),
         )
