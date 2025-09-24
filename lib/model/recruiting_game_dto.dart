@@ -5,12 +5,14 @@ class RecruitingGameDTO {
   final String creatorId;
   final String gameState;
   final bool isMine;
+  final bool alreadyApplied;
 
   RecruitingGameDTO({
     required this.gameInfo,
     required this.creatorId,
     required this.gameState,
-    required this.isMine
+    required this.isMine,
+    required this.alreadyApplied
   });
 
   // JSON -> 객체 변환
@@ -19,7 +21,8 @@ class RecruitingGameDTO {
       gameInfo: GameInfoDTO.fromJson(json['gameInfo']),
       creatorId: json['creatorId'],
       gameState: json['gameState'],
-      isMine: json['mine']
+      isMine: json['mine'],
+      alreadyApplied: json['alreadyApplied']
     );
   }
 }

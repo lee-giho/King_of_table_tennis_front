@@ -152,3 +152,21 @@ Future<http.Response> getGameDetailInfoByUser(int page, int size, String type) a
 
   return response;
 }
+
+Future<http.Response> cancelParticipation(String gameInfoId) async {
+  String? accessToken = await SecureStorage.getAccessToken();
+
+  // .env에서 서버 URL 가져오기
+  final apiAddress = Uri.parse("${dotenv.get("API_ADDRESS")}/api/game/participation/${gameInfoId}");
+  final headers = {
+    'Authorization': 'Bearer ${accessToken}',
+    'Content-Type': 'application/json'
+  };
+
+  final response = await http.delete(
+    apiAddress,
+    headers: headers
+  );
+
+  return response;
+}

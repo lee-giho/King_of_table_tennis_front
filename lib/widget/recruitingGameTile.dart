@@ -8,6 +8,7 @@ import 'package:king_of_table_tennis/model/recruiting_game_dto.dart';
 import 'package:king_of_table_tennis/util/apiRequest.dart';
 import 'package:king_of_table_tennis/util/appColors.dart';
 import 'package:king_of_table_tennis/util/intl.dart';
+import 'package:king_of_table_tennis/util/toastMessage.dart';
 
 class RecruitingGameTile extends StatefulWidget {
   final RecruitingGameDTO recruitingGameDTO;
@@ -32,16 +33,31 @@ class _RecruitingGameTileState extends State<RecruitingGameTile> {
       bool success = data["success"];
 
       if (success) {
-        log("탁구 경기 신청 성공");
-        ScaffoldMessenger.of(context) .showSnackBar(
-          SnackBar(content: Text("탁구 경기 신청 성공"))
-        );
+        ToastMessage.show("탁구 경기 신청이 완료되었습니다.");
         widget.onApplyComplete.call();
       } else {
-        log("탁구 경기 신청 실패");  
+        ToastMessage.show("탁구 경기 신청에 실패했습니다.");
       }
     } else {
       log("탁구 경기 신청 실패: ${response.body}");
+    }
+  }
+
+  void handleCancelGameParticipation(String gameInfoId) async {
+    final response = await apiRequest(() => cancelParticipation(gameInfoId), context);
+
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
+      bool success = data["success"];
+
+      if (success) {
+        ToastMessage.show("탁구 경기 신청이 취소되었습니다.");
+        widget.onApplyComplete.call();
+      } else {
+        ToastMessage.show("탁구 경기 신청이 취소를 실패했습니다.");
+      }
+    } else {
+      log("탁구 경기 취소 실패: ${response.body}");
     }
   }
 
@@ -100,7 +116,7 @@ class _RecruitingGameTileState extends State<RecruitingGameTile> {
                       ),
                     Text(
                       gameState == "RECRUITING"
-                        ? "모집중"
+                        ? "모집중${gameInfo.acceptanceType == "FCFS" ? " (선착순)" : " (선택)"}"
                         : "",
                       overflow: TextOverflow.ellipsis,
                       maxLines: 1,
@@ -111,7 +127,7 @@ class _RecruitingGameTileState extends State<RecruitingGameTile> {
               ],
             ),
           ),
-          if (gameState == "RECRUITING" && !widget.recruitingGameDTO.isMine)
+          if (gameState == "RECRUITING" && !widget.recruitingGameDTO.isMine && !widget.recruitingGameDTO.alreadyApplied)
             Container(
               height: 50,
               child: ElevatedButton(
@@ -121,7 +137,7 @@ class _RecruitingGameTileState extends State<RecruitingGameTile> {
                 style: ElevatedButton.styleFrom(
                   elevation: 4,
                   side: BorderSide(
-                    width: 0.2,
+                    width: 1,
                     color: Colors.black
                   ),
                   foregroundColor: AppColors.tableBlue,
@@ -135,7 +151,36 @@ class _RecruitingGameTileState extends State<RecruitingGameTile> {
                     : "신청",
                   style: TextStyle(
                     fontSize: 16,
+                    fontWeight: FontWeight.bold,
                     color: Colors.black
+                  ),
+                )
+              ),
+            )
+          else if (widget.recruitingGameDTO.alreadyApplied)
+            Container(
+              height: 50,
+              child: ElevatedButton(
+                onPressed: () {
+                  handleCancelGameParticipation(gameInfo.id);
+                },
+                style: ElevatedButton.styleFrom(
+                  elevation: 4,
+                  side: BorderSide(
+                    width: 1,
+                    color: AppColors.racketRed
+                  ),
+                  foregroundColor: AppColors.racketRed,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(15)
+                  )
+                ),
+                child: Text(
+                  "취소",
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.red
                   ),
                 )
               ),
