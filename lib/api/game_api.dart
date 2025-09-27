@@ -170,3 +170,21 @@ Future<http.Response> cancelParticipation(String gameInfoId) async {
 
   return response;
 }
+
+Future<http.Response> getApplicantInfo(String gameInfoId, int page, int size) async {
+  String? accessToken = await SecureStorage.getAccessToken();
+
+  // .env에서 서버 URL 가져오기
+  final apiAddress = Uri.parse("${dotenv.get("API_ADDRESS")}/api/game/${gameInfoId}/applicant?page=$page&size=$size");
+  final headers = {
+    'Authorization': 'Bearer ${accessToken}',
+    'Content-Type': 'application/json'
+  };
+
+  final response = await http.get(
+    apiAddress,
+    headers: headers
+  );
+
+  return response;
+}
