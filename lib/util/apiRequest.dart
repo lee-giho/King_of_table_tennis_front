@@ -8,13 +8,13 @@ import 'package:king_of_table_tennis/screen/login_screen.dart';
 Future<http.Response> apiRequest(Future<http.Response> Function() request, BuildContext context) async {
   final response1 = await request(); // 첫 번째 요청
 
-  if (response1.statusCode == 200) { // 첫 번째 요청의 statusCode가 200으로 성공하면 응답 반환
+  if (response1.statusCode == 200 || response1.statusCode == 204) { // 첫 번째 요청의 statusCode가 200으로 성공하면 응답 반환
     return response1;
 
   } else { // 첫 번째 요청의 statusCode가 200이 아니면
     final refreshAccessTokenResponse = await refreshAccessToken(); // accessToken 재발급 요청
 
-    if (refreshAccessTokenResponse.statusCode == 200) { // accessToken 재발급이 성공하면
+    if (refreshAccessTokenResponse.statusCode == 200 || refreshAccessTokenResponse.statusCode == 204) { // accessToken 재발급이 성공하면
       final data = json.decode(refreshAccessTokenResponse.body);
       final newAccessToken = data["newAccessToken"];
 
@@ -22,7 +22,7 @@ Future<http.Response> apiRequest(Future<http.Response> Function() request, Build
 
       final response2 = await request(); // 두 번째 요청
 
-      if (response2.statusCode == 200) { // 두 번째 요청의 statusCode가 200으로 성공하면 응답 반환
+      if (response2.statusCode == 200 || response2.statusCode == 204) { // 두 번째 요청의 statusCode가 200으로 성공하면 응답 반환
         return response2;
 
       } else { // 두 번째 요청의 statusCode가 200이 아니면 요청을 할 수 없는 상황이기 때문에

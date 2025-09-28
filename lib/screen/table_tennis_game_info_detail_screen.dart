@@ -12,6 +12,7 @@ import 'package:king_of_table_tennis/model/page_response.dart';
 import 'package:king_of_table_tennis/model/user_info_dto.dart';
 import 'package:king_of_table_tennis/screen/broadcast_shower_screen.dart';
 import 'package:king_of_table_tennis/screen/broadcast_viewer_screen.dart';
+import 'package:king_of_table_tennis/screen/user_profile_screen.dart';
 import 'package:king_of_table_tennis/util/apiRequest.dart';
 import 'package:king_of_table_tennis/util/appColors.dart';
 import 'package:king_of_table_tennis/util/intl.dart';
@@ -178,20 +179,21 @@ class _TableTennisGameInfoDetailScreenState extends State<TableTennisGameInfoDet
     }
   }
 
-  // void onApplicantScroll() {
-  //   if (appScrollctrl.position.pixels >= appScrollctrl.position.maxScrollExtent - 24) {
-  //     setState(() {
-  //       applicantPage++;
-  //     });
-  //     getApplicants(applicantPage, applicantPageSize);
-  //   }
-  // }
-
   Widget applicantTile(UserInfoDTO userInfo) {
     return InkWell(
       borderRadius: BorderRadius.circular(8),
       onTap: () {
-
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => UserProfileScreen(
+              userId: userInfo.id,
+              gameInfoId: widget.gameInfoId
+            )
+          )
+        ).then((_) {
+          handleGetGameDetailInfo(widget.gameInfoId);
+        });
       },
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 10),
@@ -421,10 +423,14 @@ class _TableTennisGameInfoDetailScreenState extends State<TableTennisGameInfoDet
 
     return Scaffold(
       appBar: AppBar(
-        title: Align(
-          alignment: Alignment.centerLeft,
+        title: const Align(
+          alignment: Alignment.topLeft,
           child: Text(
-            "경기 정보"
+            "경기 정보",
+            style: TextStyle(
+              fontSize: 24,
+              fontWeight: FontWeight.bold
+            ),
           ),
         ),
       ),
@@ -586,7 +592,7 @@ class _TableTennisGameInfoDetailScreenState extends State<TableTennisGameInfoDet
                                 )
                               ],
                             ),
-                            if (widget.isMine)
+                            if (widget.isMine && gameDetailInfo!.gameInfo.acceptanceType == "SELECT" && gameDetailInfo!.gameState.state == GameState.RECRUITING)
                               Padding(
                                 padding: const EdgeInsets.symmetric(vertical: 20),
                                 child: Column(

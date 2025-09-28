@@ -186,10 +186,14 @@ class _TableTennisInfoRegistrationScreenState extends State<TableTennisInfoRegis
     print("data: ${widget.profileRegistrationDTO.nickName}");
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
-          "탁구 타입 설정",
-          style: TextStyle(
-            fontWeight: FontWeight.bold
+        title: const Align(
+          alignment: Alignment.topLeft,
+          child: Text(
+            "탁구 타입 설정",
+            style: TextStyle(
+              fontSize: 24,
+              fontWeight: FontWeight.bold
+            ),
           ),
         ),
       ),

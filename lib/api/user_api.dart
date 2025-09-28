@@ -121,3 +121,21 @@ Future<http.Response> resetToDefaultProfileImage() async {
 
   return response;
 }
+
+Future<http.Response> getUserInfo(String userInfo) async {
+  String? accessToken = await SecureStorage.getAccessToken();
+
+  // .env에서 서버 URL 가져오기
+  final apiAddress = Uri.parse("${dotenv.get("API_ADDRESS")}/api/user/info/$userInfo");
+  final headers = {
+    'Authorization': 'Bearer ${accessToken}',
+    'Content-Type': 'application/json'
+  };
+
+  final response = await http.get(
+    apiAddress,
+    headers: headers
+  );
+
+  return response;
+}

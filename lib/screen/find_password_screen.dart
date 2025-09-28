@@ -146,10 +146,14 @@ class _FindPasswordScreenState extends State<FindPasswordScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
-          "비밀번호 찾기",
-          style: TextStyle(
-            fontWeight: FontWeight.bold
+        title: const Align(
+          alignment: Alignment.topLeft,
+          child: Text(
+            "비밀번호 찾기",
+            style: TextStyle(
+              fontSize: 24,
+              fontWeight: FontWeight.bold
+            ),
           ),
         ),
       ),

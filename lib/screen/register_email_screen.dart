@@ -147,10 +147,14 @@ class _RegisterEmailScreenState extends State<RegisterEmailScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
-          "회원가입",
-          style: TextStyle(
-            fontWeight: FontWeight.bold
+        title: const Align(
+          alignment: Alignment.topLeft,
+          child: Text(
+            "회원가입",
+            style: TextStyle(
+              fontSize: 24,
+              fontWeight: FontWeight.bold
+            ),
           ),
         ),
       ),

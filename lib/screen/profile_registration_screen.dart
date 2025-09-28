@@ -176,10 +176,14 @@ class _ProfileRegistrationScreenState extends State<ProfileRegistrationScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
-          "프로필 설정",
-          style: TextStyle(
-            fontWeight: FontWeight.bold
+        title: const Align(
+          alignment: Alignment.topLeft,
+          child: Text(
+            "프로필 설정",
+            style: TextStyle(
+              fontSize: 24,
+              fontWeight: FontWeight.bold
+            ),
           ),
         ),
       ),

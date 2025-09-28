@@ -56,9 +56,13 @@ class _TableTennisCourtDetailScreenState extends State<TableTennisCourtDetailScr
     return Scaffold(
       appBar: AppBar(
         title: Align(
-          alignment: Alignment.centerLeft,
+          alignment: Alignment.topLeft,
           child: Text(
-            widget.tableTennisCourtDTO.name
+            widget.tableTennisCourtDTO.name,
+            style: TextStyle(
+              fontSize: 24,
+              fontWeight: FontWeight.bold
+            ),
           ),
         ),
       ),
@@ -114,7 +118,9 @@ class _TableTennisCourtDetailScreenState extends State<TableTennisCourtDetailScr
                                                 isMine: recruitingGame.isMine
                                               )
                                             )
-                                          );
+                                          ).then((_) {
+                                            handleGetRecruitingGameList(widget.tableTennisCourtDTO.id);
+                                          });
                                         },
                                         borderRadius: BorderRadius.circular(15),
                                         child: RecruitingGameTile(

@@ -161,10 +161,14 @@ class _FindIdScreenState extends State<FindIdScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
-          "아이디 찾기",
-          style: TextStyle(
-            fontWeight: FontWeight.bold
+        title: const Align(
+          alignment: Alignment.topLeft,
+          child: Text(
+            "아이디 찾기",
+            style: TextStyle(
+              fontSize: 24,
+              fontWeight: FontWeight.bold
+            ),
           ),
         ),
       ),

@@ -188,3 +188,21 @@ Future<http.Response> getApplicantInfo(String gameInfoId, int page, int size) as
 
   return response;
 }
+
+Future<http.Response> acceptApplicant(String gameInfoId, String applicantId) async {
+  String? accessToken = await SecureStorage.getAccessToken();
+
+  // .env에서 서버 URL 가져오기
+  final apiAddress = Uri.parse("${dotenv.get("API_ADDRESS")}/api/game/$gameInfoId/applications/$applicantId/acceptance");
+  final headers = {
+    'Authorization': 'Bearer ${accessToken}',
+    'Content-Type': 'application/json'
+  };
+
+  final response = await http.patch(
+    apiAddress,
+    headers: headers
+  );
+
+  return response;
+}

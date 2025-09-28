@@ -106,10 +106,14 @@ class _GameRegistrationScreenState extends State<GameRegistrationScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Align(
-          alignment: Alignment.centerLeft,
+        title: const Align(
+          alignment: Alignment.topLeft,
           child: Text(
-            "탁구 경기 생성"
+            "탁구 경기 생성",
+            style: TextStyle(
+              fontSize: 24,
+              fontWeight: FontWeight.bold
+            ),
           ),
         ),
       ),

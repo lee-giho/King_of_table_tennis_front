@@ -53,8 +53,15 @@ class _SearchTableTennisCourtScreenState extends State<SearchTableTennisCourtScr
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
-          "검색 결과"
+        title: const Align(
+          alignment: Alignment.topLeft,
+          child: Text(
+            "검색 결과",
+            style: TextStyle(
+              fontSize: 24,
+              fontWeight: FontWeight.bold
+            ),
+          ),
         ),
       ),
       body: SafeArea(
