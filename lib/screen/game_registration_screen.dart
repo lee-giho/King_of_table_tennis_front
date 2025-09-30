@@ -119,7 +119,6 @@ class _GameRegistrationScreenState extends State<GameRegistrationScreen> {
       ),
       body: SafeArea(
         child: Container( // 전체화면
-          // color: Colors.red,
           width: double.infinity,
           padding: const EdgeInsets.symmetric(horizontal: 20),
           child: Column(
