@@ -2,13 +2,17 @@ import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:king_of_table_tennis/model/game_detail_info_by_user_dto.dart';
 import 'package:king_of_table_tennis/model/user_info_dto.dart';
+import 'package:king_of_table_tennis/screen/game_review_registration_screen.dart';
+import 'package:king_of_table_tennis/util/appColors.dart';
 import 'package:king_of_table_tennis/util/intl.dart';
 
 class GameAfterInfoTile extends StatefulWidget {
   final GameDetailInfoByUserDTO gameDetailInfoByUserDTO;
+  final VoidCallback refreshScreen;
   const GameAfterInfoTile({
     super.key,
-    required this.gameDetailInfoByUserDTO
+    required this.gameDetailInfoByUserDTO,
+    required this.refreshScreen
   });
 
   @override
@@ -74,9 +78,50 @@ class _GameAfterInfoTileState extends State<GameAfterInfoTile> {
                     ),
                   )
                 ],
+              ),
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.racketRed.withAlpha(200),
+                  disabledBackgroundColor: AppColors.tableBlue.withAlpha(200),
+                  foregroundColor: Colors.white,
+                  padding: EdgeInsets.all(10),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(15),
+                    side: BorderSide(
+                      color: Colors.black,
+                      width: 0.4
+                    )
+                  )
+                  
+                ),
+                onPressed: widget.gameDetailInfoByUserDTO.hasReviewed
+                  ? null
+                  : () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => GameReviewRegistrationScreen(
+                            gameInfoId: widget.gameDetailInfoByUserDTO.gameInfo.id,
+                            revieweeId: otherPerson.id
+                          )
+                        )
+                      ).then((_) {
+                        widget.refreshScreen();
+                      });
+                    },
+                child: Text(
+                  widget.gameDetailInfoByUserDTO.hasReviewed
+                    ? "리뷰 작성 완료"
+                    : "리뷰 작성하기",
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold
+                  ),
+                )
               )
             ]
           ),
+          SizedBox(height: 8),
           Row(
             children: [
               Expanded(

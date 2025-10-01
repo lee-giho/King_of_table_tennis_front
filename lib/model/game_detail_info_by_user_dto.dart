@@ -9,6 +9,7 @@ class GameDetailInfoByUserDTO {
   final GameStateDTO gameState;
   final bool isMine;
   final int applicationCount;
+  final bool hasReviewed;
 
   GameDetailInfoByUserDTO({
     required this.defenderInfo,
@@ -16,7 +17,8 @@ class GameDetailInfoByUserDTO {
     required this.gameInfo,
     required this.gameState,
     required this.isMine,
-    required this.applicationCount
+    required this.applicationCount,
+    required this.hasReviewed
   });
 
   factory GameDetailInfoByUserDTO.fromJson(Map<String, dynamic> json) {
@@ -30,7 +32,8 @@ class GameDetailInfoByUserDTO {
       gameInfo: GameInfoDTO.fromJson(json['gameInfo']),
       gameState: GameStateDTO.fromJson(json['gameState']),
       isMine: json['mine'],
-      applicationCount: json['applicationCount']
+      applicationCount: json['applicationCount'],
+      hasReviewed: json['hasReviewed']
     );
   }
 }

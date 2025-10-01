@@ -134,7 +134,8 @@ class _GameAfterListScreenState extends State<GameAfterListScreen> {
                           },
                           borderRadius: BorderRadius.circular(15),
                           child: GameAfterInfoTile(
-                            gameDetailInfoByUserDTO: game
+                            gameDetailInfoByUserDTO: game,
+                            refreshScreen:() => handleGetGameDetailInfoByUser(gamePage, gamePageSize, "after")
                           ),
                         ),
                       ),
