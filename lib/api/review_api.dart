@@ -23,3 +23,21 @@ Future<http.Response> registerReview(String gameInfoId, RegisterReviewRequest re
 
   return response;
 }
+
+Future<http.Response> getGameReview(int page, int pageSize, String type) async {
+  String? accessToken = await SecureStorage.getAccessToken();
+
+  // .env에서 서버 URL 가져오기
+  final apiAddress = Uri.parse("${dotenv.get("API_ADDRESS")}/api/review/$type");
+  final headers = {
+    'Authorization': 'Bearer ${accessToken}',
+    'Content-Type': 'application/json'
+  };
+
+  final response = await http.get(
+    apiAddress,
+    headers: headers
+  );
+
+  return response;
+}

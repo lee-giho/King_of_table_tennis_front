@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:king_of_table_tennis/screen/change_myInfo_screen.dart';
+import 'package:king_of_table_tennis/screen/my_review_info_screen.dart';
 import 'package:king_of_table_tennis/screen/my_tableTennis_info_screen.dart';
 import 'package:king_of_table_tennis/widget/userInfoInMyPage.dart';
 import 'dart:convert';
@@ -130,7 +131,8 @@ class _MyPageScreenState extends State<MyPageScreen> {
                       ),
                     )
                   ),
-                  buildMenuItem(Icons.sports_tennis, "탁구 경기 내역", MyTableTennisInfoScreen())
+                  buildMenuItem(Icons.sports_tennis, "탁구 경기 내역", MyTableTennisInfoScreen()),
+                  buildMenuItem(Icons.rate_review, "경기 리뷰 내역", MyReviewInfoScreen())
                 ],
               ),
         )

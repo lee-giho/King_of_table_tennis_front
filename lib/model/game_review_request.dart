@@ -1,10 +1,8 @@
-import 'package:king_of_table_tennis/model/game_info_dto.dart';
-import 'package:king_of_table_tennis/model/user_info_dto.dart';
-
-class GameReview {
+class GameReviewRequest {
   final String id;
-  final UserInfoDTO reviewee;
-  final GameInfoDTO gameInfo;
+  final String reviewerId;
+  final String revieweeId;
+  final String gameInfoId;
 
   final int scoreServe;
   final int scoreReceive;
@@ -20,13 +18,15 @@ class GameReview {
 
   final String comment;
 
-  final DateTime writeDate;
+  final DateTime createdAt;
+  final DateTime? updatedAt;
 
 
-  GameReview({
+  GameReviewRequest({
     required this.id,
-    required this.reviewee,
-    required this.gameInfo,
+    required this.reviewerId,
+    required this.revieweeId,
+    required this.gameInfoId,
     required this.scoreServe,
     required this.scoreReceive,
     required this.scoreRally,
@@ -38,16 +38,16 @@ class GameReview {
     required this.scorePoliteness,
     required this.scoreRematch,
     required this.comment,
-    required this.writeDate
+    required this.createdAt,
+    required this.updatedAt
   });
 
-  factory GameReview.fromJson(Map<String, dynamic> json) {
-    return GameReview(
+  factory GameReviewRequest.fromJson(Map<String, dynamic> json) {
+    return GameReviewRequest(
       id: json['id'],
-      reviewee: json['reviewee'] != null
-        ? UserInfoDTO.fromJson(json['reviewee'])
-        : UserInfoDTO.empty(),
-      gameInfo: GameInfoDTO.fromJson(json['gameInfo']),
+      reviewerId: json['reviewerId'],
+      revieweeId: json['revieweeId'],
+      gameInfoId: json['gameInfoId'],
       scoreServe: json['scoreServe'],
       scoreReceive: json['scoreReceive'],
       scoreRally: json['scoreRally'],
@@ -59,7 +59,10 @@ class GameReview {
       scorePoliteness: json['scorePoliteness'],
       scoreRematch: json['scoreRematch'],
       comment: json['comment'],
-      writeDate: DateTime.tryParse(json['gameDate'] ?? '') ?? DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day, DateTime.now().hour+1)
+      createdAt: DateTime.parse(json['createdAt']),
+      updatedAt: json['updatedAt'] != null 
+        ? DateTime.parse(json['updatedAt'])
+        : null,
     );
   }
 }
