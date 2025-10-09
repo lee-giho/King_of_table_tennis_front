@@ -49,11 +49,13 @@ class BorderedThumbShape extends RoundSliderThumbShape {
 class ScoreSlider extends StatefulWidget {
   final String label;
   final Function(int) onChanged;
+  final int initialValue;
 
   const ScoreSlider({
     super.key,
     required this.label,
-    required this.onChanged
+    required this.onChanged,
+    this.initialValue = 3
   });
 
   @override
@@ -61,7 +63,14 @@ class ScoreSlider extends StatefulWidget {
 }
 
 class _ScoreSliderState extends State<ScoreSlider> {
-  double value = 3;
+  late double value;
+
+  @override
+  void initState() {
+    super.initState();
+
+    value = widget.initialValue.toDouble();
+  }
 
   @override
   Widget build(BuildContext context) {

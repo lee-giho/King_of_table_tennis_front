@@ -126,6 +126,9 @@ class _ReceivedReviewScreenState extends State<ReceivedReviewScreen> {
                             child: GameReviewTile(
                               gameReview: gameReview,
                               isWritten: false,
+                              onUpdateReview: () {
+                                handleGetGameReview(gameReviewPage, gameReviewPageSize, ReviewType.RECEIVED.name);
+                              },
                             )
                           ),
                         ),

@@ -126,6 +126,9 @@ class _WrittenReviewScreenState extends State<WrittenReviewScreen> {
                             child: GameReviewTile(
                               gameReview: gameReview,
                               isWritten: true,
+                              onUpdateReview: () {
+                                handleGetGameReview(gameReviewPage, gameReviewPageSize, ReviewType.WRITTEN.name);
+                              },
                             )
                           ),
                         ),

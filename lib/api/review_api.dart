@@ -41,3 +41,22 @@ Future<http.Response> getGameReview(int page, int pageSize, String type) async {
 
   return response;
 }
+
+Future<http.Response> patchGameReview(String gameReviewId, RegisterReviewRequest registerReviewRequest) async {
+  String? accessToken = await SecureStorage.getAccessToken();
+
+  // .env에서 서버 URL 가져오기
+  final apiAddress = Uri.parse("${dotenv.get("API_ADDRESS")}/api/review/$gameReviewId");
+  final headers = {
+    'Authorization': 'Bearer ${accessToken}',
+    'Content-Type': 'application/json'
+  };
+
+  final response = await http.patch(
+    apiAddress,
+    headers: headers,
+    body: json.encode(registerReviewRequest.toJson())
+  );
+
+  return response;
+}

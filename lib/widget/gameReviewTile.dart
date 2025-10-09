@@ -1,16 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:king_of_table_tennis/model/game_review.dart';
+import 'package:king_of_table_tennis/screen/edit_game_review_screen.dart';
+import 'package:king_of_table_tennis/util/appColors.dart';
 import 'package:king_of_table_tennis/util/intl.dart';
 import 'package:king_of_table_tennis/widget/expandableText.dart';
 
 class GameReviewTile extends StatefulWidget {
   final GameReview gameReview;
   final bool isWritten;
+  final VoidCallback onUpdateReview;
   const GameReviewTile({
     super.key,
     required this.gameReview,
-    required this.isWritten
+    required this.isWritten,
+    required this.onUpdateReview
   });
 
   @override
@@ -21,6 +25,99 @@ class _GameReviewTileState extends State<GameReviewTile> {
 
   String getScoreAvg(GameReview gameReview) {
     return ((gameReview.scoreServe + gameReview.scoreReceive + gameReview.scoreRally + gameReview.scoreStrokes + gameReview.scoreStrategy + gameReview.scoreManner + gameReview.scorePunctuality + gameReview.scoreCommunity + gameReview.scorePoliteness + gameReview.scoreRematch).toDouble() / 10).toStringAsFixed(1);
+  }
+
+  Widget buildReviewMoreMenu({
+    required BuildContext context,
+    required VoidCallback onEdit,
+    required VoidCallback onDelete
+  }) {
+    return PopupMenuButton<String> (
+      icon: const Icon(
+        Icons.more_horiz
+      ),
+      offset: const Offset(0, 8),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12)
+      ),
+      itemBuilder: (context) => [
+        const PopupMenuItem(
+          value: "edit",
+          height: 40,
+          child: Row (
+            children: [
+              Icon(
+                Icons.edit,
+                size: 18
+              ),
+              SizedBox(width: 8),
+              Text(
+                "리뷰 수정하기"
+              )
+            ],
+          )
+        ),
+        const PopupMenuItem(
+          value: "delete",
+          height: 40,
+          child: Row (
+            children: [
+              Icon(
+                Icons.delete_outline,
+                size: 18
+              ),
+              SizedBox(
+                width: 8
+              ),
+              Text(
+                "리뷰 삭제하기"
+              )
+            ]
+          )
+        )
+      ],
+      onSelected: (value) async {
+        if (value == "edit") {
+          onEdit();
+        } else if (value == "delete") {
+          final confirm = await showDialog(
+            context: context,
+            builder: (ctx) => AlertDialog(
+              title: const Text(
+                "리뷰 삭제"
+              ),
+              content: const Text(
+                "정말로 이 리뷰를 삭제하시겠습니까?"
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.pop(ctx, false);
+                  },
+                  child: const Text(
+                    "취소"
+                  )
+                ),
+                TextButton(
+                  onPressed: () {
+                    Navigator.pop(ctx, true);
+                  },
+                  style: TextButton.styleFrom(
+                    foregroundColor: AppColors.racketRed
+                  ),
+                  child: const Text(
+                    "삭제"
+                  )
+                )
+              ],
+            )
+          );
+          if (confirm == true) {
+            onDelete();
+          };
+        }
+      }
+    );
   }
 
   @override
@@ -65,13 +162,23 @@ class _GameReviewTileState extends State<GameReviewTile> {
                     ),
                   ),
                   if (widget.isWritten)
-                    IconButton(
-                      onPressed: () {
-                    
+                    buildReviewMoreMenu(
+                      context: context,
+                      onEdit: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => EditGameReviewScreen(
+                              gameReview: widget.gameReview
+                            )
+                          )
+                        ).then((_) {
+                          widget.onUpdateReview.call();
+                        });
                       },
-                      icon: Icon(
-                        Icons.more_horiz
-                      )
+                      onDelete: () async {
+
+                      }
                     )
                 ]
               )
