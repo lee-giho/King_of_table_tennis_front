@@ -7,6 +7,7 @@ import 'package:king_of_table_tennis/model/game_detail_info_by_user_dto.dart';
 import 'package:king_of_table_tennis/model/page_response.dart';
 import 'package:king_of_table_tennis/screen/table_tennis_game_info_detail_screen.dart';
 import 'package:king_of_table_tennis/util/apiRequest.dart';
+import 'package:king_of_table_tennis/util/toastMessage.dart';
 import 'package:king_of_table_tennis/widget/gameBeforeInfoTile.dart';
 
 class GameBeforeListScreen extends StatefulWidget {
@@ -41,24 +42,51 @@ class _GameBeforeListScreenState extends State<GameBeforeListScreen> {
         (json) => GameDetailInfoByUserDTO.fromJson(json)
       );
 
-      if (pageResponse.content.isEmpty) {
-        setState(() {
-          gameDetailInfoByUserDTOs = [];
-          gameTotalPages = pageResponse.totalPages;
-        });
+      final int totalPages = pageResponse.totalPages;
 
-        return;
+      if (pageResponse.content.isEmpty && totalPages > 0 && page >= totalPages) {
+        final int lastPage = totalPages - 1;
+        if (lastPage != page) {
+          if (!mounted) return;
+          setState(() {
+            gamePage = lastPage;
+            gameDetailInfoByUserDTOs = [];
+            gameTotalPages = pageResponse.totalPages;
+          });
+          handleGetGameDetailInfoByUser(lastPage, size, type);
+          return;
+        }
       }
 
+      if (!mounted) return;
       setState(() {
         gameDetailInfoByUserDTOs = pageResponse.content;
-        gameTotalPages = pageResponse.totalPages;
+        gameTotalPages = totalPages;
+        gamePage = page;
       });
 
-      print(data);
-      print(gameDetailInfoByUserDTOs);
     } else {
       log("내 경기 정보 가져오기 실패 ${response.body}");
+    }
+  }
+
+  void handleDeleteGame(String gameInfoId) async {
+    final response = await apiRequest(() => deleteGame(gameInfoId), context);
+
+    if (response.statusCode == 204) {
+      ToastMessage.show("경기가 취소되었습니다.");
+
+      final bool lastItemOnThisPage = gameDetailInfoByUserDTOs.length == 1;
+      final int nextPage = (lastItemOnThisPage && gamePage > 0) ? gamePage - 1 : gamePage;
+
+      if (!mounted) return;
+      setState(() {
+        gamePage = nextPage;
+      });
+
+      handleGetGameDetailInfoByUser(gamePage, gamePageSize, "before");
+    } else {
+      ToastMessage.show("경기가 취소되지 않았습니다.");
     }
   }
 
@@ -134,7 +162,10 @@ class _GameBeforeListScreenState extends State<GameBeforeListScreen> {
                           },
                           borderRadius: BorderRadius.circular(15),
                           child: GameBeforeInfoTile(
-                            gameDetailInfoByUserDTO: game
+                            gameDetailInfoByUserDTO: game,
+                            onDeleteGame: () {
+                              handleDeleteGame(game.gameInfo.id);
+                            },
                           ),
                         ),
                       ),

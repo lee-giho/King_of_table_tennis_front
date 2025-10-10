@@ -19,7 +19,7 @@ class WrittenReviewScreen extends StatefulWidget {
 class _WrittenReviewScreenState extends State<WrittenReviewScreen> {
 
   int gameReviewPage = 0;
-  int gameReviewPageSize = 0;
+  int gameReviewPageSize = 5;
   int gameReviewTotalPages = 0;
 
   List<GameReview> gameReviews = [];
@@ -41,20 +41,29 @@ class _WrittenReviewScreenState extends State<WrittenReviewScreen> {
         (json) => GameReview.fromJson(json)
       );
 
-      if (pageResponse.content.isEmpty) {
-        setState(() {
-          gameReviews = [];
-          gameReviewTotalPages = pageResponse.totalPages;
-        });
-        return;
+      final int totalPages = pageResponse.totalPages;
+
+      if (pageResponse.content.isEmpty && totalPages > 0 && page >= totalPages) {
+        final int lastPage = totalPages - 1;
+        if (lastPage != page) {
+          if (!mounted) return;
+          setState(() {
+            gameReviewPage = lastPage;
+            gameReviews = [];
+            gameReviewTotalPages = pageResponse.totalPages;
+          });
+          handleGetGameReview(lastPage, pageSize, type);
+          return;
+        }
       }
 
+      if (!mounted) return;
       setState(() {
         gameReviews = pageResponse.content;
-        gameReviewTotalPages = pageResponse.totalPages;
+        gameReviewTotalPages = totalPages;
+        gameReviewPage = page;
       });
 
-      print("gameReviews: $gameReviews");
     } else {
       ToastMessage.show("내가 작성한 리뷰 가져오기 실패");
     }
@@ -65,6 +74,16 @@ class _WrittenReviewScreenState extends State<WrittenReviewScreen> {
 
     if (response.statusCode == 204) {
       ToastMessage.show("리뷰가 삭제되었습니다.");
+
+      final bool lastItemOnThisPage = gameReviews.length == 1;
+      final int nextPage = (lastItemOnThisPage && gameReviewPage > 0) ? gameReviewPage - 1 : gameReviewPage;
+
+      if (!mounted) return;
+      setState(() {
+        gameReviewPage = nextPage;
+      });
+
+      handleGetGameReview(gameReviewPage, gameReviewPageSize, ReviewType.WRITTEN.name);
     } else {
       ToastMessage.show("리뷰가 삭제되지 않았습니다.");
     }
@@ -141,7 +160,6 @@ class _WrittenReviewScreenState extends State<WrittenReviewScreen> {
                               },
                               onDeleteReview: () {
                                 handleDeleteGameReview(gameReview.id);
-                                handleGetGameReview(gameReviewPage, gameReviewPageSize, ReviewType.WRITTEN.name);
                               },
                             )
                           ),

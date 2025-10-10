@@ -105,7 +105,7 @@ class _GameReviewTileState extends State<GameReviewTile> {
                     Navigator.pop(ctx, false);
                   },
                   child: const Text(
-                    "취소"
+                    "닫기"
                   )
                 ),
                 TextButton(
@@ -116,7 +116,7 @@ class _GameReviewTileState extends State<GameReviewTile> {
                     foregroundColor: AppColors.racketRed
                   ),
                   child: const Text(
-                    "삭제"
+                    "삭제하기"
                   )
                 )
               ],

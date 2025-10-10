@@ -3,13 +3,16 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:king_of_table_tennis/enum/game_state.dart';
 import 'package:king_of_table_tennis/model/game_detail_info_by_user_dto.dart';
 import 'package:king_of_table_tennis/model/user_info_dto.dart';
+import 'package:king_of_table_tennis/util/AppColors.dart';
 import 'package:king_of_table_tennis/util/intl.dart';
 
 class GameBeforeInfoTile extends StatefulWidget {
   final GameDetailInfoByUserDTO gameDetailInfoByUserDTO;
+  final VoidCallback? onDeleteGame;
   const GameBeforeInfoTile({
     super.key,
-    required this.gameDetailInfoByUserDTO
+    required this.gameDetailInfoByUserDTO,
+    required this.onDeleteGame
   });
 
   @override
@@ -17,6 +20,86 @@ class GameBeforeInfoTile extends StatefulWidget {
 }
 
 class _GameBeforeInfoTileState extends State<GameBeforeInfoTile> {
+
+  Widget buildMoreMenu({
+    required BuildContext context,
+    required VoidCallback onDelete
+  }) {
+    return PopupMenuButton<String> (
+      icon: const Icon(
+        Icons.more_horiz
+      ),
+      offset: const Offset(0, 8),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12)
+      ),
+      itemBuilder: (context) => [
+        const PopupMenuItem(
+          value: "delete",
+          height: 40,
+          child: Row (
+            children: [
+              Icon(
+                Icons.delete_outline,
+                size: 18,
+                color: AppColors.racketRed
+              ),
+              SizedBox(
+                width: 8
+              ),
+              Text(
+                "경기 취소하기",
+                style: TextStyle(
+                  color: AppColors.racketRed
+                ),
+              )
+            ]
+          )
+        )
+      ],
+      onSelected: (value) async {
+        if (value == "other") {
+          
+        } else if (value == "delete") {
+          final confirm = await showDialog(
+            context: context,
+            builder: (ctx) => AlertDialog(
+              title: const Text(
+                "경기 취소"
+              ),
+              content: const Text(
+                "정말로 이 경기를 취소하시겠습니까?"
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.pop(ctx, false);
+                  },
+                  child: const Text(
+                    "닫기"
+                  )
+                ),
+                TextButton(
+                  onPressed: () {
+                    Navigator.pop(ctx, true);
+                  },
+                  style: TextButton.styleFrom(
+                    foregroundColor: AppColors.racketRed
+                  ),
+                  child: const Text(
+                    "취소하기"
+                  )
+                )
+              ],
+            )
+          );
+          if (confirm == true) {
+            onDelete();
+          };
+        }
+      }
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -82,14 +165,12 @@ class _GameBeforeInfoTileState extends State<GameBeforeInfoTile> {
                     ),
                 ],
               ),
-              IconButton(
-                onPressed: () {
-
-                },
-                icon: Icon(
-                  Icons.more_horiz
-                )
-              ),
+              buildMoreMenu(
+                context: context,
+                onDelete: () {
+                  widget.onDeleteGame!.call();
+                }
+              )
             ],
           ),
           Row(
