@@ -9,12 +9,14 @@ import 'package:king_of_table_tennis/widget/expandableText.dart';
 class GameReviewTile extends StatefulWidget {
   final GameReview gameReview;
   final bool isWritten;
-  final VoidCallback onUpdateReview;
+  final VoidCallback? onUpdateReview;
+  final VoidCallback? onDeleteReview;
   const GameReviewTile({
     super.key,
     required this.gameReview,
     required this.isWritten,
-    required this.onUpdateReview
+    this.onUpdateReview,
+    this.onDeleteReview
   });
 
   @override
@@ -48,11 +50,15 @@ class _GameReviewTileState extends State<GameReviewTile> {
             children: [
               Icon(
                 Icons.edit,
-                size: 18
+                size: 18,
+                color: AppColors.tableBlue,
               ),
               SizedBox(width: 8),
               Text(
-                "리뷰 수정하기"
+                "리뷰 수정하기",
+                style: TextStyle(
+                  color: AppColors.tableBlue
+                ),
               )
             ],
           )
@@ -64,13 +70,17 @@ class _GameReviewTileState extends State<GameReviewTile> {
             children: [
               Icon(
                 Icons.delete_outline,
-                size: 18
+                size: 18,
+                color: AppColors.racketRed,
               ),
               SizedBox(
                 width: 8
               ),
               Text(
-                "리뷰 삭제하기"
+                "리뷰 삭제하기",
+                style: TextStyle(
+                  color: AppColors.racketRed
+                ),
               )
             ]
           )
@@ -173,11 +183,11 @@ class _GameReviewTileState extends State<GameReviewTile> {
                             )
                           )
                         ).then((_) {
-                          widget.onUpdateReview.call();
+                          widget.onUpdateReview!.call();
                         });
                       },
                       onDelete: () async {
-
+                        widget.onDeleteReview!.call();
                       }
                     )
                 ]

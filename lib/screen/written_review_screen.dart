@@ -60,6 +60,16 @@ class _WrittenReviewScreenState extends State<WrittenReviewScreen> {
     }
   }
 
+  void handleDeleteGameReview(String gameReviewId) async {
+    final response = await apiRequest(() => deleteGameReview(gameReviewId), context);
+
+    if (response.statusCode == 204) {
+      ToastMessage.show("리뷰가 삭제되었습니다.");
+    } else {
+      ToastMessage.show("리뷰가 삭제되지 않았습니다.");
+    }
+  }
+
   void goToPage(int page) {
     if (page < 0 || page >= gameReviewTotalPages) return;
     setState(() {
@@ -127,6 +137,10 @@ class _WrittenReviewScreenState extends State<WrittenReviewScreen> {
                               gameReview: gameReview,
                               isWritten: true,
                               onUpdateReview: () {
+                                handleGetGameReview(gameReviewPage, gameReviewPageSize, ReviewType.WRITTEN.name);
+                              },
+                              onDeleteReview: () {
+                                handleDeleteGameReview(gameReview.id);
                                 handleGetGameReview(gameReviewPage, gameReviewPageSize, ReviewType.WRITTEN.name);
                               },
                             )

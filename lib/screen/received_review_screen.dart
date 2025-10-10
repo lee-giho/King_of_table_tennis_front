@@ -125,10 +125,7 @@ class _ReceivedReviewScreenState extends State<ReceivedReviewScreen> {
                             borderRadius: BorderRadius.circular(15),
                             child: GameReviewTile(
                               gameReview: gameReview,
-                              isWritten: false,
-                              onUpdateReview: () {
-                                handleGetGameReview(gameReviewPage, gameReviewPageSize, ReviewType.RECEIVED.name);
-                              },
+                              isWritten: false
                             )
                           ),
                         ),

@@ -59,7 +59,9 @@ class GameReview {
       scorePoliteness: json['scorePoliteness'],
       scoreRematch: json['scoreRematch'],
       comment: json['comment'],
-      writeDate: DateTime.tryParse(json['gameDate'] ?? '') ?? DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day, DateTime.now().hour+1)
+      // writeDate: DateTime.tryParse(json['gameDate'] ?? '') ?? DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day, DateTime.now().hour+1)
+      writeDate: DateTime.tryParse(json['writeDate'] ?? '')
+        ?.toLocal() ?? DateTime.now()
     );
   }
 }
