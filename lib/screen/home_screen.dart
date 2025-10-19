@@ -6,6 +6,7 @@ import 'dart:convert';
 import 'package:king_of_table_tennis/api/game_api.dart';
 import 'package:king_of_table_tennis/model/game_detail_info_by_page_dto.dart';
 import 'package:king_of_table_tennis/model/page_response.dart';
+import 'package:king_of_table_tennis/screen/post_screen.dart';
 import 'package:king_of_table_tennis/screen/search_table_tennis_court_screen.dart';
 import 'package:king_of_table_tennis/screen/table_tennis_game_info_detail_screen.dart';
 import 'package:king_of_table_tennis/util/apiRequest.dart';
@@ -216,7 +217,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   ],
                 ),
                 SizedBox(height: 30),
-                Row(
+                Row( // 경기 미리보기
                   children: [
                     IconButton(
                       onPressed: gamePage == 0
@@ -260,6 +261,55 @@ class _HomeScreenState extends State<HomeScreen> {
                       icon: Icon(
                         Icons.arrow_forward_ios
                       )
+                    )
+                  ],
+                ),
+                SizedBox(height: 30),
+                Column( // 커뮤니티
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        Text(
+                          "커뮤니티",
+                          style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold
+                          ),
+                        ),
+                        GestureDetector(
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => PostScreen()
+                              )
+                            );
+                          },
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              Text(
+                                "더보기",
+                                style: TextStyle(
+                                  fontSize: 16
+                                ),
+                              ),
+                              Icon(
+                                Icons.add
+                              ),
+                            ],
+                          ),
+                        )
+                      ],
+                    ),
+                    Container(
+                      padding: EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        border: Border.all(color: Colors.black),
+                        borderRadius: BorderRadius.circular(15),
+                      ),
                     )
                   ],
                 )
