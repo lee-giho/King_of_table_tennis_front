@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:king_of_table_tennis/api/post_api.dart';
 import 'package:king_of_table_tennis/model/page_response.dart';
 import 'package:king_of_table_tennis/model/post.dart';
@@ -139,15 +140,28 @@ class _MyPostInfoScreenState extends State<MyPostInfoScreen> {
                           color: Colors.transparent,
                           borderRadius: BorderRadius.circular(15),
                           child: InkWell(
-                            onTap: () {
-                              Navigator.push(
+                            onTap: () async {
+                              final deleted = await Navigator.push(
                                 context,
                                 MaterialPageRoute(
                                   builder: (context) => PostDetailScreen(
-                                    post: post
+                                    post: post,
+                                    isMine: true,
                                   )
                                 )
                               );
+
+                              if (deleted == true) {  
+                                final bool lastItemOnThisPage = posts.length == 1;
+                                final int nextPage = (lastItemOnThisPage && postPage > 0) ? postPage - 1 : postPage;
+
+                                if (!mounted) return;
+                                setState(() {
+                                  postPage = nextPage;
+                                });
+
+                                handleGetPost(postPage, postPageSize);
+                              }
                             },
                             borderRadius: BorderRadius.circular(15),
                             child: PostPreviewTile(

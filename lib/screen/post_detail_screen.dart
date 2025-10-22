@@ -1,14 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:king_of_table_tennis/api/post_api.dart';
 import 'package:king_of_table_tennis/enum/post_type.dart';
 import 'package:king_of_table_tennis/model/post.dart';
+import 'package:king_of_table_tennis/util/apiRequest.dart';
+import 'package:king_of_table_tennis/util/appColors.dart';
 import 'package:king_of_table_tennis/util/intl.dart';
+import 'package:king_of_table_tennis/util/toastMessage.dart';
 
 class PostDetailScreen extends StatefulWidget {
   final Post post;
+  final bool isMine;
   const PostDetailScreen({
     super.key,
-    required this.post
+    required this.post,
+    this.isMine = false
   });
 
   @override
@@ -19,7 +25,134 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
+
+    void handleDeletePost(String postId) async {
+      final response = await apiRequest(() => deleteMyPost(postId), context);
+
+      if (response.statusCode == 204) {
+        ToastMessage.show("게시글이 삭제되었습니다.");
+
+        Navigator.pop(context, true);
+      } else {
+        ToastMessage.show("게시글이 삭제되지 않았습니다.");
+      }
+    }
+
+    Widget buildPostMoreMenu({
+      required BuildContext context,
+      required VoidCallback onEdit,
+      required VoidCallback onDelete
+    }) {
+      return PopupMenuButton<String> (
+        icon: const Icon(
+          Icons.more_horiz
+        ),
+        offset: const Offset(0, 8),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12)
+        ),
+        itemBuilder: (context) => [
+          const PopupMenuItem(
+            value: "edit",
+            height: 40,
+            child: Row (
+              children: [
+                Icon(
+                  Icons.edit,
+                  size: 18,
+                  color: AppColors.tableBlue,
+                ),
+                SizedBox(width: 8),
+                Text(
+                  "게시글 수정하기",
+                  style: TextStyle(
+                    color: AppColors.tableBlue
+                  ),
+                )
+              ],
+            )
+          ),
+          const PopupMenuItem(
+            value: "delete",
+            height: 40,
+            child: Row (
+              children: [
+                Icon(
+                  Icons.delete_outline,
+                  size: 18,
+                  color: AppColors.racketRed,
+                ),
+                SizedBox(
+                  width: 8
+                ),
+                Text(
+                  "게시글 삭제하기",
+                  style: TextStyle(
+                    color: AppColors.racketRed
+                  ),
+                )
+              ]
+            )
+          )
+        ],
+        onSelected: (value) async {
+          if (value == "edit") {
+            onEdit();
+          } else if (value == "delete") {
+            final confirm = await showDialog(
+              context: context,
+              builder: (ctx) => AlertDialog(
+                title: const Text(
+                  "게시글 삭제"
+                ),
+                content: const Text(
+                  "정말로 이 게시글를 삭제하시겠습니까?"
+                ),
+                actions: [
+                  TextButton(
+                    onPressed: () {
+                      Navigator.pop(ctx, false);
+                    },
+                    child: const Text(
+                      "닫기"
+                    )
+                  ),
+                  TextButton(
+                    onPressed: () {
+                      Navigator.pop(ctx, true);
+                    },
+                    style: TextButton.styleFrom(
+                      foregroundColor: AppColors.racketRed
+                    ),
+                    child: const Text(
+                      "삭제하기"
+                    )
+                  )
+                ],
+              )
+            );
+            if (confirm == true) {
+              onDelete();
+            }
+          }
+        }
+      );
+    }
+
     return Scaffold(
+      appBar: AppBar(
+        actions: [
+          buildPostMoreMenu(
+            context: context,
+            onEdit: () {
+              print("edit");
+            },
+            onDelete: () {
+              handleDeletePost(widget.post.id);
+            }
+          ),
+        ],
+      ),
       body: SafeArea(
         child: Container( // 전체화면
           padding: const EdgeInsets.symmetric(horizontal: 20),
