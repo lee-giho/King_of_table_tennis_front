@@ -199,8 +199,9 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
         : Container( // 전체화면
           padding: const EdgeInsets.symmetric(horizontal: 20),
           child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Padding(
+              Padding( // 제목
                 padding: const EdgeInsets.symmetric(vertical: 20),
                 child: Text(
                   post!.title,
@@ -210,26 +211,22 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
                   ),
                 ),
               ),
-              Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(5),
-                    decoration: BoxDecoration(
-                      border: Border.all(
-                        width: 1,
-                        color: Colors.black
-                      ),
-                      borderRadius: BorderRadius.circular(15),
-                      color: post!.category.color
-                    ),
-                    child: Text(
-                      post!.category.label,
-                      style: TextStyle(
-                        fontSize: 12
-                      ),
-                    ),
+              Container( // 카테고리
+                padding: const EdgeInsets.all(5),
+                decoration: BoxDecoration(
+                  border: Border.all(
+                    width: 1,
+                    color: Colors.black
                   ),
-                ],
+                  borderRadius: BorderRadius.circular(15),
+                  color: post!.category.color
+                ),
+                child: Text(
+                  post!.category.label,
+                  style: TextStyle(
+                    fontSize: 12
+                  ),
+                ),
               ),
               Divider(),
               Padding(
@@ -283,9 +280,16 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
                     ],
                   ),
                   Text(
-                    formatDateTime(post!.writeAt)
-                  )
-                ],
+                    post!.isUpdated
+                      ? "${formatDateTime(post!.writeAt)}(수정됨)"
+                      : formatDateTime(post!.writeAt),
+                    style: TextStyle(
+                      color: post!.isUpdated
+                        ? const Color.fromARGB(255, 51, 118, 53)
+                        : Colors.black
+                    ),
+                      )
+                    ],
               )
             ],
           )

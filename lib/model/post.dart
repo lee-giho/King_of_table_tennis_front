@@ -12,6 +12,7 @@ class Post {
 
   final DateTime writeAt;
 
+  final bool isUpdated;
 
   Post({
     required this.id,
@@ -19,7 +20,8 @@ class Post {
     required this.title,
     required this.category,
     required this.content,
-    required this.writeAt
+    required this.writeAt,
+    required this.isUpdated
   });
 
   factory Post.fromJson(Map<String, dynamic> json) {
@@ -32,6 +34,7 @@ class Post {
       category: PostTypeExtension.fromString(json['category']),
       content: json['content'],
       writeAt: DateTime.parse(json['writeAt']),
+      isUpdated: json['updated']
     );
   }
 }

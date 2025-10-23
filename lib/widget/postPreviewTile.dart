@@ -28,6 +28,7 @@ class _PostPreviewTileState extends State<PostPreviewTile> {
         borderRadius: BorderRadius.circular(15)
       ),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           ExpandableTitle( 
             text: widget.post.title,
@@ -73,7 +74,14 @@ class _PostPreviewTileState extends State<PostPreviewTile> {
                 ],
               ),
               Text( // 작성 날짜
-                formatDateTime(widget.post.writeAt)
+                widget.post.isUpdated
+                  ? "${formatDateTime(widget.post.writeAt)}(수정됨)"
+                  : formatDateTime(widget.post.writeAt),
+                style: TextStyle(
+                  color: widget.post.isUpdated
+                    ? const Color.fromARGB(255, 51, 118, 53)
+                    : Colors.black
+                ),
               )
             ],
           )

@@ -62,7 +62,7 @@ class _ExpandableTitleState extends State<ExpandableTitle>
                   overflow: isExpanded
                     ? TextOverflow.visible
                     : TextOverflow.ellipsis,
-                  textAlign: TextAlign.start
+                  textAlign: TextAlign.left
                 ),
               ],
             ),
