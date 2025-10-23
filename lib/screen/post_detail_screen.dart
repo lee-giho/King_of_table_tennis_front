@@ -1,20 +1,23 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:king_of_table_tennis/api/post_api.dart';
 import 'package:king_of_table_tennis/enum/post_type.dart';
 import 'package:king_of_table_tennis/model/post.dart';
+import 'package:king_of_table_tennis/screen/post_update_screen.dart';
 import 'package:king_of_table_tennis/util/apiRequest.dart';
 import 'package:king_of_table_tennis/util/appColors.dart';
 import 'package:king_of_table_tennis/util/intl.dart';
 import 'package:king_of_table_tennis/util/toastMessage.dart';
 
 class PostDetailScreen extends StatefulWidget {
-  final Post post;
-  final bool isMine;
+  final String postId;
+  final VoidCallback? onUpdatePost;
   const PostDetailScreen({
     super.key,
-    required this.post,
-    this.isMine = false
+    required this.postId,
+    this.onUpdatePost
   });
 
   @override
@@ -22,6 +25,31 @@ class PostDetailScreen extends StatefulWidget {
 }
 
 class _PostDetailScreenState extends State<PostDetailScreen> {
+
+  Post? post;
+
+  @override
+  void initState() {
+    super.initState();
+
+    handleGetPostById(widget.postId);
+  }
+
+  void handleGetPostById(String postId) async {
+    final response = await apiRequest(() => getPostById(postId), context);
+
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
+      final postResponse = Post.fromJson(data);
+
+      setState(() {
+        post = postResponse;
+      });
+    } else {
+      ToastMessage.show("게시글을 가져오는 중 오류가 발생했습니다.");
+      Navigator.pop(context);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -144,24 +172,38 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
         actions: [
           buildPostMoreMenu(
             context: context,
-            onEdit: () {
-              print("edit");
+            onEdit: () async {
+              final updated = await Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => PostUpdateScreen(
+                    post: post!
+                  )
+                )
+              );
+
+              if (updated == true) {
+                handleGetPostById(widget.postId);
+                widget.onUpdatePost?.call();
+              }
             },
             onDelete: () {
-              handleDeletePost(widget.post.id);
+              handleDeletePost(post!.id);
             }
           ),
         ],
       ),
       body: SafeArea(
-        child: Container( // 전체화면
+        child: post == null
+        ? const CircularProgressIndicator()
+        : Container( // 전체화면
           padding: const EdgeInsets.symmetric(horizontal: 20),
           child: Column(
             children: [
               Padding(
                 padding: const EdgeInsets.symmetric(vertical: 20),
                 child: Text(
-                  widget.post.title,
+                  post!.title,
                   style: TextStyle(
                     fontSize: 24,
                     fontWeight: FontWeight.bold
@@ -178,10 +220,10 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
                         color: Colors.black
                       ),
                       borderRadius: BorderRadius.circular(15),
-                      color: widget.post.category.color
+                      color: post!.category.color
                     ),
                     child: Text(
-                      widget.post.category.label,
+                      post!.category.label,
                       style: TextStyle(
                         fontSize: 12
                       ),
@@ -195,7 +237,7 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
                 child: Container( // 본문
                   width: double.infinity,
                   child: Text(
-                    widget.post.content
+                    post!.content
                   ),
                 ),
               ),
@@ -207,7 +249,7 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
                       ClipOval( // 프로필 사진
-                        child: widget.post.writer.profileImage == "default"
+                        child: post!.writer.profileImage == "default"
                             ? Container(
                                 width: 26,
                                 height: 26,
@@ -227,13 +269,13 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
                                 height: 26,
                                 fit: BoxFit.cover,
                                 image: NetworkImage(
-                                  "${dotenv.env["API_ADDRESS"]}/image/profile/${widget.post.writer.profileImage}"
+                                  "${dotenv.env["API_ADDRESS"]}/image/profile/${post!.writer.profileImage}"
                                 )
                               )
                       ),
                       SizedBox(width: 5),
                       Text(
-                        widget.post.writer.nickName,
+                        post!.writer.nickName,
                         style: TextStyle(
                           fontSize: 20
                         ),
@@ -241,7 +283,7 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
                     ],
                   ),
                   Text(
-                    formatDateTime(widget.post.writeAt)
+                    formatDateTime(post!.writeAt)
                   )
                 ],
               )

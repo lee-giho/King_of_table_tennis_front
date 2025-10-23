@@ -2,7 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
-import 'package:king_of_table_tennis/api/post_api.dart';
+import 'package:king_of_table_tennis/api/user_api.dart';
 import 'package:king_of_table_tennis/model/page_response.dart';
 import 'package:king_of_table_tennis/model/post.dart';
 import 'package:king_of_table_tennis/screen/post_detail_screen.dart';
@@ -145,8 +145,10 @@ class _MyPostInfoScreenState extends State<MyPostInfoScreen> {
                                 context,
                                 MaterialPageRoute(
                                   builder: (context) => PostDetailScreen(
-                                    post: post,
-                                    isMine: true,
+                                    postId: post.id,
+                                    onUpdatePost: () {
+                                      handleGetPost(postPage, postPageSize);
+                                    },
                                   )
                                 )
                               );

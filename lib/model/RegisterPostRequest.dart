@@ -1,12 +1,12 @@
 class RegisterPostRequest {
-  final String title;
-  final String category;
-  final String content;
+  final String? title;
+  final String? category;
+  final String? content;
 
   RegisterPostRequest({
-    required this.title,
-    required this.category,
-    required this.content
+    this.title,
+    this.category,
+    this.content
   });
 
   factory RegisterPostRequest.fromJson(Map<String, dynamic> json) {
@@ -18,10 +18,10 @@ class RegisterPostRequest {
   }
 
   Map<String, dynamic> toJson() {
-    return {
-      "title": title,
-      "category": category,
-      "content": content
-    };
+    final data = <String, dynamic>{};
+    if (title != null) data['title'] = title;
+    if (category != null) data['category'] = category;
+    if (content != null) data['content'] = content;
+    return data;
   }
 }
