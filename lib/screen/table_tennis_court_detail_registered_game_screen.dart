@@ -61,7 +61,7 @@ class _TableTennisCourtDetailRegisteredGameScreenState extends State<TableTennis
             recruitingGames = [];
             recruitingGameTotalPages = pageResponse.totalPages;
           });
-          handleGetRecruitingGameList(tableTennisCourtId, type, page, pageSize);
+          handleGetRecruitingGameList(tableTennisCourtId, type, lastPage, pageSize);
           return;
         }
       }

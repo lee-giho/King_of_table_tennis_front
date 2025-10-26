@@ -74,11 +74,11 @@ class _PostPreviewTileState extends State<PostPreviewTile> {
                 ],
               ),
               Text( // 작성 날짜
-                widget.post.isUpdated
-                  ? "${formatDateTime(widget.post.writeAt)}(수정됨)"
-                  : formatDateTime(widget.post.writeAt),
+                widget.post.updatedAt != null
+                  ? "${formatDateTime(widget.post.updatedAt!)}(수정)"
+                  : formatDateTime(widget.post.createdAt),
                 style: TextStyle(
-                  color: widget.post.isUpdated
+                  color: widget.post.updatedAt != null
                     ? const Color.fromARGB(255, 51, 118, 53)
                     : Colors.black
                 ),

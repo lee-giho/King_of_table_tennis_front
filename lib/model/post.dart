@@ -10,9 +10,10 @@ class Post {
 
   final String content;
 
-  final DateTime writeAt;
+  final DateTime createdAt;
+  final DateTime? updatedAt;
 
-  final bool isUpdated;
+  final bool isMine;
 
   Post({
     required this.id,
@@ -20,8 +21,9 @@ class Post {
     required this.title,
     required this.category,
     required this.content,
-    required this.writeAt,
-    required this.isUpdated
+    required this.createdAt,
+    this.updatedAt,
+    required this.isMine
   });
 
   factory Post.fromJson(Map<String, dynamic> json) {
@@ -33,8 +35,11 @@ class Post {
       title: json['title'],
       category: PostTypeExtension.fromString(json['category']),
       content: json['content'],
-      writeAt: DateTime.parse(json['writeAt']),
-      isUpdated: json['updated']
+      createdAt: DateTime.parse(json['createdAt']),
+      updatedAt: json['updatedAt'] != null
+        ? DateTime.parse(json['updatedAt'])
+        : null,
+      isMine: json['mine']
     );
   }
 }

@@ -170,28 +170,30 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
     return Scaffold(
       appBar: AppBar(
         actions: [
-          buildPostMoreMenu(
-            context: context,
-            onEdit: () async {
-              final updated = await Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => PostUpdateScreen(
-                    post: post!
+          if (post?.isMine == true)
+            buildPostMoreMenu(
+              context: context,
+              onEdit: () async {
+                final updated = await Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => PostUpdateScreen(
+                      post: post!
+                    )
                   )
-                )
-              );
+                );
 
-              if (updated == true) {
-                handleGetPostById(widget.postId);
-                widget.onUpdatePost?.call();
+                if (updated == true) {
+                  handleGetPostById(widget.postId);
+                  widget.onUpdatePost?.call();
+                }
+              },
+              onDelete: () {
+                if (post != null)
+                  handleDeletePost(post!.id);
               }
-            },
-            onDelete: () {
-              handleDeletePost(post!.id);
-            }
-          ),
-        ],
+            )
+        ]
       ),
       body: SafeArea(
         child: post == null
@@ -279,17 +281,22 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
                       )
                     ],
                   ),
-                  Text(
-                    post!.isUpdated
-                      ? "${formatDateTime(post!.writeAt)}(수정됨)"
-                      : formatDateTime(post!.writeAt),
-                    style: TextStyle(
-                      color: post!.isUpdated
-                        ? const Color.fromARGB(255, 51, 118, 53)
-                        : Colors.black
-                    ),
-                      )
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        formatDateTime(post!.createdAt),
+                      ),
+                      if (post!.updatedAt != null)
+                        Text(
+                          "${formatDateTime(post!.updatedAt!)}(수정)",
+                          style: TextStyle(
+                            color: const Color.fromARGB(255, 51, 118, 53)
+                          )
+                        )
                     ],
+                  )
+                ],
               )
             ],
           )

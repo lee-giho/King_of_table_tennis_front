@@ -4,8 +4,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'dart:convert';
 import 'package:king_of_table_tennis/api/game_api.dart';
+import 'package:king_of_table_tennis/api/post_api.dart';
+import 'package:king_of_table_tennis/enum/post_sort_option.dart';
+import 'package:king_of_table_tennis/enum/post_type.dart';
 import 'package:king_of_table_tennis/model/game_detail_info_by_page_dto.dart';
 import 'package:king_of_table_tennis/model/page_response.dart';
+import 'package:king_of_table_tennis/model/post.dart';
+import 'package:king_of_table_tennis/screen/post_detail_screen.dart';
 import 'package:king_of_table_tennis/screen/post_screen.dart';
 import 'package:king_of_table_tennis/screen/search_table_tennis_court_screen.dart';
 import 'package:king_of_table_tennis/screen/table_tennis_game_info_detail_screen.dart';
@@ -32,6 +37,12 @@ class _HomeScreenState extends State<HomeScreen> {
 
   GameDetailInfoByPageDTO? gameDetailInfoByPageDTO;
 
+  int postPage = 0;
+  int postPageSize = 3;
+  List<PostType> categories = [PostType.GENERAL, PostType.SKILL, PostType.EQUIPMENT];
+
+  List<Post>? posts;
+
   StompClient? stompClient;
   String? subscribedGameId;
 
@@ -40,6 +51,7 @@ class _HomeScreenState extends State<HomeScreen> {
     super.initState();
 
     handleGetGameDetailInfoByPage(gamePage, gamePageSize);
+    handleGetPost(postPage, postPageSize, categories);
   }
 
   @override
@@ -78,6 +90,32 @@ class _HomeScreenState extends State<HomeScreen> {
       wsConnect();
     } else {
       log("경기 정보 가져오기 실패");
+    }
+  }
+
+  void handleGetPost(int page, int size, List<PostType> categories) async {
+    final response = await apiRequest(() => getPostByCategory(page, size, categories, PostSortOption.CREATED_DESC), context);
+
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
+      final pageResponse = PageResponse<Post>.fromJson(
+        data,
+        (json) => Post.fromJson(json)
+      );
+
+      if (pageResponse.content.isEmpty) {
+        setState(() {
+          posts = null;
+        });
+
+        return;
+      }
+
+      setState(() {
+        posts = pageResponse.content;
+      });
+    } else {
+      log("게시글 가져오기 실패");
     }
   }
 
@@ -265,14 +303,14 @@ class _HomeScreenState extends State<HomeScreen> {
                   ],
                 ),
                 SizedBox(height: 30),
-                Column( // 커뮤니티
+                Column( // 게시글
                   children: [
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
                         Text(
-                          "커뮤니티",
+                          "게시글",
                           style: TextStyle(
                             fontSize: 20,
                             fontWeight: FontWeight.bold
@@ -305,11 +343,108 @@ class _HomeScreenState extends State<HomeScreen> {
                       ],
                     ),
                     Container(
+                      width: double.infinity,
                       padding: EdgeInsets.all(8),
                       decoration: BoxDecoration(
                         border: Border.all(color: Colors.black),
                         borderRadius: BorderRadius.circular(15),
                       ),
+                      child: posts == null
+                        ? const Text(
+                            "등록된 게시글이 없습니다."
+                          )
+                        : Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: posts!.map((p) => InkWell(
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => PostDetailScreen(
+                                    postId: p.id,
+                                    
+                                  )
+                                )
+                              );
+                            },
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 10),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    p.title,
+                                    style: TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold
+                                    ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Row(
+                                        children: [
+                                          ClipOval( // 프로필 사진
+                                            child: p.writer.profileImage == "default"
+                                              ? Container(
+                                                  width: 22,
+                                                  height: 22,
+                                                  decoration: BoxDecoration(
+                                                    border: Border.all(
+                                                      width: 1
+                                                    ),
+                                                    shape: BoxShape.circle
+                                                  ),
+                                                  child: const Icon(
+                                                      Icons.person,
+                                                      size: 16
+                                                    ),
+                                              )
+                                              : Image(
+                                                  width: 22,
+                                                  height: 22,
+                                                  fit: BoxFit.cover,
+                                                  image: NetworkImage(
+                                                    "${dotenv.env["API_ADDRESS"]}/image/profile/${p.writer.profileImage}"
+                                                  )
+                                                )
+                                          ),
+                                          SizedBox(width: 5),
+                                          Text(
+                                            p.writer.nickName,
+                                            style: TextStyle(
+                                              fontSize: 16
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                      Container(
+                                        padding: const EdgeInsets.all(5),
+                                        decoration: BoxDecoration(
+                                          border: Border.all(
+                                            width: 1,
+                                            color: Colors.black
+                                          ),
+                                          borderRadius: BorderRadius.circular(15),
+                                          color: p.category.color
+                                        ),
+                                        child: Text(
+                                          p.category.label,
+                                          style: TextStyle(
+                                            fontSize: 10
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            ),
+                          )
+                          ).toList()
+                        )
                     )
                   ],
                 )
