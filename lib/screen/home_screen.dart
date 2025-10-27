@@ -58,6 +58,9 @@ class _HomeScreenState extends State<HomeScreen> {
   void dispose() {
     stompClient?.deactivate();
 
+    searchKeywordController.dispose();
+    searchKeywordFocus.dispose();
+
     super.dispose();
   }
 
@@ -94,7 +97,15 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void handleGetPost(int page, int size, List<PostType> categories) async {
-    final response = await apiRequest(() => getPostByCategory(page, size, categories, PostSortOption.CREATED_DESC), context);
+    final response = await apiRequest(
+      () => getPost(
+          page: page,
+          size: size,
+          categories: categories,
+          sort: PostSortOption.CREATED_DESC
+        ),
+        context
+      );
 
     if (response.statusCode == 200) {
       final data = json.decode(response.body);

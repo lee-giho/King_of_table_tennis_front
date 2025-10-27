@@ -8,6 +8,7 @@ import 'package:king_of_table_tennis/model/post.dart';
 import 'package:king_of_table_tennis/screen/post_detail_screen.dart';
 import 'package:king_of_table_tennis/util/apiRequest.dart';
 import 'package:king_of_table_tennis/util/toastMessage.dart';
+import 'package:king_of_table_tennis/widget/paginationBar.dart';
 import 'package:king_of_table_tennis/widget/postPreviewTile.dart';
 
 class MyPostInfoScreen extends StatefulWidget {
@@ -75,33 +76,6 @@ class _MyPostInfoScreenState extends State<MyPostInfoScreen> {
       postPage = page;
     });
     handleGetPost(page, postPageSize);
-  }
-
-  List<int> visiblePages({
-    required int current,
-    required int total,
-    int window = 5
-  }) {
-    if (total <= 0) return const [];
-
-    int start = current;
-    final int remain = total - start;
-    if (remain < window) {
-      start = (total - window).clamp(0, total - 1);
-    }
-    final end = (start + window).clamp(0, total);
-    return [for (int i = start; i < end; i++) i];
-  }
-
-  Widget navButton(String label, {required VoidCallback onTap}) {
-    return IconButton(
-      onPressed: onTap,
-      icon: Icon(
-        label == "<"
-          ? Icons.arrow_back_ios
-          : Icons.arrow_forward_ios,
-      ),
-    );
   }
   
   @override
@@ -179,48 +153,12 @@ class _MyPostInfoScreenState extends State<MyPostInfoScreen> {
                 SliverToBoxAdapter(
                   child: Padding(
                     padding: const EdgeInsets.symmetric(vertical: 12),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        if (postPage > 0)
-                          navButton("<", onTap: () => goToPage(postPage - 1)),
-                        ...visiblePages(current: postPage, total: postTotalPages).map((p) {
-                          final isActive = p == postPage;
-                          return Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 4),
-                            child: OutlinedButton(
-                              onPressed: isActive
-                                ? null
-                                : () => goToPage(p),
-                              style: OutlinedButton.styleFrom(
-                                minimumSize: const Size(40, 36),
-                                side: BorderSide(
-                                  color: isActive
-                                    ? Colors.black
-                                    : Colors.grey
-                                ),
-                                backgroundColor: isActive
-                                  ? const Color.fromARGB(50, 30, 77, 135)
-                                  : null,
-                                foregroundColor: isActive
-                                  ? Colors.white
-                                  : Colors.black
-                              ),
-                              child: Text(
-                                "${p + 1}",
-                                style: TextStyle(
-                                  fontWeight: isActive
-                                    ? FontWeight.bold
-                                    : FontWeight.normal
-                                ),
-                              )
-                            ),
-                          );
-                        }),
-                        if (postPage < postTotalPages - 1)
-                          navButton(">", onTap: () => goToPage(postPage + 1)),
-                      ],
-                    ),
+                    child: PaginationBar(
+                      currentPage: postPage,
+                      totalPages: postTotalPages,
+                      window: 5,
+                      onPageChanged: (p) => goToPage(p)
+                    )
                   ),
                 )
               ],

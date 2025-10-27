@@ -18,6 +18,7 @@ import 'package:king_of_table_tennis/util/appColors.dart';
 import 'package:king_of_table_tennis/util/intl.dart';
 import 'package:king_of_table_tennis/util/secure_storage.dart';
 import 'package:king_of_table_tennis/util/toastMessage.dart';
+import 'package:king_of_table_tennis/widget/paginationBar.dart';
 import 'package:king_of_table_tennis/widget/gameInfoDetailUserTile.dart';
 import 'package:stomp_dart_client/stomp_dart_client.dart';
 
@@ -331,50 +332,12 @@ class _TableTennisGameInfoDetailScreenState extends State<TableTennisGameInfoDet
               // 페이지네이션 바
               Padding(
                 padding: const EdgeInsets.symmetric(vertical: 12),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    if (applicantPage > 0)
-                      navButton("<", onTap: () => goToPage(applicantPage - 1)),
-                    ...visiblePages(current: applicantPage, total: applicantTotalPages).map((p) {
-                      final isActive = p == applicantPage;
-                      return OutlinedButton(
-                        onPressed: isActive
-                          ? null
-                          : () => goToPage(p),
-                        style: OutlinedButton.styleFrom(
-                          minimumSize: const Size(28, 28),
-                          padding: EdgeInsets.symmetric(vertical: 4, horizontal: 6),
-                          side: BorderSide(
-                            color: isActive
-                              ? Colors.black
-                              : Colors.grey
-                          ),
-                          backgroundColor: isActive
-                            ? const Color.fromARGB(50, 30, 77, 135)
-                            : null,
-                          foregroundColor: isActive
-                            ? Colors.white
-                            : Colors.black,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8)
-                          )
-                        ),
-                        child: Text(
-                          "${p + 1}",
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: isActive
-                              ? FontWeight.bold
-                              : FontWeight.normal
-                          ),
-                        )
-                      );
-                    }),
-                    if (applicantPage < applicantTotalPages - 1)
-                      navButton(">", onTap: () => goToPage(applicantPage + 1)),
-                  ],
-                ),
+                child: PaginationBar(
+                  currentPage: applicantPage,
+                  totalPages: applicantTotalPages,
+                  window: 5,
+                  onPageChanged: (p) => goToPage(p)
+                )
               ),
             ],
           ),
@@ -389,33 +352,6 @@ class _TableTennisGameInfoDetailScreenState extends State<TableTennisGameInfoDet
       applicantPage = page;
     });
     getApplicants(applicantPage, applicantPageSize);
-  }
-
-  List<int> visiblePages({
-    required int current,
-    required int total,
-    int window = 5
-  }) {
-    if (total <= 0) return const [];
-
-    int start = current;
-    final int remain = total - start;
-    if (remain < window) {
-      start = (total - window).clamp(0, total - 1);
-    }
-    final end = (start + window).clamp(0, total);
-    return [for (int i = start; i < end; i++) i];
-  }
-
-  Widget navButton(String label, {required VoidCallback onTap}) {
-    return IconButton(
-      onPressed: onTap,
-      icon: Icon(
-        label == "<"
-          ? Icons.arrow_back_ios
-          : Icons.arrow_forward_ios,
-      ),
-    );
   }
 
   @override

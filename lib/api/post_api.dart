@@ -80,16 +80,28 @@ Future<http.Response> getPostById(String postId) async {
   return response;
 }
 
-Future<http.Response> getPostByCategory(int page, int size, List<PostType> categories, PostSortOption sort) async {
+Future<http.Response> getPost({
+  required int page,
+  required int size,
+  required List<PostType> categories,
+  required PostSortOption sort,
+  String? keyword
+}) async {
   String? accessToken = await SecureStorage.getAccessToken();
 
   // .env에서 서버 URL 가져오기
-  String url = "${dotenv.get("API_ADDRESS")}/api/post?page=$page&size=$size";
+  String base = "${dotenv.get("API_ADDRESS")}/api/post";
 
-  final categoryParams = categories.map((c) => "category=${c.value}").join("&");
-  url = "$url&$categoryParams&sort=${sort.value}";
+  final params = <String>[
+    "page=$page",
+    "size=$size",
+    ...categories.map((c) => "category=${c.value}"),
+    "sort=${sort.value}",
+    if (keyword != null && keyword.trim().isNotEmpty)
+      "keyword=${Uri.encodeQueryComponent(keyword.trim())}"
+  ].join("&");
 
-  final uri = Uri.parse(url);
+  final uri = Uri.parse("$base?$params");
 
   final headers = {
     'Authorization': 'Bearer ${accessToken}',

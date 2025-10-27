@@ -11,6 +11,7 @@ import 'package:king_of_table_tennis/screen/post_detail_screen.dart';
 import 'package:king_of_table_tennis/screen/post_registration_screen.dart';
 import 'package:king_of_table_tennis/util/AppColors.dart';
 import 'package:king_of_table_tennis/util/apiRequest.dart';
+import 'package:king_of_table_tennis/widget/paginationBar.dart';
 import 'package:king_of_table_tennis/widget/customStringPicker.dart';
 import 'package:king_of_table_tennis/widget/postPreviewTile.dart';
 
@@ -23,8 +24,14 @@ class PostScreen extends StatefulWidget {
 
 class _PostScreenState extends State<PostScreen> {
 
+  bool loading = false;
+
+  var searchKeywordController = TextEditingController();
+
+  FocusNode searchKeywordFocus = FocusNode();
+
   int postPage = 0;
-  int postPageSize = 10;
+  int postPageSize = 5;
   int postTotalPages = 0;
 
   List<PostType> selectedCategories = [
@@ -41,11 +48,42 @@ class _PostScreenState extends State<PostScreen> {
   void initState() {
     super.initState();
 
-    handleGetPost(postPage, postPageSize, selectedCategories, selectedSort);
+    handleGetPost(
+      page: postPage,
+      size: postPageSize,
+      categories: selectedCategories,
+      sort: selectedSort
+    );
   }
 
-  void handleGetPost(int page, int size, List<PostType> categories, PostSortOption sort) async {
-    final response = await apiRequest(() => getPostByCategory(page, size, categories, sort), context);
+  @override
+  void dispose() {
+    searchKeywordController.dispose();
+    searchKeywordFocus.dispose();
+
+    super.dispose();
+  }
+
+  void handleGetPost({
+    required int page,
+    required int size,
+    required List<PostType> categories,
+    required PostSortOption sort,
+    String? keyword
+  }) async {
+    setState(() {
+      loading = true;
+    });
+    final response = await apiRequest(
+      () => getPost(
+          page: page,
+          size: size,
+          categories: categories,
+          sort:  sort,
+          keyword: keyword
+        ),
+        context
+    );
 
     if (response.statusCode == 200) {
       final data = json.decode(response.body);
@@ -65,7 +103,12 @@ class _PostScreenState extends State<PostScreen> {
             posts = [];
             postTotalPages = pageResponse.totalPages;
           });
-          handleGetPost(lastPage, size, categories, sort);
+          handleGetPost(
+            page: postPage,
+            size: postPageSize,
+            categories: selectedCategories,
+            sort: selectedSort
+          );
           return;
         }
       }
@@ -79,6 +122,15 @@ class _PostScreenState extends State<PostScreen> {
     } else {
       log("게시글 가져오기 실패");
     }
+
+    setState(() {
+      loading = false;
+    });
+  }
+
+  String? currentKeywordOrNull() {
+    final s = searchKeywordController.text.trim();
+    return s.isEmpty ? null : s;
   }
 
   Future<void> selectSortOption() async {
@@ -96,7 +148,13 @@ class _PostScreenState extends State<PostScreen> {
         );
         postPage = 0;
       });
-      handleGetPost(postPage, postPageSize, selectedCategories, selectedSort);
+      handleGetPost(
+        page: postPage,
+        size: postPageSize,
+        categories: selectedCategories,
+        sort: selectedSort,
+        keyword: currentKeywordOrNull()
+      );
     }
   }
 
@@ -105,33 +163,12 @@ class _PostScreenState extends State<PostScreen> {
     setState(() {
       postPage = page;
     });
-    handleGetPost(postPage, postPageSize, selectedCategories, selectedSort);
-  }
-
-  List<int> visiblePages({
-    required int current,
-    required int total,
-    int window = 5
-  }) {
-    if (total <= 0) return const [];
-
-    int start = current;
-    final int remain = total - start;
-    if (remain < window) {
-      start = (total - window).clamp(0, total - 1);
-    }
-    final end = (start + window).clamp(0, total);
-    return [for (int i = start; i < end; i++) i];
-  }
-
-  Widget navButton(String label, {required VoidCallback onTap}) {
-    return IconButton(
-      onPressed: onTap,
-      icon: Icon(
-        label == "<"
-          ? Icons.arrow_back_ios
-          : Icons.arrow_forward_ios,
-      ),
+    handleGetPost(
+      page: postPage,
+      size: postPageSize,
+      categories: selectedCategories,
+      sort: selectedSort,
+      keyword: currentKeywordOrNull()
     );
   }
 
@@ -150,205 +187,338 @@ class _PostScreenState extends State<PostScreen> {
           ),
         ),
       ),
-      body: SafeArea(
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 20),
-          child: Column(
-            children: [
-              Row(
-                children: [
-                  Expanded(
-                    child: Wrap(
-                      spacing: 10,
-                      runSpacing: 8,
-                      children: PostType.values.map((option) {
-                        final isSelected = selectedCategories.contains(option);
-                        return InkWell(
-                          borderRadius: BorderRadius.circular(8),
-                          onTap: () {
-                            setState(() {
-                              isSelected
-                                ? selectedCategories.remove(option)
-                                : selectedCategories.add(option);
-                              postPage = 0;
-                            });
-                            handleGetPost(postPage, postPageSize, selectedCategories, selectedSort);
-                          },
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Checkbox(
-                                value: isSelected,
-                                onChanged: (_) {
+      body: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: () {
+          FocusScope.of(context).unfocus();
+        },
+        onVerticalDragStart: (_) {
+          FocusScope.of(context).unfocus();
+        },
+        child: SafeArea(
+          child: Container( // 전체 화면
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: Column(
+              children: [
+                Row( // 검색바
+                  children: [
+                    Expanded(
+                      child: Container(
+                        height: 40,
+                        decoration: BoxDecoration(
+                          border: Border.all(color: Colors.black),
+                          borderRadius: BorderRadius.circular(15),
+                        ),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: TextField(
+                                controller: searchKeywordController,
+                                focusNode: searchKeywordFocus,
+                                keyboardType: TextInputType.text,
+                                decoration: const InputDecoration(
+                                  hintText: "게시글을 검색해보세요.",
+                                  hintStyle: TextStyle(fontSize: 15),
+                                  contentPadding: EdgeInsets.symmetric(vertical: 0, horizontal: 10),
+                                  enabledBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.all(Radius.circular(5)),
+                                    borderSide: BorderSide(
+                                      color: Color.fromRGBO(121, 55, 64, 0)
+                                    )
+                                  ),
+                                  focusedBorder: OutlineInputBorder(
+                                    borderRadius:
+                                      BorderRadius.all(Radius.circular(5)),
+                                    borderSide: BorderSide(
+                                      color:Color.fromRGBO(122, 11, 11, 0)
+                                    )
+                                  )
+                                ),
+                                onChanged:(value) {
+                                  setState(() {});
+                                },
+                                onSubmitted: (_) {
+                                  FocusScope.of(context).unfocus();
+                                  print(searchKeywordController.text);
                                   setState(() {
-                                    isSelected
-                                      ? selectedCategories.remove(option)
-                                      : selectedCategories.add(option);
                                     postPage = 0;
                                   });
-                                  handleGetPost(postPage, postPageSize, selectedCategories, selectedSort);
+                                  handleGetPost(
+                                    page: postPage,
+                                    size: postPageSize,
+                                    categories: selectedCategories,
+                                    sort: selectedSort,
+                                    keyword: searchKeywordController.text
+                                  );
                                 },
-                                activeColor: AppColors.tableBlue,
                               ),
-                              SizedBox(width: 4),
-                              Text(option.label)
-                            ],
-                          ),
-                        );
-                      }).toList()
-                    )
-                  ),
-                  SizedBox(width: 10),
-                  OutlinedButton(
-                    onPressed: () {
-                      selectSortOption();
-                    },
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: AppColors.tableBlue,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(15)
+                            ),
+                            if (searchKeywordController.text.isNotEmpty)
+                              IconButton(
+                                visualDensity: VisualDensity.compact,
+                                padding: EdgeInsets.zero,
+                                onPressed: () {
+                                  searchKeywordController.clear();
+                                  setState(() {
+                                    postPage = 0;
+                                  });
+                                  handleGetPost(
+                                    page: postPage,
+                                    size: postPageSize,
+                                    categories: selectedCategories,
+                                    sort: selectedSort
+                                  );
+                                },
+                                icon: const Icon(
+                                  Icons.clear,
+                                  size: 20,
+                                )
+                              )
+                          ],
+                        ),
                       ),
-                      side: BorderSide(
-                        width: 0.5
-                      ),
-                      padding: EdgeInsets.symmetric(horizontal: 10, vertical: 6)
                     ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          Icons.sort,
+                    SizedBox(width: 20),
+                    Container(
+                      width: 40,
+                      height: 40,
+                      decoration: BoxDecoration(
+                        border: Border.all(color: Colors.black),
+                        borderRadius: BorderRadius.circular(20)
+                      ),
+                      child: IconButton(
+                        onPressed: () {
+                          FocusScope.of(context).unfocus();
+                          print(searchKeywordController.text);
+                          setState(() {
+                            postPage = 0;
+                          });
+                          handleGetPost(
+                            page: postPage,
+                            size: postPageSize,
+                            categories: selectedCategories,
+                            sort: selectedSort,
+                            keyword: searchKeywordController.text
+                          );
+                        },
+                        icon: Icon(
+                          Icons.search,
                           color: Colors.black,
-                          size: 20,
-                        ),
-                        Text(
-                          selectedSort.label,
-                          style: TextStyle(
-                            fontSize: 16,
-                            color: Colors.black
-                          ),
-                        ),
-                      ],
-                    )
-                  )
-
-
-                ]
-              ),
-              Divider(),
-              SizedBox(height: 6),
-              Expanded(
-                child: posts.isEmpty
-                  ? const Center(
-                      child: Text(
-                        "작성된 게시글이 없습니다."
+                        )
                       ),
                     )
-                  : CustomScrollView(
-                      slivers: [
-                        SliverList(
-                          delegate: SliverChildBuilderDelegate(
-                            (context, index) {
-                              final post = posts[index];
-                              return Padding(
-                                padding: const EdgeInsets.symmetric(vertical: 5),
-                                child: Material(
-                                  color: Colors.transparent,
-                                  borderRadius: BorderRadius.circular(15),
-                                  child: InkWell(
-                                    onTap: () async {
-                                      final deleted = await Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (context) => PostDetailScreen(
-                                            postId: post.id,
-                                            onUpdatePost: () {
-                                              handleGetPost(postPage, postPageSize, selectedCategories, selectedSort);
-                                            },
-                                          )
-                                        )
-                                      );
-
-                                      if (deleted == true) {  
-                                        final bool lastItemOnThisPage = posts.length == 1;
-                                        final int nextPage = (lastItemOnThisPage && postPage > 0) ? postPage - 1 : postPage;
-
-                                        if (!mounted) return;
-                                        setState(() {
-                                          postPage = nextPage;
-                                        });
-
-                                        handleGetPost(postPage, postPageSize, selectedCategories, selectedSort);
-                                      }
-                                    },
-                                    borderRadius: BorderRadius.circular(15),
-                                    child: PostPreviewTile(
-                                      post: post
-                                    ),
-                                  ),
-                                ),
+                  ],
+                ),
+                SizedBox(height: 12),
+                Row( // 카테고리 및 정렬 방식 선택
+                  children: [
+                    Expanded( // 카테고리 선택
+                      child: Wrap(
+                        spacing: 10,
+                        runSpacing: 8,
+                        children: PostType.values.map((option) {
+                          final isSelected = selectedCategories.contains(option);
+                          return InkWell(
+                            borderRadius: BorderRadius.circular(8),
+                            onTap: () {
+                              FocusScope.of(context).unfocus();
+                              setState(() {
+                                isSelected
+                                  ? selectedCategories.remove(option)
+                                  : selectedCategories.add(option);
+                                postPage = 0;
+                              });
+                              handleGetPost(
+                                page: postPage,
+                                size: postPageSize,
+                                categories: selectedCategories,
+                                sort: selectedSort,
+                                keyword: currentKeywordOrNull()
                               );
                             },
-                            childCount: posts.length
-                          )
-                        ),
-                        SliverToBoxAdapter(
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 12),
                             child: Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
+                              mainAxisSize: MainAxisSize.min,
                               children: [
-                                if (postPage > 0)
-                                  navButton("<", onTap: () => goToPage(postPage - 1)),
-                                ...visiblePages(current: postPage, total: postTotalPages).map((p) {
-                                  final isActive = p == postPage;
-                                  return Padding(
-                                    padding: const EdgeInsets.symmetric(horizontal: 4),
-                                    child: OutlinedButton(
-                                      onPressed: isActive
-                                        ? null
-                                        : () => goToPage(p),
-                                      style: OutlinedButton.styleFrom(
-                                        minimumSize: const Size(40, 36),
-                                        side: BorderSide(
-                                          color: isActive
-                                            ? Colors.black
-                                            : Colors.grey
-                                        ),
-                                        backgroundColor: isActive
-                                          ? const Color.fromARGB(50, 30, 77, 135)
-                                          : null,
-                                        foregroundColor: isActive
-                                          ? Colors.white
-                                          : Colors.black
-                                      ),
-                                      child: Text(
-                                        "${p + 1}",
-                                        style: TextStyle(
-                                          fontWeight: isActive
-                                            ? FontWeight.bold
-                                            : FontWeight.normal
-                                        ),
-                                      )
-                                    ),
-                                  );
-                                }),
-                                if (postPage < postTotalPages - 1)
-                                  navButton(">", onTap: () => goToPage(postPage + 1)),
+                                Checkbox(
+                                  value: isSelected,
+                                  onChanged: (_) {
+                                    FocusScope.of(context).unfocus();
+                                    setState(() {
+                                      isSelected
+                                        ? selectedCategories.remove(option)
+                                        : selectedCategories.add(option);
+                                      postPage = 0;
+                                    });
+                                    handleGetPost(
+                                      page: postPage,
+                                      size: postPageSize,
+                                      categories: selectedCategories,
+                                      sort: selectedSort,
+                                      keyword: currentKeywordOrNull()
+                                    );
+                                  },
+                                  activeColor: AppColors.tableBlue,
+                                ),
+                                SizedBox(width: 4),
+                                Text(option.label)
                               ],
                             ),
+                          );
+                        }).toList()
+                      )
+                    ),
+                    SizedBox(width: 10),
+                    OutlinedButton( // 정렬방식 선택
+                      onPressed: () {
+                        FocusScope.of(context).unfocus();
+                        selectSortOption();
+                      },
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: AppColors.tableBlue,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(15)
+                        ),
+                        side: BorderSide(
+                          width: 0.5
+                        ),
+                        padding: EdgeInsets.symmetric(horizontal: 10, vertical: 6)
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.sort,
+                            color: Colors.black,
+                            size: 20,
                           ),
-                        )
-                      ], 
+                          Text(
+                            selectedSort.label,
+                            style: TextStyle(
+                              fontSize: 16,
+                              color: Colors.black
+                            ),
+                          ),
+                        ],
+                      )
                     )
-              )
-            ],
-          ),
-        )
+                  ]
+                ),
+                Divider(),
+                SizedBox(height: 6),
+                Expanded(
+                  child: AnimatedSwitcher(
+                    duration: Duration(milliseconds: 250),
+                    switchInCurve: Curves.easeOut,
+                    switchOutCurve: Curves.easeIn,
+                    transitionBuilder: (child, animation) {
+                      final offsetTween = Tween<Offset>(
+                        begin: const Offset(0, 0.1),
+                        end: Offset.zero
+                      );
+                      return FadeTransition(
+                        opacity: animation,
+                        child: SlideTransition(
+                          position: animation.drive(offsetTween),
+                          child: child,
+                        ),
+                      );
+                    },
+                    child: loading
+                      ? Center(
+                          child: CircularProgressIndicator()
+                        )
+                      : posts.isEmpty
+                        ? const Center(
+                            child: Text(
+                              "작성된 게시글이 없습니다."
+                            ),
+                          )
+                        : CustomScrollView(
+                            keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+                            slivers: [
+                              SliverList(
+                                delegate: SliverChildBuilderDelegate(
+                                  (context, index) {
+                                    final post = posts[index];
+                                    return Padding(
+                                      padding: const EdgeInsets.symmetric(vertical: 5),
+                                      child: Material(
+                                        color: Colors.transparent,
+                                        borderRadius: BorderRadius.circular(15),
+                                        child: InkWell(
+                                          onTap: () async {
+                                            FocusScope.of(context).unfocus();
+                                            final deleted = await Navigator.push(
+                                              context,
+                                              MaterialPageRoute(
+                                                builder: (context) => PostDetailScreen(
+                                                  postId: post.id,
+                                                  onUpdatePost: () {
+                                                    handleGetPost(
+                                                      page: postPage,
+                                                      size: postPageSize,
+                                                      categories: selectedCategories,
+                                                      sort: selectedSort,
+                                                      keyword: currentKeywordOrNull()
+                                                    );
+                                                  },
+                                                )
+                                              )
+                                            );
+                              
+                                            if (deleted == true) {  
+                                              final bool lastItemOnThisPage = posts.length == 1;
+                                              final int nextPage = (lastItemOnThisPage && postPage > 0) ? postPage - 1 : postPage;
+                              
+                                              if (!mounted) return;
+                                              setState(() {
+                                                postPage = nextPage;
+                                              });
+                              
+                                              handleGetPost(
+                                                page: postPage,
+                                                size: postPageSize,
+                                                categories: selectedCategories,
+                                                sort: selectedSort,
+                                                keyword: currentKeywordOrNull()
+                                              );
+                                            }
+                                          },
+                                          borderRadius: BorderRadius.circular(15),
+                                          child: PostPreviewTile(
+                                            post: post
+                                          ),
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                  childCount: posts.length
+                                )
+                              ),
+                              SliverToBoxAdapter(
+                                child: Padding(
+                                  padding: const EdgeInsets.symmetric(vertical: 12),
+                                  child: PaginationBar(
+                                    currentPage: postPage,
+                                    totalPages: postTotalPages,
+                                    window: 5,
+                                    onPageChanged: (p) => goToPage(p)
+                                  )
+                                ),
+                              )
+                            ], 
+                          ),
+                  )
+                )
+              ],
+            ),
+          )
+        ),
       ),
       floatingActionButton: FloatingActionButton(
         backgroundColor: AppColors.tableBlue,
         onPressed: () {
+          FocusScope.of(context).unfocus();
           Navigator.push(
             context,
             MaterialPageRoute(
