@@ -1,7 +1,9 @@
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
+import 'package:king_of_table_tennis/enum/comment_sort_option.dart';
 import 'package:king_of_table_tennis/enum/post_sort_option.dart';
 import 'package:king_of_table_tennis/enum/post_type.dart';
+import 'package:king_of_table_tennis/model/RegisterCommentRequest.dart';
 import 'package:king_of_table_tennis/model/RegisterPostRequest.dart';
 import 'dart:convert';
 import 'package:king_of_table_tennis/util/secure_storage.dart';
@@ -110,6 +112,43 @@ Future<http.Response> getPost({
 
   final response = await http.get(
     uri,
+    headers: headers
+  );
+
+  return response;
+}
+
+Future<http.Response> registerComment(String postId, RegisterCommentRequest registerCommentRequest) async {
+  String? accessToken = await SecureStorage.getAccessToken();
+
+  // .env에서 서버 URL 가져오기
+  final apiAddress = Uri.parse("${dotenv.get("API_ADDRESS")}/api/post/$postId/comment");
+  final headers = {
+    'Authorization': 'Bearer ${accessToken}',
+    'Content-Type': 'application/json'
+  };
+
+  final response = await http.post(
+    apiAddress,
+    headers: headers,
+    body: json.encode(registerCommentRequest.toJson())
+  );
+
+  return response;
+}
+
+Future<http.Response> getComments(String postId, int page, int size, CommentSortOption sort) async {
+  String? accessToken = await SecureStorage.getAccessToken();
+
+  // .env에서 서버 URL 가져오기
+  final apiAddress = Uri.parse("${dotenv.get("API_ADDRESS")}/api/post/$postId/comments?page=$page&size=$size&sort=${sort.value}");
+  final headers = {
+    'Authorization': 'Bearer ${accessToken}',
+    'Content-Type': 'application/json'
+  };
+
+  final response = await http.get(
+    apiAddress,
     headers: headers
   );
 
