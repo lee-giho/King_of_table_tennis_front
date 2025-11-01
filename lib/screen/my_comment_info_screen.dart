@@ -1,51 +1,58 @@
 import 'dart:convert';
+import 'dart:developer';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
 import 'package:king_of_table_tennis/api/user_api.dart';
-import 'package:king_of_table_tennis/enum/post_sort_option.dart';
+import 'package:king_of_table_tennis/enum/comment_sort_option.dart';
+import 'package:king_of_table_tennis/model/comment.dart';
 import 'package:king_of_table_tennis/model/page_response.dart';
-import 'package:king_of_table_tennis/model/post.dart';
-import 'package:king_of_table_tennis/screen/post_detail_screen.dart';
 import 'package:king_of_table_tennis/util/AppColors.dart';
 import 'package:king_of_table_tennis/util/apiRequest.dart';
-import 'package:king_of_table_tennis/util/toastMessage.dart';
+import 'package:king_of_table_tennis/widget/commentTile.dart';
+import 'package:king_of_table_tennis/widget/customDivider.dart';
 import 'package:king_of_table_tennis/widget/customStringPicker.dart';
 import 'package:king_of_table_tennis/widget/paginationBar.dart';
-import 'package:king_of_table_tennis/widget/postPreviewTile.dart';
 
-class MyPostInfoScreen extends StatefulWidget {
-  const MyPostInfoScreen({super.key});
+class MyCommentInfoScreen extends StatefulWidget {
+  const MyCommentInfoScreen({super.key});
 
   @override
-  State<MyPostInfoScreen> createState() => _MyPostInfoScreenState();
+  State<MyCommentInfoScreen> createState() => _MyCommentInfoScreenState();
 }
 
-class _MyPostInfoScreenState extends State<MyPostInfoScreen> {
+class _MyCommentInfoScreenState extends State<MyCommentInfoScreen> {
 
-  int postPage = 0;
-  int postPageSize = 10;
-  int postTotalPages = 0;
+  int commentPage = 0;
+  int commentPageSize = 10;
+  int commentTotalPages = 0;
+  int commentTotalElements = 0;
 
-  PostSortOption selectedSort = PostSortOption.CREATED_DESC;
+  CommentSortOption selectedSort = CommentSortOption.CREATED_DESC;
 
-  List<Post> posts = [];
+  List<Comment> comments = [];
+
+  bool commentLoading = false;
 
   @override
   void initState() {
     super.initState();
 
-    handleGetPost(postPage, postPageSize, selectedSort);
+    handleGetComment(commentPage, commentPageSize, selectedSort);
   }
 
-  void handleGetPost(int page, int pageSize, PostSortOption sort) async {
-    final response = await apiRequest(() => getMyPost(page, pageSize, sort), context);
+  void handleGetComment(int page, int pageSize, CommentSortOption selectedSort) async {
+    
+    setState(() {
+      commentLoading = true;
+    });
+    
+    final response = await apiRequest(() => getMyComments(page, pageSize, selectedSort), context);
 
     if (response.statusCode == 200) {
       final data = json.decode(response.body);
-      final pageResponse = PageResponse<Post>.fromJson(
+      final pageResponse = PageResponse<Comment>.fromJson(
         data,
-        (json) => Post.fromJson(json)
+        (json) => Comment.fromJson(json)
       );
 
       final int totalPages = pageResponse.totalPages;
@@ -55,63 +62,68 @@ class _MyPostInfoScreenState extends State<MyPostInfoScreen> {
         if (lastPage != page) {
           if (!mounted) return;
           setState(() {
-            postPage = lastPage;
-            posts = [];
-            postTotalPages = pageResponse.totalPages;
+            commentPage = lastPage;
+            comments = [];
+            commentTotalPages = pageResponse.totalPages;
           });
-          handleGetPost(lastPage, pageSize, selectedSort);
+          handleGetComment(page, pageSize, selectedSort);
           return;
         }
       }
 
       if (!mounted) return;
       setState(() {
-        posts = pageResponse.content;
-        postTotalPages = totalPages;
-        postPage = page;
+        comments = pageResponse.content;
+        commentTotalPages = totalPages;
+        commentTotalElements = pageResponse.totalElements;
+        commentPage = page;
       });
     } else {
-      ToastMessage.show("내가 작성한 게시글 가져오기 실패");
+      log("댓글 가져오기 실패");
     }
+
+    setState(() {
+      commentLoading = false;
+    });
   }
 
   void goToPage(int page) {
-    if (page < 0 || page >= postTotalPages) return;
+    if (page < 0 || page >= commentTotalPages) return;
     setState(() {
-      postPage = page;
+      commentPage = page;
     });
-    handleGetPost(page, postPageSize, selectedSort);
+    handleGetComment(page, commentPageSize, selectedSort);
   }
 
   Future<void> selectSortOption() async {
     final result = await showCustomStringPicker(
       context: context,
-      options: PostSortOptionExtension.labels,
+      options: CommentSortOptionExtension.labels,
       initialValue: selectedSort.label
     );
 
     if (result != null) {
       setState(() {
-        selectedSort = PostSortOption.values.firstWhere(
+        selectedSort = CommentSortOption.values.firstWhere(
           (e) => e.label == result,
           orElse: () => selectedSort
         );
-        postPage = 0;
+        commentPage = 0;
       });
-      handleGetPost(postPage, postPageSize, selectedSort);
+      handleGetComment(commentPage, commentPageSize, selectedSort);
     }
   }
-  
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: SafeArea(
         child: Container(
           padding: const EdgeInsets.all(20),
-          child: posts.isEmpty
+          child: comments.isEmpty
             ? const Center(
                 child: Text(
-                  "작성한 게시글이 없습니다."
+                  "작성한 댓글이 없습니다."
                 ),
               )
             : CustomScrollView(
@@ -156,7 +168,7 @@ class _MyPostInfoScreenState extends State<MyPostInfoScreen> {
                 SliverList(
                   delegate: SliverChildBuilderDelegate(
                     (context, index) {
-                      final post = posts[index];
+                      final comment = comments[index];
                       return Padding(
                         padding: const EdgeInsets.symmetric(vertical: 5),
                         child: Material(
@@ -164,47 +176,33 @@ class _MyPostInfoScreenState extends State<MyPostInfoScreen> {
                           borderRadius: BorderRadius.circular(15),
                           child: InkWell(
                             onTap: () async {
-                              final deleted = await Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => PostDetailScreen(
-                                    postId: post.id,
-                                    onUpdatePost: () {
-                                      handleGetPost(postPage, postPageSize, selectedSort);
-                                    },
-                                  )
-                                )
-                              );
 
-                              if (deleted == true) {  
-                                final bool lastItemOnThisPage = posts.length == 1;
-                                final int nextPage = (lastItemOnThisPage && postPage > 0) ? postPage - 1 : postPage;
-
-                                if (!mounted) return;
-                                setState(() {
-                                  postPage = nextPage;
-                                });
-
-                                handleGetPost(postPage, postPageSize, selectedSort);
-                              }
                             },
                             borderRadius: BorderRadius.circular(15),
-                            child: PostPreviewTile(
-                              post: post
-                            ),
+                            child: Column(
+                              children: [
+                                CommentTile(
+                                  comment: comment,
+                                  onDelete: () {
+                                    
+                                  },
+                                ),
+                                const CustomDivider()
+                              ],
+                            )
                           ),
                         ),
                       );
                     },
-                    childCount: posts.length
+                    childCount: comments.length
                   )
                 ),
                 SliverToBoxAdapter(
                   child: Padding(
                     padding: const EdgeInsets.symmetric(vertical: 12),
                     child: PaginationBar(
-                      currentPage: postPage,
-                      totalPages: postTotalPages,
+                      currentPage: commentPage,
+                      totalPages: commentTotalPages,
                       window: 5,
                       onPageChanged: (p) => goToPage(p)
                     )

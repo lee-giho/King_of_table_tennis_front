@@ -18,6 +18,7 @@ import 'package:king_of_table_tennis/util/toastMessage.dart';
 import 'package:king_of_table_tennis/widget/commentTile.dart';
 import 'package:king_of_table_tennis/widget/customDivider.dart';
 import 'package:king_of_table_tennis/widget/customStringPicker.dart';
+import 'package:king_of_table_tennis/widget/paginationBar.dart';
 
 class PostDetailScreen extends StatefulWidget {
   final String postId;
@@ -41,7 +42,7 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
   FocusNode commentFocus = FocusNode();
   
   int commentPage = 0;
-  int commentPageSize = 20;
+  int commentPageSize = 10;
   int commentTotalPages = 0;
   int commentTotalElements = 0;
 
@@ -247,23 +248,25 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
       );
     }
 
-    void handleRegisterComment(String postId, RegisterCommentRequest registerCommentRequest) async {
+    Future<bool> handleRegisterComment(String postId, RegisterCommentRequest registerCommentRequest) async {
       setState(() {
         sending = true;
       });
 
       final response = await apiRequest(() => registerComment(postId, registerCommentRequest), context);
 
-      if (response.statusCode == 201) {
-        commentController.clear();
-        ToastMessage.show("댓글이 등록되었습니다.");
-      } else {
-        ToastMessage.show("댓글이 등록되지 않았습니다.");
-      }
-
       setState(() {
         sending = false;
       });
+
+      if (response.statusCode == 201) {
+        commentController.clear();
+        ToastMessage.show("댓글이 등록되었습니다.");
+        return true;
+      } else {
+        ToastMessage.show("댓글이 등록되지 않았습니다.");
+        return false;
+      }
     }
 
     Future<void> refreshComments() async {
@@ -289,6 +292,14 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
         });
         handleGetComment(widget.postId, commentPage, commentPageSize, selectedSort);
       }
+    }
+
+    void goToPage(int page) {
+      if (page < 0 || page >= commentTotalPages) return;
+      setState(() {
+        commentPage = page;
+      });
+      handleGetComment(widget.postId, commentPage, commentPageSize, selectedSort);
     }
 
     return Scaffold(
@@ -531,8 +542,18 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
                           childCount: comments.length + (commentLoading ? 1 : 0)
                         )
                       ),
+                    ),
+                    SliverToBoxAdapter(
+                      child: Visibility(
+                        visible: commentTotalPages > 1,
+                        child: PaginationBar(
+                          currentPage: commentPage,
+                          totalPages: commentTotalPages,
+                          window: 5,
+                          onPageChanged: (p) => goToPage(p)
+                        ),
+                      ),
                     )
-               
               ]
             ),
           )
@@ -563,15 +584,18 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
                       ),
                       onSubmitted: sending
                         ? null
-                        : (_) {
+                        : (_) async {
                             if (commentController.text.trim().isNotEmpty) {
-                              handleRegisterComment(
+                              final result = await handleRegisterComment(
                                 post!.id,
                                 RegisterCommentRequest(
                                   content: commentController.text
                                 )
                               );
-                              getComments(widget.postId, commentPage, commentPageSize, selectedSort);
+                              
+                              if (result) {
+                                handleGetComment(widget.postId, commentPage, commentPageSize, selectedSort);
+                              }
                             } else {
                               ToastMessage.show("댓글을 작성해주세요.");
                             }
@@ -582,15 +606,18 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
                   IconButton(
                     onPressed: sending
                       ? null
-                      : () {
+                      : () async {
                           if (commentController.text.trim().isNotEmpty) {
-                            handleRegisterComment(
-                              post!.id,
-                              RegisterCommentRequest(
-                                content: commentController.text
-                              )
-                            );
-                            getComments(widget.postId, commentPage, commentPageSize, selectedSort);
+                            final result = await handleRegisterComment(
+                                post!.id,
+                                RegisterCommentRequest(
+                                  content: commentController.text
+                                )
+                              );
+                              
+                              if (result) {
+                                handleGetComment(widget.postId, commentPage, commentPageSize, selectedSort);
+                              }
                           } else {
                             ToastMessage.show("댓글을 작성해주세요.");
                           }

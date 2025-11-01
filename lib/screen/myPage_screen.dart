@@ -3,6 +3,7 @@ import 'package:king_of_table_tennis/screen/change_myInfo_screen.dart';
 import 'package:king_of_table_tennis/screen/my_post_info_screen.dart';
 import 'package:king_of_table_tennis/screen/my_review_info_screen.dart';
 import 'package:king_of_table_tennis/screen/my_tableTennis_info_screen.dart';
+import 'package:king_of_table_tennis/screen/post_and_comment_screen.dart';
 import 'package:king_of_table_tennis/widget/userInfoInMyPage.dart';
 import 'dart:convert';
 import 'dart:developer';
@@ -134,7 +135,7 @@ class _MyPageScreenState extends State<MyPageScreen> {
                   ),
                   buildMenuItem(Icons.sports_tennis, "탁구 경기 내역", MyTableTennisInfoScreen()),
                   buildMenuItem(Icons.rate_review, "경기 리뷰 내역", MyReviewInfoScreen()),
-                  buildMenuItem(Icons.article, "게시글 작성 내역", MyPostInfoScreen())
+                  buildMenuItem(Icons.article, "게시글 및 댓글 내역", PostAndCommentScreen())
                 ],
               ),
         )
