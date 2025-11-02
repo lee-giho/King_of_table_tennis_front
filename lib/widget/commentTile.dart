@@ -180,7 +180,7 @@ class CommentTile extends StatelessWidget {
                   
                 },
                 onDelete: () {
-                  
+                  onDelete?.call();
                 }
               )
           ],

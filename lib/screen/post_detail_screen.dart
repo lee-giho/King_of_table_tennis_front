@@ -3,6 +3,7 @@ import 'dart:developer';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:king_of_table_tennis/api/comment_api.dart';
 import 'package:king_of_table_tennis/api/post_api.dart';
 import 'package:king_of_table_tennis/enum/comment_sort_option.dart';
 import 'package:king_of_table_tennis/enum/post_type.dart';
@@ -23,10 +24,13 @@ import 'package:king_of_table_tennis/widget/paginationBar.dart';
 class PostDetailScreen extends StatefulWidget {
   final String postId;
   final VoidCallback? onUpdatePost;
+  final bool showMyComment;
+
   const PostDetailScreen({
     super.key,
     required this.postId,
-    this.onUpdatePost
+    this.onUpdatePost,
+    this.showMyComment = false
   });
 
   @override
@@ -48,6 +52,8 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
 
   CommentSortOption selectedSort = CommentSortOption.CREATED_DESC;
 
+  bool showMyComment = false;
+
   List<Comment> comments = [];
 
   bool commentLoading = false;
@@ -57,8 +63,10 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
   void initState() {
     super.initState();
 
+    showMyComment = widget.showMyComment;
+
     handleGetPostById(widget.postId);
-    handleGetComment(widget.postId, commentPage, commentPageSize, selectedSort);
+    handleGetComment(widget.postId, commentPage, commentPageSize, selectedSort, showMyComment);
   }
 
   @override
@@ -85,13 +93,13 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
     }
   }
 
-  void handleGetComment(String postId, int page, int size, CommentSortOption sort) async {
+  void handleGetComment(String postId, int page, int size, CommentSortOption sort, bool showMyComment) async {
     
     setState(() {
       commentLoading = true;
     });
 
-    final response = await apiRequest(() => getComments(postId, page, size, sort), context);
+    final response = await apiRequest(() => getComments(postId, page, size, sort, showMyComment), context);
 
     if (response.statusCode == 200) {
       final data = json.decode(response.body);
@@ -111,7 +119,7 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
             comments = [];
             commentTotalPages = pageResponse.totalPages;
           });
-          handleGetComment(postId, page, size, sort);
+          handleGetComment(postId, page, size, sort, showMyComment);
           return;
         }
       }
@@ -130,6 +138,18 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
     setState(() {
       commentLoading = false;
     });
+  }
+
+  void handleDeleteComment(String commentId) async {
+    final response = await apiRequest(() => deleteMyComment(commentId), context);
+
+    if (response.statusCode == 204) {
+      ToastMessage.show("댓글이 삭제되었습니다.");
+
+      handleGetComment(widget.postId, commentPage, commentPageSize, selectedSort, showMyComment);
+    } else {
+      ToastMessage.show("댓글이 삭제되지 않았습니다.");
+    }
   }
 
   @override
@@ -272,7 +292,7 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
     Future<void> refreshComments() async {
       commentPage = 0;
       selectedSort = CommentSortOption.CREATED_DESC;
-      handleGetComment(widget.postId, commentPage, commentPageSize, selectedSort);
+      handleGetComment(widget.postId, commentPage, commentPageSize, selectedSort, showMyComment);
     }
 
     Future<void> selectSortOption() async {
@@ -290,7 +310,7 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
           );
           commentPage = 0;
         });
-        handleGetComment(widget.postId, commentPage, commentPageSize, selectedSort);
+        handleGetComment(widget.postId, commentPage, commentPageSize, selectedSort, showMyComment);
       }
     }
 
@@ -299,7 +319,7 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
       setState(() {
         commentPage = page;
       });
-      handleGetComment(widget.postId, commentPage, commentPageSize, selectedSort);
+      handleGetComment(widget.postId, commentPage, commentPageSize, selectedSort, showMyComment);
     }
 
     return Scaffold(
@@ -459,37 +479,73 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
                                 fontWeight: FontWeight.bold
                               ),
                             ),
-                            OutlinedButton( // 정렬방식 선택
-                              onPressed: () {
-                                selectSortOption();
-                              },
-                              style: OutlinedButton.styleFrom(
-                                foregroundColor: AppColors.tableBlue,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(15)
+                            Row(
+                              children: [
+                                InkWell(
+                                  borderRadius: BorderRadius.circular(8),
+                                  onTap: () {
+                                    setState(() {
+                                      showMyComment = !showMyComment;
+                                    });
+                                    handleGetComment(widget.postId, commentPage, commentPageSize, selectedSort, showMyComment);
+                                  },
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Checkbox(
+                                        value: showMyComment,
+                                        onChanged: (_) {
+                                          setState(() {
+                                            showMyComment = !showMyComment;
+                                          });
+                                          handleGetComment(widget.postId, commentPage, commentPageSize, selectedSort, showMyComment);
+                                        },
+                                        activeColor: AppColors.tableBlue,
+                                      ),
+                                      Text(
+                                        "내 댓글만 보기",
+                                        style: TextStyle(
+                                          fontSize: 16,
+                                          color: Colors.black
+                                        )
+                                      )
+                                    ]
+                                  )
                                 ),
-                                side: BorderSide(
-                                  width: 0.5
-                                ),
-                                padding: EdgeInsets.symmetric(horizontal: 10, vertical: 6)
-                              ),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Icon(
-                                    Icons.sort,
-                                    color: Colors.black,
-                                    size: 20,
-                                  ),
-                                  Text(
-                                    selectedSort.label,
-                                    style: TextStyle(
-                                      fontSize: 16,
-                                      color: Colors.black
+                                SizedBox(width: 10),
+                                OutlinedButton( // 정렬방식 선택
+                                  onPressed: () {
+                                    selectSortOption();
+                                  },
+                                  style: OutlinedButton.styleFrom(
+                                    foregroundColor: AppColors.tableBlue,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(15)
                                     ),
+                                    side: BorderSide(
+                                      width: 0.5
+                                    ),
+                                    padding: EdgeInsets.symmetric(horizontal: 10, vertical: 6)
                                   ),
-                                ],
-                              )
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Icon(
+                                        Icons.sort,
+                                        color: Colors.black,
+                                        size: 20,
+                                      ),
+                                      Text(
+                                        selectedSort.label,
+                                        style: TextStyle(
+                                          fontSize: 16,
+                                          color: Colors.black
+                                        ),
+                                      ),
+                                    ],
+                                  )
+                                ),
+                              ],
                             )
                           ]
                         ),
@@ -531,7 +587,7 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
                                   comment: comment,
                                   onDelete: comment.isMine
                                     ? () async {
-        
+                                        handleDeleteComment(comment.id);
                                       }
                                     : null
                                 ),
@@ -559,7 +615,7 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
           )
         ),
       ),
-      bottomNavigationBar: post != null && post!.isMine == false
+      bottomNavigationBar: post != null
         ? AnimatedContainer(
             duration: Duration(milliseconds: 180),
             curve: Curves.easeOut,
@@ -573,6 +629,7 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
                       controller: commentController,
                       focusNode: commentFocus,
                       textInputAction: TextInputAction.send,
+                      maxLength: 400,
                       minLines: 1,
                       maxLines: 3,
                       decoration: InputDecoration(
@@ -594,7 +651,7 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
                               );
                               
                               if (result) {
-                                handleGetComment(widget.postId, commentPage, commentPageSize, selectedSort);
+                                handleGetComment(widget.postId, commentPage, commentPageSize, selectedSort, showMyComment);
                               }
                             } else {
                               ToastMessage.show("댓글을 작성해주세요.");
@@ -616,7 +673,7 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
                               );
                               
                               if (result) {
-                                handleGetComment(widget.postId, commentPage, commentPageSize, selectedSort);
+                                handleGetComment(widget.postId, commentPage, commentPageSize, selectedSort, showMyComment);
                               }
                           } else {
                             ToastMessage.show("댓글을 작성해주세요.");

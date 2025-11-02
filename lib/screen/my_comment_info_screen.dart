@@ -2,12 +2,15 @@ import 'dart:convert';
 import 'dart:developer';
 
 import 'package:flutter/material.dart';
+import 'package:king_of_table_tennis/api/comment_api.dart';
 import 'package:king_of_table_tennis/api/user_api.dart';
 import 'package:king_of_table_tennis/enum/comment_sort_option.dart';
 import 'package:king_of_table_tennis/model/comment.dart';
 import 'package:king_of_table_tennis/model/page_response.dart';
+import 'package:king_of_table_tennis/screen/post_detail_screen.dart';
 import 'package:king_of_table_tennis/util/AppColors.dart';
 import 'package:king_of_table_tennis/util/apiRequest.dart';
+import 'package:king_of_table_tennis/util/toastMessage.dart';
 import 'package:king_of_table_tennis/widget/commentTile.dart';
 import 'package:king_of_table_tennis/widget/customDivider.dart';
 import 'package:king_of_table_tennis/widget/customStringPicker.dart';
@@ -85,6 +88,18 @@ class _MyCommentInfoScreenState extends State<MyCommentInfoScreen> {
     setState(() {
       commentLoading = false;
     });
+  }
+
+  void handleDeleteComment(String commentId) async {
+    final response = await apiRequest(() => deleteMyComment(commentId), context);
+
+    if (response.statusCode == 204) {
+      ToastMessage.show("댓글이 삭제되었습니다.");
+
+      handleGetComment(commentPage, commentPageSize, selectedSort);
+    } else {
+      ToastMessage.show("댓글이 삭제되지 않았습니다.");
+    }
   }
 
   void goToPage(int page) {
@@ -176,7 +191,15 @@ class _MyCommentInfoScreenState extends State<MyCommentInfoScreen> {
                           borderRadius: BorderRadius.circular(15),
                           child: InkWell(
                             onTap: () async {
-
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => PostDetailScreen(
+                                    postId: comment.postId,
+                                    showMyComment: true,
+                                  )
+                                )
+                              );
                             },
                             borderRadius: BorderRadius.circular(15),
                             child: Column(
@@ -184,7 +207,7 @@ class _MyCommentInfoScreenState extends State<MyCommentInfoScreen> {
                                 CommentTile(
                                   comment: comment,
                                   onDelete: () {
-                                    
+                                    handleDeleteComment(comment.id);
                                   },
                                 ),
                                 const CustomDivider()

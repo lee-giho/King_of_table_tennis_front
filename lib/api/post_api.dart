@@ -137,11 +137,11 @@ Future<http.Response> registerComment(String postId, RegisterCommentRequest regi
   return response;
 }
 
-Future<http.Response> getComments(String postId, int page, int size, CommentSortOption sort) async {
+Future<http.Response> getComments(String postId, int page, int size, CommentSortOption sort, bool showMyComment) async {
   String? accessToken = await SecureStorage.getAccessToken();
 
   // .env에서 서버 URL 가져오기
-  final apiAddress = Uri.parse("${dotenv.get("API_ADDRESS")}/api/post/$postId/comments?page=$page&size=$size&sort=${sort.value}");
+  final apiAddress = Uri.parse("${dotenv.get("API_ADDRESS")}/api/post/$postId/comments?page=$page&size=$size&sort=${sort.value}&showMyComment=$showMyComment");
   final headers = {
     'Authorization': 'Bearer ${accessToken}',
     'Content-Type': 'application/json'

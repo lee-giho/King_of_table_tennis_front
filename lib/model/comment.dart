@@ -2,6 +2,7 @@ import 'package:king_of_table_tennis/model/user_info_dto.dart';
 
 class Comment {
   final String id;
+  final String postId;
   final UserInfoDTO writer;
   final String content;
   final DateTime createdAt;
@@ -10,6 +11,7 @@ class Comment {
 
   Comment({
     required this.id,
+    required this.postId,
     required this.writer,
     required this.content,
     required this.createdAt,
@@ -20,6 +22,7 @@ class Comment {
   factory Comment.fromJson(Map<String, dynamic> json) {
     return Comment(
       id: json['id'],
+      postId: json['postId'],
       writer: json['writer'] != null
         ? UserInfoDTO.fromJson(json['writer'])
         : UserInfoDTO.empty(),
