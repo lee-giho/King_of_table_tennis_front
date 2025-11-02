@@ -589,7 +589,10 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
                                     ? () async {
                                         handleDeleteComment(comment.id);
                                       }
-                                    : null
+                                    : null,
+                                  reloadComment: () {
+                                    handleGetComment(widget.postId, commentPage, commentPageSize, selectedSort, showMyComment);
+                                  },
                                 ),
                                 const CustomDivider()
                               ],

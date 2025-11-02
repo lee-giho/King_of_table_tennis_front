@@ -132,108 +132,120 @@ class _MyCommentInfoScreenState extends State<MyCommentInfoScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: SafeArea(
-        child: Container(
-          padding: const EdgeInsets.all(20),
-          child: comments.isEmpty
-            ? const Center(
-                child: Text(
-                  "작성한 댓글이 없습니다."
-                ),
-              )
-            : CustomScrollView(
-              slivers: [
-                SliverToBoxAdapter(
-                  child: Align(
-                    alignment: Alignment.centerRight,
-                    child: OutlinedButton( // 정렬방식 선택
-                      onPressed: () {
-                        selectSortOption();
-                      },
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: AppColors.tableBlue,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(15)
-                        ),
-                        side: BorderSide(
-                          width: 0.5
-                        ),
-                        padding: EdgeInsets.symmetric(horizontal: 10, vertical: 6)
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            Icons.sort,
-                            color: Colors.black,
-                            size: 20,
-                          ),
-                          Text(
-                            selectedSort.label,
-                            style: TextStyle(
-                              fontSize: 16,
-                              color: Colors.black
-                            ),
-                          ),
-                        ],
-                      )
-                    ),
-                  ),
-                ),
-                SliverList(
-                  delegate: SliverChildBuilderDelegate(
-                    (context, index) {
-                      final comment = comments[index];
-                      return Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 5),
-                        child: Material(
-                          color: Colors.transparent,
-                          borderRadius: BorderRadius.circular(15),
-                          child: InkWell(
-                            onTap: () async {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => PostDetailScreen(
-                                    postId: comment.postId,
-                                    showMyComment: true,
-                                  )
-                                )
-                              );
-                            },
-                            borderRadius: BorderRadius.circular(15),
-                            child: Column(
-                              children: [
-                                CommentTile(
-                                  comment: comment,
-                                  onDelete: () {
-                                    handleDeleteComment(comment.id);
-                                  },
-                                ),
-                                const CustomDivider()
-                              ],
-                            )
-                          ),
-                        ),
-                      );
-                    },
-                    childCount: comments.length
-                  )
-                ),
-                SliverToBoxAdapter(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 12),
-                    child: PaginationBar(
-                      currentPage: commentPage,
-                      totalPages: commentTotalPages,
-                      window: 5,
-                      onPageChanged: (p) => goToPage(p)
-                    )
+      body: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: () {
+          final FocusScopeNode currentscope = FocusScope.of(context);
+          if (!currentscope.hasPrimaryFocus && currentscope.hasFocus) {
+            FocusManager.instance.primaryFocus?.unfocus();
+          }
+        },
+        child: SafeArea(
+          child: Container(
+            padding: const EdgeInsets.all(20),
+            child: comments.isEmpty
+              ? const Center(
+                  child: Text(
+                    "작성한 댓글이 없습니다."
                   ),
                 )
-              ],
-            )
-        )
+              : CustomScrollView(
+                slivers: [
+                  SliverToBoxAdapter(
+                    child: Align(
+                      alignment: Alignment.centerRight,
+                      child: OutlinedButton( // 정렬방식 선택
+                        onPressed: () {
+                          selectSortOption();
+                        },
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: AppColors.tableBlue,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(15)
+                          ),
+                          side: BorderSide(
+                            width: 0.5
+                          ),
+                          padding: EdgeInsets.symmetric(horizontal: 10, vertical: 6)
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              Icons.sort,
+                              color: Colors.black,
+                              size: 20,
+                            ),
+                            Text(
+                              selectedSort.label,
+                              style: TextStyle(
+                                fontSize: 16,
+                                color: Colors.black
+                              ),
+                            ),
+                          ],
+                        )
+                      ),
+                    ),
+                  ),
+                  SliverList(
+                    delegate: SliverChildBuilderDelegate(
+                      (context, index) {
+                        final comment = comments[index];
+                        return Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 5),
+                          child: Material(
+                            color: Colors.transparent,
+                            borderRadius: BorderRadius.circular(15),
+                            child: InkWell(
+                              onTap: () async {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => PostDetailScreen(
+                                      postId: comment.postId,
+                                      showMyComment: true,
+                                    )
+                                  )
+                                );
+                              },
+                              borderRadius: BorderRadius.circular(15),
+                              child: Column(
+                                children: [
+                                  CommentTile(
+                                    comment: comment,
+                                    onDelete: () {
+                                      handleDeleteComment(comment.id);
+                                    },
+                                    reloadComment: () {
+                                      handleGetComment(commentPage, commentPageSize, selectedSort);
+                                    },
+                                  ),
+                                  const CustomDivider()
+                                ],
+                              )
+                            ),
+                          ),
+                        );
+                      },
+                      childCount: comments.length
+                    )
+                  ),
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      child: PaginationBar(
+                        currentPage: commentPage,
+                        totalPages: commentTotalPages,
+                        window: 5,
+                        onPageChanged: (p) => goToPage(p)
+                      )
+                    ),
+                  )
+                ],
+              )
+          )
+        ),
       ),
     );
   }
