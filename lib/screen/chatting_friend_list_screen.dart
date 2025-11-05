@@ -1,0 +1,336 @@
+import 'dart:convert';
+import 'dart:developer';
+
+import 'package:flutter/material.dart';
+import 'package:king_of_table_tennis/api/user_api.dart';
+import 'package:king_of_table_tennis/enum/search_user_range.dart';
+import 'package:king_of_table_tennis/model/page_response.dart';
+import 'package:king_of_table_tennis/model/user_info_dto.dart';
+import 'package:king_of_table_tennis/util/AppColors.dart';
+import 'package:king_of_table_tennis/util/apiRequest.dart';
+import 'package:king_of_table_tennis/widget/customStringPicker.dart';
+import 'package:king_of_table_tennis/widget/paginationBar.dart';
+import 'package:king_of_table_tennis/widget/userTile.dart';
+
+class ChattingFriendListScreen extends StatefulWidget {
+  const ChattingFriendListScreen({super.key});
+
+  @override
+  State<ChattingFriendListScreen> createState() => _ChattingFriendListScreenState();
+}
+
+class _ChattingFriendListScreenState extends State<ChattingFriendListScreen> {
+
+  var searchKeywordController = TextEditingController();
+  FocusNode searchKeywordFocus = FocusNode();
+  String searchKeyword = "";
+
+  int searchUserPage = 0;
+  int searchUserPageSize = 5;
+  int searchUserTotalPages = 0;
+
+  SearchUserRange selectedSearchUserRange = SearchUserRange.FRIEND;
+
+  bool isSearch = false;
+
+  List<UserInfoDTO> searchUsers = [];
+
+  @override
+  void dispose() {
+    searchKeywordController.dispose();
+    searchKeywordFocus.dispose();
+
+    super.dispose();
+  }
+
+  void handleSearchUsers(String keyword, int page, int size) async {
+    final response = await apiRequest(() => searchUser(keyword, page, size), context);
+
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
+      final pageResponse = PageResponse<UserInfoDTO>.fromJson(
+        data,
+        (json) => UserInfoDTO.fromJson(json)
+      );
+
+      final int totalPages = pageResponse.totalPages;
+
+      if (pageResponse.content.isEmpty && totalPages > 0 && page >= totalPages) {
+        final int lastPage = totalPages - 1;
+        if (lastPage != page) {
+          if (!mounted) return;
+          setState(() {
+            searchUserPage = lastPage;
+            searchUsers = [];
+            searchUserTotalPages = pageResponse.totalPages;
+          });
+          handleSearchUsers(keyword, page, size);
+          return;
+        }
+      }
+
+      if (!mounted) return;
+      setState(() {
+        searchKeyword = searchKeywordController.text;
+        searchUsers = pageResponse.content;
+        searchUserTotalPages = totalPages;
+        searchUserPage = page;
+        isSearch = true;
+      });
+    } else {
+      log("사용자 검색 실패");
+    }
+  }
+
+  void goToPage(int page) {
+    if (page < 0 || page >= searchUserTotalPages) return;
+    setState(() {
+      searchUserPage = page;
+    });
+    handleSearchUsers(searchKeyword, page, searchUserPageSize);
+  }
+
+  Future<void> selectSortOption() async {
+    final result = await showCustomStringPicker(
+      context: context,
+      options: SearchUserRangeExtension.labels,
+      initialValue: selectedSearchUserRange.label
+    );
+
+    if (result != null) {
+      setState(() {
+        selectedSearchUserRange = SearchUserRange.values.firstWhere(
+          (e) => e.label == result,
+          orElse: () => selectedSearchUserRange
+        );
+        searchUserPage = 0;
+        isSearch = false;
+        searchUsers = [];
+        searchKeyword = "";
+        searchKeywordController.clear();
+      });
+      // handleSearchUsers(searchKeyword, searchUserPageSize, searchUserPageSize);
+    }
+  }
+  
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: () {
+        final FocusScopeNode currentscope = FocusScope.of(context);
+        if (!currentscope.hasPrimaryFocus && currentscope.hasFocus) {
+          FocusManager.instance.primaryFocus?.unfocus();
+        }
+      },
+      child: SafeArea(
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 20),
+          child: Column(
+            children: [
+              Padding( // 검색바
+                padding: EdgeInsets.symmetric(vertical: 20),
+                child: Row(
+                  children: [
+                    OutlinedButton( // 검색 범위 선택
+                      onPressed: () {
+                        selectSortOption();
+                      },
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: AppColors.tableBlue,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(15)
+                        ),
+                        side: BorderSide(
+                          width: 0.5
+                        ),
+                        padding: EdgeInsets.symmetric(horizontal: 10, vertical: 6)
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.sort,
+                            color: Colors.black,
+                            size: 20,
+                          ),
+                          Text(
+                            selectedSearchUserRange.label,
+                            style: TextStyle(
+                              fontSize: 16,
+                              color: Colors.black
+                            ),
+                          ),
+                        ],
+                      )
+                    ),
+                    SizedBox(width: 20),
+                    Expanded(
+                      child: Container(
+                        height: 40,
+                        decoration: BoxDecoration(
+                          border: Border.all(color: Colors.black),
+                          borderRadius: BorderRadius.circular(15),
+                        ),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: TextField(
+                                controller: searchKeywordController,
+                                focusNode: searchKeywordFocus,
+                                keyboardType: TextInputType.text,
+                                decoration: const InputDecoration(
+                                  hintText: "친구를 검색해보세요.",
+                                  hintStyle: TextStyle(fontSize: 15),
+                                  contentPadding: EdgeInsets.symmetric(vertical: 0, horizontal: 10),
+                                  enabledBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.all(Radius.circular(5)),
+                                    borderSide: BorderSide(
+                                      color: Color.fromRGBO(121, 55, 64, 0)
+                                    )
+                                  ),
+                                  focusedBorder: OutlineInputBorder(
+                                    borderRadius:
+                                      BorderRadius.all(Radius.circular(5)),
+                                    borderSide: BorderSide(
+                                      color:Color.fromRGBO(122, 11, 11, 0)
+                                    )
+                                  )
+                                ),
+                                onChanged:(value) {
+                                  setState(() {});
+                                },
+                                onSubmitted: (_) {
+                                  FocusScope.of(context).unfocus();
+                                  print(searchKeywordController.text);
+                                  setState(() {
+                                    searchUserPage = 0;
+                                  });
+                                  handleSearchUsers(searchKeywordController.text, searchUserPage, searchUserPageSize);
+                                },
+                              ),
+                            ),
+                            if (searchKeywordController.text.isNotEmpty)
+                              IconButton(
+                                visualDensity: VisualDensity.compact,
+                                padding: EdgeInsets.zero,
+                                onPressed: () {
+                                  searchKeywordController.clear();
+                                  setState(() {
+                                    searchKeyword = "";
+                                    searchUserPage = 0;
+                                    searchUsers = [];
+                                    isSearch = false;
+                                  });
+                                },
+                                icon: const Icon(
+                                  Icons.clear,
+                                  size: 20,
+                                )
+                              )
+                          ],
+                        ),
+                      ),
+                    ),
+                    SizedBox(width: 20),
+                    Container(
+                      width: 40,
+                      height: 40,
+                      decoration: BoxDecoration(
+                        border: Border.all(color: Colors.black),
+                        borderRadius: BorderRadius.circular(20)
+                      ),
+                      child: IconButton(
+                        onPressed: () {
+                          FocusScope.of(context).unfocus();
+                          print(searchKeywordController.text);
+                          setState(() {
+                            searchUserPage = 0;
+                          });
+                          handleSearchUsers(searchKeywordController.text, searchUserPage, searchUserPageSize);
+                        },
+                        icon: Icon(
+                          Icons.search,
+                          color: Colors.black,
+                        )
+                      ),
+                    )
+                  ],
+                ),
+              ),
+              if (isSearch)
+                Expanded(
+                  child: AnimatedSwitcher(
+                    duration: Duration(milliseconds: 250),
+                    switchInCurve: Curves.easeOut,
+                    switchOutCurve: Curves.easeIn,
+                    transitionBuilder: (child, animation) {
+                      final offsetTween = Tween<Offset>(
+                        begin: const Offset(0, 0.1),
+                        end: Offset.zero
+                      );
+                      return FadeTransition(
+                        opacity: animation,
+                        child: SlideTransition(
+                          position: animation.drive(offsetTween),
+                          child: child,
+                        ),
+                      );
+                    },
+                    child: searchUsers.isEmpty
+                      ? Center(
+                          child: Text(
+                            "$searchKeyword에 해당하는 사용자가 없습니다."
+                          ),
+                        )
+                      : CustomScrollView(
+                        keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+                        slivers: [
+                          SliverList(
+                            delegate: SliverChildBuilderDelegate(
+                              (context, index) {
+                                final user = searchUsers[index];
+                                return Padding(
+                                  padding: const EdgeInsets.symmetric(vertical: 5),
+                                  child: Material(
+                                    color: Colors.transparent,
+                                    borderRadius: BorderRadius.circular(15),
+                                    child: InkWell(
+                                      onTap: () {
+                    
+                                      },
+                                      borderRadius: BorderRadius.circular(15),
+                                      child: UserTile(
+                                        userInfoDTO: user,
+                                        profileImageSize: 50,
+                                        fontSize: 20
+                                      )
+                                    )
+                                  )
+                                );
+                              },
+                              childCount: searchUsers.length
+                            )
+                          ),
+                          SliverToBoxAdapter(
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                              child: PaginationBar(
+                                currentPage: searchUserPage,
+                                totalPages: searchUserTotalPages,
+                                window: 5,
+                                onPageChanged: (p) => goToPage(p)
+                              )
+                            ),
+                          )
+                        ],
+                      ),
+                  ),
+                )
+            ]
+          )
+        )
+      )
+    );
+  }
+}

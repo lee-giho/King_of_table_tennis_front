@@ -1,5 +1,3 @@
-import 'package:flutter/material.dart';
-
 enum CommentSortOption {
   CREATED_DESC,
   CREATED_ASC
