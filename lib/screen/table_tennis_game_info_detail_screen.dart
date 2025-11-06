@@ -161,9 +161,8 @@ class _TableTennisGameInfoDetailScreenState extends State<TableTennisGameInfoDet
 
   Future<void> getApplicants(int page, int size) async {
     final response = await apiRequest(() => getApplicantInfo(widget.gameInfoId, page, size), context);
-    print("response");
+
     if (response.statusCode == 200) {
-      print("200");
       final data = json.decode(response.body);
       final pageResponse = PageResponse<UserInfoDTO>.fromJson(
         data,

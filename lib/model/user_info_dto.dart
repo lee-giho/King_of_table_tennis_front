@@ -1,3 +1,5 @@
+import 'package:king_of_table_tennis/enum/friend_status.dart';
+
 class UserInfoDTO {
   final String id;
   final String name;
@@ -8,6 +10,7 @@ class UserInfoDTO {
   final String userLevel;
   final int winCount;
   final int defeatCount;
+  final FriendStatus friendStatus;
 
   UserInfoDTO({
     required this.id,
@@ -18,7 +21,8 @@ class UserInfoDTO {
     required this.racketType,
     required this.userLevel,
     required this.winCount,
-    required this.defeatCount
+    required this.defeatCount,
+    required this.friendStatus
   });
 
   factory UserInfoDTO.fromJson(Map<String, dynamic> json) {
@@ -31,7 +35,10 @@ class UserInfoDTO {
       racketType: json['racketType'],
       userLevel: json['userLevel'],
       winCount: json['winCount'],
-      defeatCount: json['defeatCount']
+      defeatCount: json['defeatCount'],
+      friendStatus: json['friendStatus'] != null
+        ? FriendStatusExtension.fromString(json['friendStatus'])
+        : FriendStatus.NOTHING
     );
   }
 
@@ -45,7 +52,8 @@ class UserInfoDTO {
       racketType: '',
       userLevel: '',
       winCount: 0,
-      defeatCount: 0
+      defeatCount: 0,
+      friendStatus: FriendStatus.NOTHING
     );
   }
 }
