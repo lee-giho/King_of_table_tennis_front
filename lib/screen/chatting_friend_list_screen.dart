@@ -2,12 +2,17 @@ import 'dart:convert';
 import 'dart:developer';
 
 import 'package:flutter/material.dart';
+import 'package:king_of_table_tennis/api/friend_api.dart';
 import 'package:king_of_table_tennis/api/user_api.dart';
+import 'package:king_of_table_tennis/enum/friend_status.dart';
 import 'package:king_of_table_tennis/enum/search_user_range.dart';
+import 'package:king_of_table_tennis/model/friend_request.dart';
 import 'package:king_of_table_tennis/model/page_response.dart';
 import 'package:king_of_table_tennis/model/user_info_dto.dart';
 import 'package:king_of_table_tennis/util/AppColors.dart';
 import 'package:king_of_table_tennis/util/apiRequest.dart';
+import 'package:king_of_table_tennis/util/toastMessage.dart';
+import 'package:king_of_table_tennis/widget/customDivider.dart';
 import 'package:king_of_table_tennis/widget/customStringPicker.dart';
 import 'package:king_of_table_tennis/widget/paginationBar.dart';
 import 'package:king_of_table_tennis/widget/userTile.dart';
@@ -110,6 +115,155 @@ class _ChattingFriendListScreenState extends State<ChattingFriendListScreen> {
         searchKeywordController.clear();
       });
       // handleSearchUsers(searchKeyword, searchUserPageSize, searchUserPageSize);
+    }
+  }
+
+  Future<bool> handleRequestFriend(FriendRequest friendRequest) async {
+    final response = await apiRequest(() => requestFriend(friendRequest), context);
+
+    if (response.statusCode == 201) {
+      ToastMessage.show("친구 요청을 보냈습니다");
+      handleSearchUsers(searchKeyword, searchUserPage, searchUserPageSize);
+      return true;
+    } else {
+      ToastMessage.show("친구 요청을 실패했습니다.");
+      return false;
+    }
+  }
+
+  Widget buildButton(FriendStatus friendStatus, String receiverId) {
+    switch (friendStatus) {
+      case FriendStatus.NOTHING:
+        return IconButton(
+          onPressed: () {
+            handleRequestFriend(
+              FriendRequest(
+                receiverId: receiverId
+              )
+            );
+          },
+          icon: Icon(
+            Icons.add,
+            color: Colors.black
+          )
+        );
+      case FriendStatus.REQUESTED:
+        return IconButton(
+          icon: Icon(
+            Icons.check,
+            color: Colors.green
+          ),
+          onPressed: null
+        );
+      case FriendStatus.RECEIVED:
+        return Row(
+          children: [
+            TextButton( // 수락 버튼
+              onPressed: () {
+                
+              },
+              style: TextButton.styleFrom(
+                backgroundColor: Colors.white,
+                foregroundColor: Colors.green,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(5),
+                )
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: const [
+                  Icon(
+                    Icons.check,
+                    color: Colors.green,
+                    size: 24,
+                  ),
+                  Text(
+                    "수락",
+                    style: TextStyle(
+                      color: Colors.black,
+                      fontSize: 12
+                    ),
+                  )
+                ],
+              )
+            ),
+            TextButton( // 거절 버튼
+              onPressed: () {
+                
+              },
+              style: TextButton.styleFrom(
+                backgroundColor: Colors.white,
+                foregroundColor: Colors.green,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(5),
+                )
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: const [
+                  Icon(
+                    Icons.close,
+                    color: Colors.red,
+                    size: 24,
+                  ),
+                  Text(
+                    "거절",
+                    style: TextStyle(
+                      color: Colors.black,
+                      fontSize: 12
+                    ),
+                  )
+                ],
+              )
+            )
+          ],
+        );
+      case FriendStatus.FRIEND:
+        return IconButton(
+          onPressed: null,
+          icon: Icon(
+            Icons.favorite,
+            color: Colors.red
+          )
+        );
+      case FriendStatus.BLOCKED:
+        return TextButton( // 수락 버튼
+          onPressed: () {
+            
+          },
+          style: TextButton.styleFrom(
+            backgroundColor: Colors.white,
+            foregroundColor: Colors.green,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(5),
+            )
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: const [
+              Icon(
+                Icons.block,
+                color: Colors.red,
+                size: 24,
+              ),
+              Text(
+                "차단중",
+                style: TextStyle(
+                  color: Colors.black,
+                  fontSize: 12
+                ),
+              )
+            ],
+          )
+        );
+      case FriendStatus.BANED:
+        return IconButton(
+          onPressed: null,
+          icon: Icon(
+            Icons.block,
+            color: Colors.red
+          ),
+        );
     }
   }
   
@@ -291,20 +445,33 @@ class _ChattingFriendListScreenState extends State<ChattingFriendListScreen> {
                               (context, index) {
                                 final user = searchUsers[index];
                                 return Padding(
-                                  padding: const EdgeInsets.symmetric(vertical: 5),
+                                  padding: const EdgeInsets.symmetric(vertical: 10),
                                   child: Material(
                                     color: Colors.transparent,
                                     borderRadius: BorderRadius.circular(15),
-                                    child: InkWell(
-                                      onTap: () {
-                    
-                                      },
-                                      borderRadius: BorderRadius.circular(15),
-                                      child: UserTile(
-                                        userInfoDTO: user,
-                                        profileImageSize: 50,
-                                        fontSize: 20
-                                      )
+                                    child: Column(
+                                      children: [
+                                        Row(
+                                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                          children: [
+                                            Expanded(
+                                              child: InkWell(
+                                                onTap: () {
+                                                                  
+                                                },
+                                                borderRadius: BorderRadius.circular(15),
+                                                child: UserTile(
+                                                  userInfoDTO: user,
+                                                  profileImageSize: 45,
+                                                  fontSize: 18
+                                                )
+                                              ),
+                                            ),
+                                            buildButton(user.friendStatus, user.id)
+                                          ],
+                                        ),
+                                        CustomDivider()
+                                      ],
                                     )
                                   )
                                 );

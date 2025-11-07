@@ -23,10 +23,6 @@ class _UserTileState extends State<UserTile> {
     return Container(
       padding: const EdgeInsets.all(8),
       decoration: BoxDecoration(
-        border: Border.all(
-          width: 1,
-          color: Colors.black
-        ),
         borderRadius: BorderRadius.circular(15)
       ),
       child: Row(
