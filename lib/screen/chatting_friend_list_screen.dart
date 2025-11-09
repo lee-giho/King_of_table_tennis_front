@@ -6,9 +6,11 @@ import 'package:king_of_table_tennis/api/friend_api.dart';
 import 'package:king_of_table_tennis/api/user_api.dart';
 import 'package:king_of_table_tennis/enum/friend_status.dart';
 import 'package:king_of_table_tennis/enum/search_user_range.dart';
+import 'package:king_of_table_tennis/model/count_response.dart';
 import 'package:king_of_table_tennis/model/friend_request.dart';
 import 'package:king_of_table_tennis/model/page_response.dart';
 import 'package:king_of_table_tennis/model/user_info_dto.dart';
+import 'package:king_of_table_tennis/screen/received_friend_request_list_screen.dart';
 import 'package:king_of_table_tennis/util/AppColors.dart';
 import 'package:king_of_table_tennis/util/apiRequest.dart';
 import 'package:king_of_table_tennis/util/toastMessage.dart';
@@ -39,6 +41,17 @@ class _ChattingFriendListScreenState extends State<ChattingFriendListScreen> {
   bool isSearch = false;
 
   List<UserInfoDTO> searchUsers = [];
+  
+  List<UserInfoDTO> friendUsers = [];
+
+  int receivedFriendRequestCount = 0;
+
+  @override
+  void initState() {
+    super.initState();
+
+    handleGetFriendRequestCountByFriendStatus(FriendStatus.RECEIVED);
+  }
 
   @override
   void dispose() {
@@ -84,6 +97,22 @@ class _ChattingFriendListScreenState extends State<ChattingFriendListScreen> {
       });
     } else {
       log("사용자 검색 실패");
+    }
+  }
+
+  void handleGetFriendRequestCountByFriendStatus(FriendStatus friendStatus) async {
+    final response = await apiRequest(() => getFriendRequestCountByFriendStatus(friendStatus), context);
+
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
+      final countResponse = CountResponse.fromJson(data);
+
+      setState(() {
+        receivedFriendRequestCount = countResponse.count;
+      });
+      
+    } else {
+      log("$friendStatus에 해당하는 개수 가져오기 실패");
     }
   }
 
@@ -412,6 +441,42 @@ class _ChattingFriendListScreenState extends State<ChattingFriendListScreen> {
                   ],
                 ),
               ),
+              InkWell(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => ReceivedFriendRequestListScreen()
+                    )
+                  );
+                },
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      "받은 요청",
+                      style: TextStyle(
+                        fontSize: 16
+                      ),
+                    ),
+                    Row(
+                      children: [
+                        Text(
+                          receivedFriendRequestCount.toString()
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.all(8),
+                          child: Icon(
+                            Icons.arrow_forward_ios,
+                            size: 16,
+                          ),
+                        )
+                      ],
+                    )
+                  ],
+                ),
+              ),
+              CustomDivider(),
               if (isSearch)
                 Expanded(
                   child: AnimatedSwitcher(
@@ -444,6 +509,88 @@ class _ChattingFriendListScreenState extends State<ChattingFriendListScreen> {
                             delegate: SliverChildBuilderDelegate(
                               (context, index) {
                                 final user = searchUsers[index];
+                                return Padding(
+                                  padding: const EdgeInsets.symmetric(vertical: 10),
+                                  child: Material(
+                                    color: Colors.transparent,
+                                    borderRadius: BorderRadius.circular(15),
+                                    child: Column(
+                                      children: [
+                                        Row(
+                                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                          children: [
+                                            Expanded(
+                                              child: InkWell(
+                                                onTap: () {
+                                                                  
+                                                },
+                                                borderRadius: BorderRadius.circular(15),
+                                                child: UserTile(
+                                                  userInfoDTO: user,
+                                                  profileImageSize: 45,
+                                                  fontSize: 18
+                                                )
+                                              ),
+                                            ),
+                                            buildButton(user.friendStatus, user.id)
+                                          ],
+                                        ),
+                                        CustomDivider()
+                                      ],
+                                    )
+                                  )
+                                );
+                              },
+                              childCount: searchUsers.length
+                            )
+                          ),
+                          SliverToBoxAdapter(
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                              child: PaginationBar(
+                                currentPage: searchUserPage,
+                                totalPages: searchUserTotalPages,
+                                window: 5,
+                                onPageChanged: (p) => goToPage(p)
+                              )
+                            ),
+                          )
+                        ],
+                      ),
+                  ),
+                )
+              else
+                Expanded(
+                  child: AnimatedSwitcher(
+                    duration: Duration(milliseconds: 250),
+                    switchInCurve: Curves.easeOut,
+                    switchOutCurve: Curves.easeIn,
+                    transitionBuilder: (child, animation) {
+                      final offsetTween = Tween<Offset>(
+                        begin: const Offset(0, 0.1),
+                        end: Offset.zero
+                      );
+                      return FadeTransition(
+                        opacity: animation,
+                        child: SlideTransition(
+                          position: animation.drive(offsetTween),
+                          child: child,
+                        ),
+                      );
+                    },
+                    child: friendUsers.isEmpty
+                      ? Center(
+                          child: Text(
+                            "아직 친구가 없습니다."
+                          ),
+                        )
+                      : CustomScrollView(
+                        keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+                        slivers: [
+                          SliverList(
+                            delegate: SliverChildBuilderDelegate(
+                              (context, index) {
+                                final user = friendUsers[index];
                                 return Padding(
                                   padding: const EdgeInsets.symmetric(vertical: 10),
                                   child: Material(
