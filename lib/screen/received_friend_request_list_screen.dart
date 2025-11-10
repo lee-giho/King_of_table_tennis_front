@@ -2,16 +2,23 @@ import 'dart:convert';
 import 'dart:developer';
 
 import 'package:flutter/material.dart';
+import 'package:king_of_table_tennis/api/friend_api.dart';
 import 'package:king_of_table_tennis/api/user_api.dart';
+import 'package:king_of_table_tennis/enum/friend_request_answer_type.dart';
 import 'package:king_of_table_tennis/model/page_response.dart';
 import 'package:king_of_table_tennis/model/user_info_dto.dart';
 import 'package:king_of_table_tennis/util/apiRequest.dart';
+import 'package:king_of_table_tennis/util/toastMessage.dart';
 import 'package:king_of_table_tennis/widget/customDivider.dart';
 import 'package:king_of_table_tennis/widget/paginationBar.dart';
 import 'package:king_of_table_tennis/widget/userTile.dart';
 
 class ReceivedFriendRequestListScreen extends StatefulWidget {
-  const ReceivedFriendRequestListScreen({super.key});
+  final VoidCallback refreshRequestCount;
+  const ReceivedFriendRequestListScreen({
+    super.key,
+    required this.refreshRequestCount
+  });
 
   @override
   State<ReceivedFriendRequestListScreen> createState() => _ReceivedFriendRequestListScreenState();
@@ -70,6 +77,23 @@ class _ReceivedFriendRequestListScreenState extends State<ReceivedFriendRequestL
     }
   }
 
+  void handleResponseFriendRequest(String targetUserId, FriendRequestAnswerType friendRequestAnswerType) async {
+    final response = await apiRequest(() => responseFriendRequest(targetUserId, friendRequestAnswerType), context);
+
+    if (response.statusCode == 204) {
+      if (friendRequestAnswerType == FriendRequestAnswerType.ACCEPT) {
+        ToastMessage.show("친구 요청을 수락했습니다.");
+      } else {
+        ToastMessage.show("친구 요청을 거절했습니다.");
+      }
+
+      handleGetReceivedFriendRequests(requestedUserPage, requestedUserPageSize);
+      widget.refreshRequestCount.call();
+    } else {
+      ToastMessage.show("친구 요청 응답에 실패했습니다.");
+    }
+  }
+
   void goToPage(int page) {
     if (page < 0 || page >= requestedUserTotalPages) return;
     setState(() {
@@ -96,147 +120,146 @@ class _ReceivedFriendRequestListScreenState extends State<ReceivedFriendRequestL
       body: SafeArea(
         child: Container( // 전체 화면
           padding: const EdgeInsets.symmetric(horizontal: 20),
-          child: Expanded(
-            child: AnimatedSwitcher(
-              duration: Duration(milliseconds: 250),
-              switchInCurve: Curves.easeOut,
-              switchOutCurve: Curves.easeIn,
-              transitionBuilder: (child, animation) {
-                final offsetTween = Tween<Offset>(
-                  begin: const Offset(0, 0.1),
-                  end: Offset.zero
-                );
-                return FadeTransition(
-                  opacity: animation,
-                  child: SlideTransition(
-                    position: animation.drive(offsetTween),
-                    child: child,
+          child: AnimatedSwitcher(
+            duration: Duration(milliseconds: 250),
+            switchInCurve: Curves.easeOut,
+            switchOutCurve: Curves.easeIn,
+            transitionBuilder: (child, animation) {
+              final offsetTween = Tween<Offset>(
+                begin: const Offset(0, 0.1),
+                end: Offset.zero
+              );
+              return FadeTransition(
+                opacity: animation,
+                child: SlideTransition(
+                  position: animation.drive(offsetTween),
+                  child: child,
+                ),
+              );
+            },
+            child: requestedUsers.isEmpty
+              ? Center(
+                  child: Text(
+                    "받은 친구 요청이 없습니다."
                   ),
-                );
-              },
-              child: requestedUsers.isEmpty
-                ? Center(
-                    child: Text(
-                      "받은 친구 요청이 없습니다."
-                    ),
-                  )
-                : CustomScrollView(
-                  keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-                  slivers: [
-                    SliverList(
-                      delegate: SliverChildBuilderDelegate(
-                        (context, index) {
-                          final user = requestedUsers[index];
-                          return Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 10),
-                            child: Material(
-                              color: Colors.transparent,
-                              borderRadius: BorderRadius.circular(15),
-                              child: Column(
-                                children: [
-                                  Row(
-                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      Expanded(
-                                        child: InkWell(
-                                          onTap: () {
-                                                            
-                                          },
-                                          borderRadius: BorderRadius.circular(15),
-                                          child: UserTile(
-                                            userInfoDTO: user,
-                                            profileImageSize: 45,
-                                            fontSize: 18
-                                          )
-                                        ),
+                )
+              : CustomScrollView(
+                keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+                slivers: [
+                  SliverList(
+                    delegate: SliverChildBuilderDelegate(
+                      (context, index) {
+                        final user = requestedUsers[index];
+                        print(user.id);
+                        return Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 10),
+                          child: Material(
+                            color: Colors.transparent,
+                            borderRadius: BorderRadius.circular(15),
+                            child: Column(
+                              children: [
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Expanded(
+                                      child: InkWell(
+                                        onTap: () {
+                                                          
+                                        },
+                                        borderRadius: BorderRadius.circular(15),
+                                        child: UserTile(
+                                          userInfoDTO: user,
+                                          profileImageSize: 45,
+                                          fontSize: 18
+                                        )
                                       ),
-                                      Row(
-                                        children: [
-                                          TextButton( // 수락 버튼
-                                            onPressed: () {
-                                              
-                                            },
-                                            style: TextButton.styleFrom(
-                                              backgroundColor: Colors.white,
-                                              foregroundColor: Colors.green,
-                                              shape: RoundedRectangleBorder(
-                                                borderRadius: BorderRadius.circular(5),
-                                              )
-                                            ),
-                                            child: Column(
-                                              mainAxisSize: MainAxisSize.min,
-                                              children: const [
-                                                Icon(
-                                                  Icons.check,
-                                                  color: Colors.green,
-                                                  size: 24,
-                                                ),
-                                                Text(
-                                                  "수락",
-                                                  style: TextStyle(
-                                                    color: Colors.black,
-                                                    fontSize: 12
-                                                  ),
-                                                )
-                                              ],
+                                    ),
+                                    Row(
+                                      children: [
+                                        TextButton( // 수락 버튼
+                                          onPressed: () {
+                                            handleResponseFriendRequest(user.id, FriendRequestAnswerType.ACCEPT);
+                                          },
+                                          style: TextButton.styleFrom(
+                                            backgroundColor: Colors.white,
+                                            foregroundColor: Colors.green,
+                                            shape: RoundedRectangleBorder(
+                                              borderRadius: BorderRadius.circular(5),
                                             )
                                           ),
-                                          TextButton( // 거절 버튼
-                                            onPressed: () {
-                                              
-                                            },
-                                            style: TextButton.styleFrom(
-                                              backgroundColor: Colors.white,
-                                              foregroundColor: Colors.red,
-                                              shape: RoundedRectangleBorder(
-                                                borderRadius: BorderRadius.circular(5),
-                                              )
-                                            ),
-                                            child: Column(
-                                              mainAxisSize: MainAxisSize.min,
-                                              children: const [
-                                                Icon(
-                                                  Icons.close,
-                                                  color: Colors.red,
-                                                  size: 24,
+                                          child: Column(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: const [
+                                              Icon(
+                                                Icons.check,
+                                                color: Colors.green,
+                                                size: 24,
+                                              ),
+                                              Text(
+                                                "수락",
+                                                style: TextStyle(
+                                                  color: Colors.black,
+                                                  fontSize: 12
                                                 ),
-                                                Text(
-                                                  "거절",
-                                                  style: TextStyle(
-                                                    color: Colors.black,
-                                                    fontSize: 12
-                                                  ),
-                                                )
-                                              ],
-                                            )
+                                              )
+                                            ],
                                           )
-                                        ],
-                                      )
-                                    ],
-                                  ),
-                                  CustomDivider()
-                                ],
-                              )
+                                        ),
+                                        TextButton( // 거절 버튼
+                                          onPressed: () {
+                                            handleResponseFriendRequest(user.id, FriendRequestAnswerType.REJECT);
+                                          },
+                                          style: TextButton.styleFrom(
+                                            backgroundColor: Colors.white,
+                                            foregroundColor: Colors.red,
+                                            shape: RoundedRectangleBorder(
+                                              borderRadius: BorderRadius.circular(5),
+                                            )
+                                          ),
+                                          child: Column(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: const [
+                                              Icon(
+                                                Icons.close,
+                                                color: Colors.red,
+                                                size: 24,
+                                              ),
+                                              Text(
+                                                "거절",
+                                                style: TextStyle(
+                                                  color: Colors.black,
+                                                  fontSize: 12
+                                                ),
+                                              )
+                                            ],
+                                          )
+                                        )
+                                      ],
+                                    )
+                                  ],
+                                ),
+                                CustomDivider()
+                              ],
                             )
-                          );
-                        },
-                        childCount: requestedUsers.length
+                          )
+                        );
+                      },
+                      childCount: requestedUsers.length
+                    )
+                  ),
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      child: PaginationBar(
+                        currentPage: requestedUserPage,
+                        totalPages: requestedUserTotalPages,
+                        window: 5,
+                        onPageChanged: (p) => goToPage(p)
                       )
                     ),
-                    SliverToBoxAdapter(
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                        child: PaginationBar(
-                          currentPage: requestedUserPage,
-                          totalPages: requestedUserTotalPages,
-                          window: 5,
-                          onPageChanged: (p) => goToPage(p)
-                        )
-                      ),
-                    )
-                  ],
-                ),
-            ),
+                  )
+                ],
+              ),
           )
         ),
       )

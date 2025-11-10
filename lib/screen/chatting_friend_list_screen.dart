@@ -4,6 +4,7 @@ import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:king_of_table_tennis/api/friend_api.dart';
 import 'package:king_of_table_tennis/api/user_api.dart';
+import 'package:king_of_table_tennis/enum/friend_request_answer_type.dart';
 import 'package:king_of_table_tennis/enum/friend_status.dart';
 import 'package:king_of_table_tennis/enum/search_user_range.dart';
 import 'package:king_of_table_tennis/model/count_response.dart';
@@ -116,6 +117,22 @@ class _ChattingFriendListScreenState extends State<ChattingFriendListScreen> {
     }
   }
 
+  void handleResponseFriendRequest(String targetUserId, FriendRequestAnswerType friendRequestAnswerType) async {
+    final response = await apiRequest(() => responseFriendRequest(targetUserId, friendRequestAnswerType), context);
+
+    if (response.statusCode == 204) {
+      if (friendRequestAnswerType == FriendRequestAnswerType.ACCEPT) {
+        ToastMessage.show("친구 요청을 수락했습니다.");
+      } else {
+        ToastMessage.show("친구 요청을 거절했습니다.");
+      }
+
+      handleSearchUsers(searchKeyword, searchUserPage, searchUserPageSize);
+    } else {
+      ToastMessage.show("친구 요청 응답에 실패했습니다.");
+    }
+  }
+
   void goToPage(int page) {
     if (page < 0 || page >= searchUserTotalPages) return;
     setState(() {
@@ -189,7 +206,7 @@ class _ChattingFriendListScreenState extends State<ChattingFriendListScreen> {
           children: [
             TextButton( // 수락 버튼
               onPressed: () {
-                
+                handleResponseFriendRequest(receiverId, FriendRequestAnswerType.ACCEPT);
               },
               style: TextButton.styleFrom(
                 backgroundColor: Colors.white,
@@ -218,7 +235,7 @@ class _ChattingFriendListScreenState extends State<ChattingFriendListScreen> {
             ),
             TextButton( // 거절 버튼
               onPressed: () {
-                
+                handleResponseFriendRequest(receiverId, FriendRequestAnswerType.REJECT);
               },
               style: TextButton.styleFrom(
                 backgroundColor: Colors.white,
@@ -446,7 +463,11 @@ class _ChattingFriendListScreenState extends State<ChattingFriendListScreen> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => ReceivedFriendRequestListScreen()
+                      builder: (context) => ReceivedFriendRequestListScreen(
+                        refreshRequestCount: () {
+                          handleGetFriendRequestCountByFriendStatus(FriendStatus.RECEIVED);
+                        }
+                      )
                     )
                   );
                 },
