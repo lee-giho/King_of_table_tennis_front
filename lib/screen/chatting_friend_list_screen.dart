@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:developer';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:king_of_table_tennis/api/friend_api.dart';
 import 'package:king_of_table_tennis/api/user_api.dart';
 import 'package:king_of_table_tennis/enum/friend_request_answer_type.dart';
@@ -43,6 +44,11 @@ class _ChattingFriendListScreenState extends State<ChattingFriendListScreen> {
 
   List<UserInfoDTO> searchUsers = [];
   
+  int friendUserPage = 0;
+  int friendUserPageSize = 20;
+  int friendUserTotalPages = 0;
+  int friendUserTotalElements = 0;
+
   List<UserInfoDTO> friendUsers = [];
 
   int receivedFriendRequestCount = 0;
@@ -52,6 +58,7 @@ class _ChattingFriendListScreenState extends State<ChattingFriendListScreen> {
     super.initState();
 
     handleGetFriendRequestCountByFriendStatus(FriendStatus.RECEIVED);
+    handleGetMyFriend(friendUserPage, friendUserPageSize);
   }
 
   @override
@@ -175,6 +182,58 @@ class _ChattingFriendListScreenState extends State<ChattingFriendListScreen> {
       ToastMessage.show("친구 요청을 실패했습니다.");
       return false;
     }
+  }
+
+  void handleGetMyFriend(int page, int size) async {
+    final response = await apiRequest(() => getMyFriend(page, size), context);
+
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
+      final pageResponse = PageResponse<UserInfoDTO>.fromJson(
+        data,
+        (json) => UserInfoDTO.fromJson(json)
+      );
+
+      final int totalPages = pageResponse.totalPages;
+      print(pageResponse.totalElements);
+
+      if (pageResponse.content.isEmpty && totalPages > 0 && page >= totalPages) {
+        final int lastPage = totalPages - 1;
+        if (lastPage != page) {
+          if (!mounted) return;
+          setState(() {
+            friendUserPage = lastPage;
+            friendUsers = [];
+            friendUserTotalPages = pageResponse.totalPages;
+            friendUserTotalElements = pageResponse.totalElements;
+          });
+          handleGetMyFriend(page, size);
+          return;
+        }
+      }
+
+      if (!mounted) return;
+      setState(() {
+        friendUsers = pageResponse.content;
+        friendUserTotalPages = totalPages;
+        friendUserPage = page;
+        friendUserTotalElements = pageResponse.totalElements;
+      });
+    } else {
+      log("친구 조회 실패");
+    }
+  }
+
+  void handleDeleteMyFriend(String targetUserId) async {
+    final response = await apiRequest(() => deleteMyFriend(targetUserId), context);
+
+    if (response.statusCode == 204) {
+      ToastMessage.show("친구가 삭제되었습니다.");
+    } else {
+      ToastMessage.show("친구가 삭제되지 않았습니다.");
+    }
+
+    handleGetMyFriend(friendUserPage, friendUserPageSize);
   }
 
   Widget buildButton(FriendStatus friendStatus, String receiverId) {
@@ -580,7 +639,7 @@ class _ChattingFriendListScreenState extends State<ChattingFriendListScreen> {
                       ),
                   ),
                 )
-              else
+              else // 내 친구
                 Expanded(
                   child: AnimatedSwitcher(
                     duration: Duration(milliseconds: 250),
@@ -608,6 +667,11 @@ class _ChattingFriendListScreenState extends State<ChattingFriendListScreen> {
                       : CustomScrollView(
                         keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
                         slivers: [
+                          SliverToBoxAdapter(
+                            child: Text(
+                              "친구 ${friendUserTotalElements.toString()}"
+                            )
+                          ),
                           SliverList(
                             delegate: SliverChildBuilderDelegate(
                               (context, index) {
@@ -619,24 +683,63 @@ class _ChattingFriendListScreenState extends State<ChattingFriendListScreen> {
                                     borderRadius: BorderRadius.circular(15),
                                     child: Column(
                                       children: [
-                                        Row(
-                                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                          children: [
-                                            Expanded(
-                                              child: InkWell(
-                                                onTap: () {
-                                                                  
+                                        Slidable(
+                                          key: ValueKey(user.id),
+                                          startActionPane: ActionPane(
+                                            motion: const DrawerMotion(),
+                                            extentRatio: 0.25,
+                                            children: [
+                                              SlidableAction(
+                                                onPressed: (context) {
+                                                  print("채팅 시작");
                                                 },
-                                                borderRadius: BorderRadius.circular(15),
-                                                child: UserTile(
-                                                  userInfoDTO: user,
-                                                  profileImageSize: 45,
-                                                  fontSize: 18
-                                                )
+                                                backgroundColor: Colors.blue,
+                                                icon: Icons.chat,
+                                                label: "채팅"
+                                              )
+                                            ]
+                                          ),
+                                          endActionPane: ActionPane(
+                                            motion: const DrawerMotion(),
+                                            extentRatio: 0.5,
+                                            children: [
+                                              SlidableAction(
+                                                onPressed: (context) {
+                                                  print("차단하기");
+                                                },
+                                                backgroundColor: Colors.orange,
+                                                icon: Icons.block,
+                                                label: "차단",
                                               ),
-                                            ),
-                                            buildButton(user.friendStatus, user.id)
-                                          ],
+                                              SlidableAction(
+                                                onPressed: (context) {
+                                                  handleDeleteMyFriend(user.id);
+                                                },
+                                                backgroundColor: Colors.red,
+                                                icon: Icons.delete,
+                                                label: "삭제",
+                                              )
+                                            ]
+                                          ),
+                                          child: Row(
+                                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                            children: [
+                                              Expanded(
+                                                child: InkWell(
+                                                  onTap: () {
+                                                                    
+                                                  },
+                                                  borderRadius: BorderRadius.circular(15),
+                                                  child: UserTile(
+                                                    userInfoDTO: user,
+                                                    profileImageSize: 45,
+                                                    fontSize: 18
+                                                  )
+                                                ),
+                                              ),
+                                              buildButton(user.friendStatus, user.id)
+                                            ],
+                                          ),
                                         ),
                                         CustomDivider()
                                       ],
@@ -644,7 +747,7 @@ class _ChattingFriendListScreenState extends State<ChattingFriendListScreen> {
                                   )
                                 );
                               },
-                              childCount: searchUsers.length
+                              childCount: friendUsers.length
                             )
                           ),
                           SliverToBoxAdapter(
