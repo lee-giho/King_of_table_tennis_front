@@ -14,10 +14,10 @@ import 'package:king_of_table_tennis/widget/paginationBar.dart';
 import 'package:king_of_table_tennis/widget/userTile.dart';
 
 class ReceivedFriendRequestListScreen extends StatefulWidget {
-  final VoidCallback refreshRequestCount;
+  final VoidCallback refreshScreen;
   const ReceivedFriendRequestListScreen({
     super.key,
-    required this.refreshRequestCount
+    required this.refreshScreen
   });
 
   @override
@@ -91,7 +91,7 @@ class _ReceivedFriendRequestListScreenState extends State<ReceivedFriendRequestL
       }
 
       handleGetReceivedFriendRequests(requestedUserPage, requestedUserPageSize);
-      widget.refreshRequestCount.call();
+      widget.refreshScreen.call();
     } else {
       ToastMessage.show("친구 요청 응답에 실패했습니다.");
     }

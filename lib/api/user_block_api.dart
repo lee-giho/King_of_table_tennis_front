@@ -8,7 +8,7 @@ Future<http.Response> blockUser(String targetUserId) async {
   String? accessToken = await SecureStorage.getAccessToken();
 
   // .env에서 서버 URL 가져오기
-  final apiAddress = Uri.parse("${dotenv.get("API_ADDRESS")}/api/user/blocks");
+  final apiAddress = Uri.parse("${dotenv.get("API_ADDRESS")}/api/friend/blocks");
   final headers = {
     'Authorization': 'Bearer ${accessToken}',
     'Content-Type': 'application/json'
@@ -20,6 +20,24 @@ Future<http.Response> blockUser(String targetUserId) async {
     body: json.encode({
       "targetUserId": targetUserId
     })
+  );
+
+  return response;
+}
+
+Future<http.Response> unBlockUser(String targetUserId) async {
+  String? accessToken = await SecureStorage.getAccessToken();
+
+  // .env에서 서버 URL 가져오기
+  final apiAddress = Uri.parse("${dotenv.get("API_ADDRESS")}/api/friend/blocks/$targetUserId");
+  final headers = {
+    'Authorization': 'Bearer ${accessToken}',
+    'Content-Type': 'application/json'
+  };
+
+  final response = await http.delete(
+    apiAddress,
+    headers: headers
   );
 
   return response;

@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:king_of_table_tennis/api/friend_api.dart';
 import 'package:king_of_table_tennis/api/user_api.dart';
-import 'package:king_of_table_tennis/api/user_block.dart';
+import 'package:king_of_table_tennis/api/user_block_api.dart';
 import 'package:king_of_table_tennis/enum/friend_request_answer_type.dart';
 import 'package:king_of_table_tennis/enum/friend_status.dart';
 import 'package:king_of_table_tennis/enum/search_user_range.dart';
@@ -35,8 +35,10 @@ class _ChattingFriendListScreenState extends State<ChattingFriendListScreen> {
   FocusNode searchKeywordFocus = FocusNode();
   String searchKeyword = "";
 
+  bool onlyFriend = true;
+
   int searchUserPage = 0;
-  int searchUserPageSize = 5;
+  int searchUserPageSize = 10;
   int searchUserTotalPages = 0;
 
   SearchUserRange selectedSearchUserRange = SearchUserRange.FRIEND;
@@ -74,8 +76,8 @@ class _ChattingFriendListScreenState extends State<ChattingFriendListScreen> {
     super.dispose();
   }
 
-  void handleSearchUsers(String keyword, int page, int size) async {
-    final response = await apiRequest(() => searchUser(keyword, page, size), context);
+  void handleSearchUsers(String keyword, bool onlyFriend, int page, int size) async {
+    final response = await apiRequest(() => searchUser(keyword, onlyFriend, page, size), context);
 
     if (response.statusCode == 200) {
       final data = json.decode(response.body);
@@ -95,7 +97,7 @@ class _ChattingFriendListScreenState extends State<ChattingFriendListScreen> {
             searchUsers = [];
             searchUserTotalPages = pageResponse.totalPages;
           });
-          handleSearchUsers(keyword, page, size);
+          handleSearchUsers(keyword, onlyFriend, page, size);
           return;
         }
       }
@@ -155,7 +157,7 @@ class _ChattingFriendListScreenState extends State<ChattingFriendListScreen> {
         ToastMessage.show("친구 요청을 거절했습니다.");
       }
 
-      handleSearchUsers(searchKeyword, searchUserPage, searchUserPageSize);
+      handleSearchUsers(searchKeyword, onlyFriend, searchUserPage, searchUserPageSize);
     } else {
       ToastMessage.show("친구 요청 응답에 실패했습니다.");
     }
@@ -166,7 +168,7 @@ class _ChattingFriendListScreenState extends State<ChattingFriendListScreen> {
     setState(() {
       searchUserPage = page;
     });
-    handleSearchUsers(searchKeyword, page, searchUserPageSize);
+    handleSearchUsers(searchKeyword, onlyFriend, page, searchUserPageSize);
   }
 
   Future<void> selectSortOption() async {
@@ -182,6 +184,8 @@ class _ChattingFriendListScreenState extends State<ChattingFriendListScreen> {
           (e) => e.label == result,
           orElse: () => selectedSearchUserRange
         );
+
+        onlyFriend = selectedSearchUserRange == SearchUserRange.FRIEND;
         searchUserPage = 0;
         isSearch = false;
         searchUsers = [];
@@ -197,7 +201,7 @@ class _ChattingFriendListScreenState extends State<ChattingFriendListScreen> {
 
     if (response.statusCode == 201) {
       ToastMessage.show("친구 요청을 보냈습니다");
-      handleSearchUsers(searchKeyword, searchUserPage, searchUserPageSize);
+      handleSearchUsers(searchKeyword, onlyFriend, searchUserPage, searchUserPageSize);
       return true;
     } else {
       ToastMessage.show("친구 요청을 실패했습니다.");
@@ -498,7 +502,7 @@ class _ChattingFriendListScreenState extends State<ChattingFriendListScreen> {
                                   setState(() {
                                     searchUserPage = 0;
                                   });
-                                  handleSearchUsers(searchKeywordController.text, searchUserPage, searchUserPageSize);
+                                  handleSearchUsers(searchKeywordController.text, onlyFriend, searchUserPage, searchUserPageSize);
                                 },
                               ),
                             ),
@@ -509,6 +513,9 @@ class _ChattingFriendListScreenState extends State<ChattingFriendListScreen> {
                                 onPressed: () {
                                   searchKeywordController.clear();
                                   setState(() {
+                                    if (isSearch) {
+                                      selectedSearchUserRange = SearchUserRange.FRIEND;
+                                    }
                                     searchKeyword = "";
                                     searchUserPage = 0;
                                     searchUsers = [];
@@ -538,7 +545,7 @@ class _ChattingFriendListScreenState extends State<ChattingFriendListScreen> {
                           setState(() {
                             searchUserPage = 0;
                           });
-                          handleSearchUsers(searchKeywordController.text, searchUserPage, searchUserPageSize);
+                          handleSearchUsers(searchKeywordController.text, onlyFriend, searchUserPage, searchUserPageSize);
                         },
                         icon: Icon(
                           Icons.search,
@@ -555,7 +562,7 @@ class _ChattingFriendListScreenState extends State<ChattingFriendListScreen> {
                     context,
                     MaterialPageRoute(
                       builder: (context) => FriendManagementScreen(
-                        refreshRequestCount: () {
+                        refreshScreen: () {
                           handleGetFriendRequestCountByFriendStatus(FriendStatus.RECEIVED);
                           handleGetBlockedFriendCount();
                           handleGetMyFriend(friendUserPage, friendUserPageSize);

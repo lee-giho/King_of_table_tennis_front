@@ -4,10 +4,10 @@ import 'package:king_of_table_tennis/screen/received_friend_request_list_screen.
 import 'package:king_of_table_tennis/util/AppColors.dart';
 
 class FriendManagementScreen extends StatefulWidget {
-  final VoidCallback refreshRequestCount;
+  final VoidCallback refreshScreen;
   const FriendManagementScreen({
     super.key,
-    required this.refreshRequestCount
+    required this.refreshScreen
   });
 
   @override
@@ -61,9 +61,11 @@ class _FriendManagementScreenState extends State<FriendManagementScreen> {
         body: TabBarView(
           children: [
             ReceivedFriendRequestListScreen(
-              refreshRequestCount: widget.refreshRequestCount
+              refreshScreen: widget.refreshScreen
             ),
-            BlockedFriendListScreen()
+            BlockedFriendListScreen(
+              refreshScreen: widget.refreshScreen,
+            )
           ]
         ),
       )

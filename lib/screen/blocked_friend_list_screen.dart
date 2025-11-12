@@ -3,16 +3,23 @@ import 'dart:developer';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
+import 'package:king_of_table_tennis/api/friend_api.dart';
 import 'package:king_of_table_tennis/api/user_api.dart';
+import 'package:king_of_table_tennis/api/user_block_api.dart';
 import 'package:king_of_table_tennis/model/page_response.dart';
 import 'package:king_of_table_tennis/model/user_info_dto.dart';
 import 'package:king_of_table_tennis/util/apiRequest.dart';
+import 'package:king_of_table_tennis/util/toastMessage.dart';
 import 'package:king_of_table_tennis/widget/customDivider.dart';
 import 'package:king_of_table_tennis/widget/paginationBar.dart';
 import 'package:king_of_table_tennis/widget/userTile.dart';
 
 class BlockedFriendListScreen extends StatefulWidget {
-  const BlockedFriendListScreen({super.key});
+  final VoidCallback refreshScreen;
+  const BlockedFriendListScreen({
+    super.key,
+    required this.refreshScreen
+  });
 
   @override
   State<BlockedFriendListScreen> createState() => _BlockedFriendListScreenState();
@@ -41,7 +48,7 @@ class _BlockedFriendListScreenState extends State<BlockedFriendListScreen> {
     });
   }
 
-    void handleGetMyFriend(int page, int size) async {
+  void handleGetMyFriend(int page, int size) async {
     final response = await apiRequest(() => getMyFriend(page, size, true), context);
 
     if (response.statusCode == 200) {
@@ -78,6 +85,32 @@ class _BlockedFriendListScreenState extends State<BlockedFriendListScreen> {
     } else {
       log("친구 조회 실패");
     }
+  }
+
+  void handleUnBlockUser(UserInfoDTO user) async {
+    final response = await apiRequest(() => unBlockUser(user.id), context);
+
+    if (response.statusCode == 204) {
+      ToastMessage.show("${user.nickName}이(가) 차단 해제되었습니다.");
+    } else {
+      ToastMessage.show("${user.nickName}이(가) 차단 해제되지 않았습니다.");
+    }
+
+    handleGetMyFriend(blockedFriendPage, blockedFriendPageSize);
+    widget.refreshScreen.call();
+  }
+
+    void handleDeleteMyFriend(String targetUserId) async {
+    final response = await apiRequest(() => deleteMyFriend(targetUserId), context);
+
+    if (response.statusCode == 204) {
+      ToastMessage.show("친구가 삭제되었습니다.");
+    } else {
+      ToastMessage.show("친구가 삭제되지 않았습니다.");
+    }
+
+    handleGetMyFriend(blockedFriendPage, blockedFriendPageSize);
+    widget.refreshScreen.call();
   }
 
   @override
@@ -129,23 +162,15 @@ class _BlockedFriendListScreenState extends State<BlockedFriendListScreen> {
                                         key: ValueKey(user.id),
                                         endActionPane: ActionPane(
                                           motion: const DrawerMotion(),
-                                          extentRatio: 0.5,
+                                          extentRatio: 0.25,
                                           children: [
                                             SlidableAction(
                                               onPressed: (context) {
-                                                // handleBlockUser(user);
+                                                handleUnBlockUser(user);
                                               },
                                               backgroundColor: Colors.green,
                                               icon: Icons.favorite,
                                               label: "차단풀기",
-                                            ),
-                                            SlidableAction(
-                                              onPressed: (context) {
-                                                // handleDeleteMyFriend(user.id);
-                                              },
-                                              backgroundColor: Colors.red,
-                                              icon: Icons.delete,
-                                              label: "삭제",
                                             )
                                           ]
                                         ),

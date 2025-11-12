@@ -180,11 +180,11 @@ Future<http.Response> getMyComments(int page, int size, CommentSortOption sort) 
   return response;
 }
 
-Future<http.Response> searchUser(String keyword, int page, int size) async {
+Future<http.Response> searchUser(String keyword, bool onlyFriend, int page, int size) async {
   String? accessToken = await SecureStorage.getAccessToken();
 
   // .env에서 서버 URL 가져오기
-  final apiAddress = Uri.parse("${dotenv.get("API_ADDRESS")}/api/user?keyword=$keyword&page=$page&size=$size");
+  final apiAddress = Uri.parse("${dotenv.get("API_ADDRESS")}/api/user?keyword=$keyword&onlyFriend=$onlyFriend&page=$page&size=$size");
   final headers = {
     'Authorization': 'Bearer ${accessToken}',
     'Content-Type': 'application/json'
