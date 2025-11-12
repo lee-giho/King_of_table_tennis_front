@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:king_of_table_tennis/api/friend_api.dart';
 import 'package:king_of_table_tennis/api/user_api.dart';
+import 'package:king_of_table_tennis/api/user_block.dart';
 import 'package:king_of_table_tennis/enum/friend_request_answer_type.dart';
 import 'package:king_of_table_tennis/enum/friend_status.dart';
 import 'package:king_of_table_tennis/enum/search_user_range.dart';
@@ -12,7 +13,7 @@ import 'package:king_of_table_tennis/model/count_response.dart';
 import 'package:king_of_table_tennis/model/friend_request.dart';
 import 'package:king_of_table_tennis/model/page_response.dart';
 import 'package:king_of_table_tennis/model/user_info_dto.dart';
-import 'package:king_of_table_tennis/screen/received_friend_request_list_screen.dart';
+import 'package:king_of_table_tennis/screen/friend_management_screen.dart';
 import 'package:king_of_table_tennis/util/AppColors.dart';
 import 'package:king_of_table_tennis/util/apiRequest.dart';
 import 'package:king_of_table_tennis/util/toastMessage.dart';
@@ -44,6 +45,7 @@ class _ChattingFriendListScreenState extends State<ChattingFriendListScreen> {
 
   List<UserInfoDTO> searchUsers = [];
   
+
   int friendUserPage = 0;
   int friendUserPageSize = 20;
   int friendUserTotalPages = 0;
@@ -53,11 +55,14 @@ class _ChattingFriendListScreenState extends State<ChattingFriendListScreen> {
 
   int receivedFriendRequestCount = 0;
 
+  int blockUserCount = 0;
+
   @override
   void initState() {
     super.initState();
 
     handleGetFriendRequestCountByFriendStatus(FriendStatus.RECEIVED);
+    handleGetBlockedFriendCount();
     handleGetMyFriend(friendUserPage, friendUserPageSize);
   }
 
@@ -124,6 +129,22 @@ class _ChattingFriendListScreenState extends State<ChattingFriendListScreen> {
     }
   }
 
+  void handleGetBlockedFriendCount() async {
+    final response = await apiRequest(() => getBlockedFriendCount(), context);
+
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
+      final countResponse = CountResponse.fromJson(data);
+
+      setState(() {
+        blockUserCount = countResponse.count;
+      });
+      
+    } else {
+      log("차단한 친구 수 가져오기 실패");
+    }
+  }
+
   void handleResponseFriendRequest(String targetUserId, FriendRequestAnswerType friendRequestAnswerType) async {
     final response = await apiRequest(() => responseFriendRequest(targetUserId, friendRequestAnswerType), context);
 
@@ -185,7 +206,7 @@ class _ChattingFriendListScreenState extends State<ChattingFriendListScreen> {
   }
 
   void handleGetMyFriend(int page, int size) async {
-    final response = await apiRequest(() => getMyFriend(page, size), context);
+    final response = await apiRequest(() => getMyFriend(page, size, false), context);
 
     if (response.statusCode == 200) {
       final data = json.decode(response.body);
@@ -195,7 +216,6 @@ class _ChattingFriendListScreenState extends State<ChattingFriendListScreen> {
       );
 
       final int totalPages = pageResponse.totalPages;
-      print(pageResponse.totalElements);
 
       if (pageResponse.content.isEmpty && totalPages > 0 && page >= totalPages) {
         final int lastPage = totalPages - 1;
@@ -234,6 +254,19 @@ class _ChattingFriendListScreenState extends State<ChattingFriendListScreen> {
     }
 
     handleGetMyFriend(friendUserPage, friendUserPageSize);
+  }
+
+  void handleBlockUser(UserInfoDTO user) async {
+    final response = await apiRequest(() => blockUser(user.id), context);
+
+    if (response.statusCode == 204) {
+      ToastMessage.show("${user.nickName}이(가) 차단되었습니다.");
+    } else {
+      ToastMessage.show("${user.nickName}이(가) 차단되지 않았습니다.");
+    }
+
+    handleGetMyFriend(friendUserPage, friendUserPageSize);
+    handleGetBlockedFriendCount();
   }
 
   Widget buildButton(FriendStatus friendStatus, String receiverId) {
@@ -502,7 +535,6 @@ class _ChattingFriendListScreenState extends State<ChattingFriendListScreen> {
                       child: IconButton(
                         onPressed: () {
                           FocusScope.of(context).unfocus();
-                          print(searchKeywordController.text);
                           setState(() {
                             searchUserPage = 0;
                           });
@@ -522,9 +554,11 @@ class _ChattingFriendListScreenState extends State<ChattingFriendListScreen> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => ReceivedFriendRequestListScreen(
+                      builder: (context) => FriendManagementScreen(
                         refreshRequestCount: () {
                           handleGetFriendRequestCountByFriendStatus(FriendStatus.RECEIVED);
+                          handleGetBlockedFriendCount();
+                          handleGetMyFriend(friendUserPage, friendUserPageSize);
                         }
                       )
                     )
@@ -534,16 +568,36 @@ class _ChattingFriendListScreenState extends State<ChattingFriendListScreen> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      "받은 요청",
+                      "친구 관리",
                       style: TextStyle(
                         fontSize: 16
                       ),
                     ),
                     Row(
                       children: [
-                        Text(
-                          receivedFriendRequestCount.toString()
-                        ),
+                        if (receivedFriendRequestCount > 0)
+                          Row(
+                            children: [
+                              Icon(
+                                Icons.person_add
+                              ),
+                              Text(
+                                receivedFriendRequestCount.toString()
+                              ),
+                            ],
+                          ),
+                        if (blockUserCount > 0)
+                          Row(
+                            children: [
+                              SizedBox(width: 10),
+                              Icon(
+                                Icons.block
+                              ),
+                              Text(
+                                blockUserCount.toString()
+                              ),
+                            ],
+                          ),
                         Padding(
                           padding: const EdgeInsets.all(8),
                           child: Icon(
@@ -705,7 +759,7 @@ class _ChattingFriendListScreenState extends State<ChattingFriendListScreen> {
                                             children: [
                                               SlidableAction(
                                                 onPressed: (context) {
-                                                  print("차단하기");
+                                                  handleBlockUser(user);
                                                 },
                                                 backgroundColor: Colors.orange,
                                                 icon: Icons.block,

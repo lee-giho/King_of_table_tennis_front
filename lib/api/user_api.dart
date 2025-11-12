@@ -216,6 +216,24 @@ Future<http.Response> getFriendRequestCountByFriendStatus(FriendStatus friendSta
   return response;
 }
 
+Future<http.Response> getBlockedFriendCount() async {
+  String? accessToken = await SecureStorage.getAccessToken();
+
+  // .env에서 서버 URL 가져오기
+  final apiAddress = Uri.parse("${dotenv.get("API_ADDRESS")}/api/user/me/friends/blocked/count");
+  final headers = {
+    'Authorization': 'Bearer ${accessToken}',
+    'Content-Type': 'application/json'
+  };
+
+  final response = await http.get(
+    apiAddress,
+    headers: headers
+  );
+
+  return response;
+}
+
 Future<http.Response> getReceivedFriendRequests(int page, int size) async {
   String? accessToken = await SecureStorage.getAccessToken();
 
@@ -234,11 +252,11 @@ Future<http.Response> getReceivedFriendRequests(int page, int size) async {
   return response;
 }
 
-Future<http.Response> getMyFriend(int page, int size) async {
+Future<http.Response> getMyFriend(int page, int size, bool isBlocked) async {
   String? accessToken = await SecureStorage.getAccessToken();
 
   // .env에서 서버 URL 가져오기
-  final apiAddress = Uri.parse("${dotenv.get("API_ADDRESS")}/api/user/me/friends?page=$page&size=$size");
+  final apiAddress = Uri.parse("${dotenv.get("API_ADDRESS")}/api/user/me/friends?page=$page&size=$size&isBlocked=$isBlocked");
   final headers = {
     'Authorization': 'Bearer ${accessToken}',
     'Content-Type': 'application/json'
