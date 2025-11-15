@@ -3,6 +3,7 @@ import 'dart:developer';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
+import 'package:king_of_table_tennis/api/chat_room_api.dart';
 import 'package:king_of_table_tennis/api/friend_api.dart';
 import 'package:king_of_table_tennis/api/user_api.dart';
 import 'package:king_of_table_tennis/api/user_block_api.dart';
@@ -13,6 +14,7 @@ import 'package:king_of_table_tennis/model/count_response.dart';
 import 'package:king_of_table_tennis/model/friend_request.dart';
 import 'package:king_of_table_tennis/model/page_response.dart';
 import 'package:king_of_table_tennis/model/user_info_dto.dart';
+import 'package:king_of_table_tennis/screen/chat_screen.dart';
 import 'package:king_of_table_tennis/screen/friend_management_screen.dart';
 import 'package:king_of_table_tennis/util/AppColors.dart';
 import 'package:king_of_table_tennis/util/apiRequest.dart';
@@ -245,6 +247,22 @@ class _ChattingFriendListScreenState extends State<ChattingFriendListScreen> {
       });
     } else {
       log("친구 조회 실패");
+    }
+  }
+
+  void handleCreateOrGetChatRoom(String targetUserId) async {
+    final response = await apiRequest(() => createOrGetChatRoom(targetUserId), context);
+
+    if (response.statusCode == 200) {
+      ToastMessage.show(response.body);
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => ChatScreen()
+        )
+      );
+    } else {
+      ToastMessage.show("채팅방을 만들거나 찾지 못했습니다.");
     }
   }
 
@@ -752,7 +770,7 @@ class _ChattingFriendListScreenState extends State<ChattingFriendListScreen> {
                                             children: [
                                               SlidableAction(
                                                 onPressed: (context) {
-                                                  print("채팅 시작");
+                                                  handleCreateOrGetChatRoom(user.id);
                                                 },
                                                 backgroundColor: Colors.blue,
                                                 icon: Icons.chat,
