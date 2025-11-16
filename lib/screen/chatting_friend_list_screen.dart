@@ -254,11 +254,15 @@ class _ChattingFriendListScreenState extends State<ChattingFriendListScreen> {
     final response = await apiRequest(() => createOrGetChatRoom(targetUserId), context);
 
     if (response.statusCode == 200) {
-      ToastMessage.show(response.body);
+      final data = json.decode(response.body);
+      String chatRoomId = data["chatRoomId"];
+
       Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (context) => ChatScreen()
+          builder: (context) => ChatScreen(
+            chatRoomId: chatRoomId,            
+          )
         )
       );
     } else {

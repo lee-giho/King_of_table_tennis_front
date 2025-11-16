@@ -1,7 +1,23 @@
+import 'dart:collection';
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:king_of_table_tennis/api/chat_room_api.dart';
+import 'package:king_of_table_tennis/model/chat_message.dart';
+import 'package:king_of_table_tennis/model/chat_room_users_info.dart';
+import 'package:king_of_table_tennis/model/send_message_payload.dart';
+import 'package:king_of_table_tennis/util/apiRequest.dart';
+import 'package:king_of_table_tennis/util/secure_storage.dart';
+import 'package:king_of_table_tennis/util/toastMessage.dart';
+import 'package:stomp_dart_client/stomp_dart_client.dart';
 
 class ChatScreen extends StatefulWidget {
-  const ChatScreen({super.key});
+  final String chatRoomId;
+  const ChatScreen({
+    super.key,
+    required this.chatRoomId
+  });
 
   @override
   State<ChatScreen> createState() => _ChatScreenState();
@@ -14,14 +30,98 @@ class _ChatScreenState extends State<ChatScreen> {
 
   bool sending = false;
 
+  ChatRoomUsersInfo? chatRoomUsersInfo;
+
+  late StompClient stompClient;
+
+  final List<ChatMessage> chatMessages = [];
+
+  @override
+  void initState() {
+    super.initState();
+
+    handleGetChatRoomUsersInfo(widget.chatRoomId)
+    .then((_) {
+      chatConnect();
+    });
+  }
+
+  Future<void> handleGetChatRoomUsersInfo(String chatRoomId) async {
+    final response = await apiRequest(() => getChatRoomUsersInfo(chatRoomId), context);
+
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
+      final users = ChatRoomUsersInfo.fromJson(data);
+
+      setState(() {
+        chatRoomUsersInfo = users;
+      });
+
+    } else {
+      ToastMessage.show("사용자 정보를 가져오는 중 오류가 발생했습니다.");
+      Navigator.pop(context);
+    }
+  }
+
+  void chatConnect() {
+    final wsAddress = dotenv.get("WS_ADDRESS");
+
+    stompClient = StompClient(
+      config: StompConfig(
+        url: "$wsAddress/ws",
+        onConnect: (StompFrame frame) {
+          ToastMessage.show("웹소켓 연결 성공");
+          stompClient.subscribe(
+            destination: "/topic/chat/room/${widget.chatRoomId}",
+            callback: (frame) {
+              final body = frame.body;
+              if (body != null) {
+                final decodedData = json.decode(body);
+                
+                final ChatMessage receivedMsg = ChatMessage.fromJson(decodedData);
+
+                setState(() {
+                  chatMessages.add(receivedMsg);
+                });
+
+                print(receivedMsg.content);
+              }
+            }
+          );
+        },
+        onWebSocketError: (err) {
+          ToastMessage.show("서버와 연결이 불안정합니다.\n다시 시도해주세요");
+        }
+      )
+    );
+
+    stompClient.activate();
+  }
+
+  void handleSendMessage(SendMessagePayload sendMessagePayload) async {
+    String? accessToken = await SecureStorage.getAccessToken();
+
+    stompClient.send(
+      destination: "/app/chat/send",
+      headers: {
+        'Authorization': 'Bearer $accessToken'
+      },
+      body: json.encode(sendMessagePayload.toJson())
+    );
+
+    setState(() {
+      messageController.clear();
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Align(
+        title: Align(
           alignment: Alignment.topLeft,
           child: Text(
-            "닉네임",
+            chatRoomUsersInfo?.friendInfo.nickName ?? "",
             style: TextStyle(
               fontSize: 24,
               fontWeight: FontWeight.bold
@@ -38,6 +138,23 @@ class _ChatScreenState extends State<ChatScreen> {
             child: Container( // 전체화면
               width: double.infinity,
               padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: Column(
+                children: [
+                  Expanded(
+                    child: ListView.builder(
+                      itemCount: chatMessages.length,
+                      itemBuilder: (context, index) {
+                        final message = chatMessages[index];
+                        final isMine = message.senderId == chatRoomUsersInfo?.myInfo.id;
+
+                        return Text(
+                          message.content
+                        );
+                      }
+                    )
+                  )
+                ],
+              ),
           )
         )
       ),
@@ -66,7 +183,12 @@ class _ChatScreenState extends State<ChatScreen> {
                     ? null
                     : (_) async {
                         if (messageController.text.trim().isNotEmpty) {
-                          // 메시지 전송 함수
+                          handleSendMessage(
+                            SendMessagePayload(
+                              roomId: widget.chatRoomId,
+                              content: messageController.text
+                            )
+                          );
                         }
                       },
                 )
@@ -77,7 +199,12 @@ class _ChatScreenState extends State<ChatScreen> {
                   ? null
                   : () async {
                       if (messageController.text.trim().isNotEmpty) {
-                        // 메시지 전송 함수
+                        handleSendMessage(
+                          SendMessagePayload(
+                            roomId: widget.chatRoomId,
+                            content: messageController.text
+                          )
+                        );
                       }
                     },
                 icon: sending

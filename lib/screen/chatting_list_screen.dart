@@ -6,6 +6,7 @@ import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:king_of_table_tennis/api/chat_room_api.dart';
 import 'package:king_of_table_tennis/model/page_response.dart';
 import 'package:king_of_table_tennis/model/pre_chat_room.dart';
+import 'package:king_of_table_tennis/screen/chat_screen.dart';
 import 'package:king_of_table_tennis/util/apiRequest.dart';
 import 'package:king_of_table_tennis/widget/customDivider.dart';
 import 'package:king_of_table_tennis/widget/paginationBar.dart';
@@ -132,14 +133,14 @@ class _ChattingListScreenState extends State<ChattingListScreen> {
                                   key: ValueKey(preChatRoom.id),
                                   endActionPane: ActionPane(
                                     motion: const DrawerMotion(),
-                                    extentRatio: 0.5,
+                                    extentRatio: 0.25,
                                     children: [
                                       SlidableAction(
                                         onPressed: (context) {
                                           print("나가기");
                                         },
                                         backgroundColor: Colors.red,
-                                        icon: Icons.block,
+                                        icon: Icons.output,
                                         label: "나가기",
                                       )
                                     ]
@@ -150,7 +151,14 @@ class _ChattingListScreenState extends State<ChattingListScreen> {
                                       Expanded(
                                         child: InkWell(
                                           onTap: () {
-                                                            
+                                            Navigator.push(
+                                              context,
+                                              MaterialPageRoute(
+                                                builder: (context) => ChatScreen(
+                                                  chatRoomId: preChatRoom.id,
+                                                )
+                                              )
+                                            );
                                           },
                                           borderRadius: BorderRadius.circular(15),
                                           child: PreChatRoomTile(
