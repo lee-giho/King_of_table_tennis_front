@@ -1,10 +1,13 @@
 import 'dart:convert';
+import 'dart:developer';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:king_of_table_tennis/api/chat_message_api.dart';
 import 'package:king_of_table_tennis/api/chat_room_api.dart';
 import 'package:king_of_table_tennis/model/chat_message.dart';
 import 'package:king_of_table_tennis/model/chat_room_users_info.dart';
+import 'package:king_of_table_tennis/model/page_response.dart';
 import 'package:king_of_table_tennis/model/send_message_payload.dart';
 import 'package:king_of_table_tennis/util/AppColors.dart';
 import 'package:king_of_table_tennis/util/apiRequest.dart';
@@ -38,7 +41,15 @@ class _ChatScreenState extends State<ChatScreen> {
   bool isWebSocketReady = false;
   late StompClient stompClient;
 
-  final List<ChatMessage> chatMessages = [];
+  int chatMessagePage = 0;
+  int chatMessagePageSize = 20;
+  int chatMessageTotalPages = 0;
+int count = 0;
+  List<ChatMessage> chatMessages = [];
+
+  final ScrollController scrollController = ScrollController();
+
+  bool isMessageLoading = false;
 
   @override
   void initState() {
@@ -47,13 +58,18 @@ class _ChatScreenState extends State<ChatScreen> {
     handleGetChatRoomUsersInfo(widget.chatRoomId)
     .then((_) {
       chatConnect();
+      handleGetChatMessage(widget.chatRoomId, chatMessagePage, chatMessagePageSize);
     });
+
+    scrollController.addListener(onScroll);
   }
 
   @override
   void dispose() {
     messageController.dispose();
     messageFocus.dispose();
+    scrollController.removeListener(onScroll);
+    scrollController.dispose();
 
     if (stompClient.connected) {
       stompClient.deactivate();
@@ -136,6 +152,83 @@ class _ChatScreenState extends State<ChatScreen> {
     stompClient.activate();
   }
 
+  Future<void> handleGetChatMessage(String roomId, int page, int size) async {
+    final response = await apiRequest(() => getMessages(roomId, page, size), context);
+
+    if (response.statusCode == 200) {
+      print(++count);
+      final data = json.decode(response.body);
+      final pageResponse = PageResponse<ChatMessage>.fromJson(
+        data,
+        (json) => ChatMessage.fromJson(json)
+      );
+
+      final int totalPages = pageResponse.totalPages;
+
+      if (pageResponse.content.isEmpty && totalPages > 0 && page >= totalPages) {
+        final int lastPage = totalPages - 1;
+        if (lastPage != page) {
+          if (!mounted) return;
+          setState(() {
+            chatMessagePage = lastPage;
+            chatMessages = [];
+            chatMessageTotalPages = pageResponse.totalPages;
+          });
+          await handleGetChatMessage(roomId, lastPage, size);
+          return;
+        }
+      }
+
+      if (!mounted) return;
+      setState(() {
+        if (page == 0) {
+          // 처음은 그대로
+          chatMessages = pageResponse.content;
+        } else {
+          // 이후에는 앞에 끼워 넣기
+          chatMessages.insertAll(0, pageResponse.content);
+        }
+        chatMessageTotalPages = totalPages;
+        chatMessagePage = page;
+      });
+    } else {
+      log("채팅 메시지 가져오기 실패");
+    }
+  }
+
+  void handleGetOlderMessages() async {
+    if (isMessageLoading) return;
+    if (chatMessagePage + 1 >= chatMessageTotalPages) return;
+
+    setState(() {
+      isMessageLoading = true;
+    });
+
+    final nextPage = chatMessagePage + 1;
+
+    await handleGetChatMessage(widget.chatRoomId, nextPage, chatMessagePageSize);
+
+    if (!mounted) return;
+    setState(() {
+      isMessageLoading = false;
+    });
+  }
+
+  void onScroll() {
+    if (!scrollController.hasClients) return;
+
+    final position = scrollController.position;
+
+    const double threshold = 100.0;
+
+    if (!isMessageLoading &&
+      chatMessagePage + 1 < chatMessageTotalPages &&
+      position.pixels >= position.maxScrollExtent - threshold
+    ) {
+      handleGetOlderMessages();
+    }
+  }
+
   void handleSendMessage(SendMessagePayload sendMessagePayload) async {
     String? accessToken = await SecureStorage.getAccessToken();
 
@@ -186,9 +279,11 @@ class _ChatScreenState extends State<ChatScreen> {
                     children: [
                       Expanded(
                         child: ListView.builder(
+                          controller: scrollController,
+                          reverse: true,
                           itemCount: chatMessages.length,
                           itemBuilder: (context, index) {
-                            final message = chatMessages[index];
+                            final message = chatMessages[chatMessages.length - 1 - index];
                             final isMine = message.senderId == chatRoomUsersInfo?.myInfo.id;
 
                             // 프로필 표시 여부 계산 - 앞 메시지와 비교해 첫 번째인지 판단
