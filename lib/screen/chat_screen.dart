@@ -8,6 +8,8 @@ import 'package:king_of_table_tennis/api/chat_room_api.dart';
 import 'package:king_of_table_tennis/model/chat_message.dart';
 import 'package:king_of_table_tennis/model/chat_room_users_info.dart';
 import 'package:king_of_table_tennis/model/page_response.dart';
+import 'package:king_of_table_tennis/model/read_message_event.dart';
+import 'package:king_of_table_tennis/model/read_message_payload.dart';
 import 'package:king_of_table_tennis/model/send_message_payload.dart';
 import 'package:king_of_table_tennis/util/AppColors.dart';
 import 'package:king_of_table_tennis/util/apiRequest.dart';
@@ -44,12 +46,14 @@ class _ChatScreenState extends State<ChatScreen> {
   int chatMessagePage = 0;
   int chatMessagePageSize = 20;
   int chatMessageTotalPages = 0;
-int count = 0;
+
   List<ChatMessage> chatMessages = [];
 
   final ScrollController scrollController = ScrollController();
 
   bool isMessageLoading = false;
+
+  int? myLastSentReadMessageId;
 
   @override
   void initState() {
@@ -121,6 +125,7 @@ int count = 0;
       config: StompConfig(
         url: "$wsAddress/ws",
         onConnect: (StompFrame frame) {
+          
           stompClient.subscribe(
             destination: "/topic/chat/room/${widget.chatRoomId}",
             callback: (frame) {
@@ -128,13 +133,54 @@ int count = 0;
               if (body != null) {
                 final decodedData = json.decode(body);
                 
-                final ChatMessage receivedMsg = ChatMessage.fromJson(decodedData);
+                ChatMessage receivedMsg = ChatMessage.fromJson(decodedData);
+
+                final myId = chatRoomUsersInfo?.myInfo.id;
+
+                if (myId != null && receivedMsg.senderId == myId) {
+                  if (receivedMsg.unreadCount == 0) {
+                    receivedMsg = receivedMsg.copywith(unreadCount: 1);
+                  }
+                }
 
                 setState(() {
                   chatMessages.add(receivedMsg);
                 });
 
-                print(receivedMsg.content);
+                if (myId != null && receivedMsg.senderId != myId) {
+                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                    sendReadReceiptIfNeeded();
+                  });
+                }
+              }
+            }
+          );
+
+          stompClient.subscribe(
+            destination: "/topic/chat/read/${widget.chatRoomId}",
+            callback: (frame) {
+              final body = frame.body;
+              if (body != null) {
+                final decodedData = json.decode(body);
+                final ReadMessageEvent readMessageEvent = ReadMessageEvent.fromJson(decodedData);
+
+                final myId = chatRoomUsersInfo?.myInfo.id;
+                if (myId == null) return;
+
+                if (readMessageEvent.readerId != myId &&
+                    readMessageEvent.lastReadMessageId != null
+                ) {
+                  final lastId = readMessageEvent.lastReadMessageId!;
+
+                  setState(() {
+                    chatMessages = chatMessages.map((m) {
+                      if (m.senderId == myId && m.id <= lastId) {
+                        return m.copywith(unreadCount: 0);
+                      }
+                      return m;
+                    }).toList();
+                  });  
+                }
               }
             }
           );
@@ -156,7 +202,7 @@ int count = 0;
     final response = await apiRequest(() => getMessages(roomId, page, size), context);
 
     if (response.statusCode == 200) {
-      print(++count);
+      
       final data = json.decode(response.body);
       final pageResponse = PageResponse<ChatMessage>.fromJson(
         data,
@@ -190,6 +236,10 @@ int count = 0;
         }
         chatMessageTotalPages = totalPages;
         chatMessagePage = page;
+      });
+
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        sendReadReceiptIfNeeded();
       });
     } else {
       log("채팅 메시지 가져오기 실패");
@@ -245,6 +295,45 @@ int count = 0;
     });
   }
 
+  void sendReadReceiptIfNeeded() async {
+    if (!stompClient.connected) return;
+    if (chatRoomUsersInfo == null) return;
+    if (chatMessages.isEmpty) return;
+
+    final myId = chatRoomUsersInfo?.myInfo.id;
+
+    int? maxFromFriendId;
+    for (final m in chatMessages) {
+      if (m.senderId != myId) {
+        if (maxFromFriendId == null || m.id > maxFromFriendId) {
+          maxFromFriendId = m.id;
+        }
+      }
+    }
+
+    if (maxFromFriendId == null) return;
+
+    // 이미 해당 ID까지 보냈으면 다시 안 보냄
+    if (myLastSentReadMessageId != null && maxFromFriendId <= myLastSentReadMessageId!) return;
+
+    myLastSentReadMessageId = maxFromFriendId;
+
+    final ReadMessagePayload readMessagePayload = new ReadMessagePayload(
+      roomId: widget.chatRoomId,
+      lastReadMessageId: maxFromFriendId
+    );
+
+    String? accessToken = await SecureStorage.getAccessToken();
+
+    stompClient.send(
+      destination: "/app/chat/read",
+      headers: {
+        'Authorization': 'Bearer $accessToken'
+      },
+      body: json.encode(readMessagePayload.toJson())
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -283,17 +372,18 @@ int count = 0;
                           reverse: true,
                           itemCount: chatMessages.length,
                           itemBuilder: (context, index) {
-                            final message = chatMessages[chatMessages.length - 1 - index];
+                            final int currentIdx = chatMessages.length - 1- index;
+                            final message = chatMessages[currentIdx];
                             final isMine = message.senderId == chatRoomUsersInfo?.myInfo.id;
 
                             // 프로필 표시 여부 계산 - 앞 메시지와 비교해 첫 번째인지 판단
                             bool showProfile = false;
                             if (!isMine) {
-                              if (index == 0) {
+                              if (currentIdx == 0) {
                                 // 첫 번째는 무조건 true
                                 showProfile = true;
                               } else {
-                                final prev = chatMessages[index - 1];
+                                final prev = chatMessages[currentIdx - 1];
                                 final prevIsMine = prev.senderId == chatRoomUsersInfo?.myInfo.id;
 
                                 if (!prevIsMine && 
@@ -310,11 +400,11 @@ int count = 0;
 
                             // 시간 표시 여부 계산 - 앞 메시지와 비교해서 마지막인지 판단
                             bool showTime = false;
-                            if (index == chatMessages.length - 1) {
+                            if (currentIdx == chatMessages.length - 1) {
                               // 마지막은 무조건 true
                               showTime = true;
                             } else {
-                              final next = chatMessages[index + 1];
+                              final next = chatMessages[currentIdx + 1];
                               final nextIsSameUser = next.senderId == message.senderId;
                               final nextIsSameTime = isSameTime(next.sentAt, message.sentAt);
                               if (!nextIsSameUser || !nextIsSameTime) {
@@ -359,6 +449,7 @@ int count = 0;
                                         chatMessage: message,
                                         isMine: isMine,
                                         showTime: showTime,
+                                        unreadCount: message.unreadCount,
                                       ),
                                     ],
                                   ),

@@ -6,11 +6,14 @@ class ChatMessageBox extends StatefulWidget {
   final ChatMessage chatMessage;
   final bool isMine;
   final bool showTime;
+  final int unreadCount;
+
   const ChatMessageBox({
     super.key,
     required this.chatMessage,
     required this.isMine,
-    required this.showTime
+    required this.showTime,
+    this.unreadCount = 0
   });
 
   @override
@@ -20,13 +23,10 @@ class ChatMessageBox extends StatefulWidget {
 class _ChatMessageBoxState extends State<ChatMessageBox> {
 
   Widget buildTimeText() {
-    return Padding(
-      padding: const EdgeInsets.all(4),
-      child: Text(
-        formatSimpleDateTime(widget.chatMessage.sentAt),
-        style: TextStyle(
-          fontSize: 10
-        )
+    return Text(
+      formatSimpleDateTime(widget.chatMessage.sentAt),
+      style: TextStyle(
+        fontSize: 10
       )
     );
   }
@@ -37,8 +37,27 @@ class _ChatMessageBoxState extends State<ChatMessageBox> {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.end,
       children: [
-        if (widget.isMine && widget.showTime)
-          buildTimeText(),
+        
+        Padding(
+          padding: const EdgeInsets.only(right: 4),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              if (widget.isMine && widget.unreadCount != 0)
+                Padding(
+                  padding: const EdgeInsets.only(left: 4, right: 2),
+                  child: Text(
+                    widget.unreadCount.toString(),
+                    style: TextStyle(
+                      fontSize: 11
+                    ),
+                  ),
+                ),
+              if (widget.isMine && widget.showTime)
+                buildTimeText(),
+            ]
+          ),
+        ),
         ConstrainedBox(
           constraints: BoxConstraints(
             maxWidth: maxBubbleWidth
@@ -63,7 +82,10 @@ class _ChatMessageBoxState extends State<ChatMessageBox> {
           ),
         ),
         if (!widget.isMine && widget.showTime)
-          buildTimeText()
+          Padding(
+            padding: const EdgeInsets.only(left: 4),
+            child: buildTimeText(),
+          )
       ]
     );
   }
