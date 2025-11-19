@@ -2,15 +2,19 @@ import 'dart:convert';
 import 'dart:developer';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:king_of_table_tennis/api/chat_room_api.dart';
 import 'package:king_of_table_tennis/model/page_response.dart';
 import 'package:king_of_table_tennis/model/pre_chat_room.dart';
 import 'package:king_of_table_tennis/screen/chat_screen.dart';
 import 'package:king_of_table_tennis/util/apiRequest.dart';
+import 'package:king_of_table_tennis/util/secure_storage.dart';
+import 'package:king_of_table_tennis/util/toastMessage.dart';
 import 'package:king_of_table_tennis/widget/customDivider.dart';
 import 'package:king_of_table_tennis/widget/paginationBar.dart';
 import 'package:king_of_table_tennis/widget/preChatRoomTile.dart';
+import 'package:stomp_dart_client/stomp_dart_client.dart';
 
 class ChattingListScreen extends StatefulWidget {
   const ChattingListScreen({super.key});
@@ -27,11 +31,63 @@ class _ChattingListScreenState extends State<ChattingListScreen> {
 
   List<PreChatRoom> preChatRooms = [];
 
+  bool isWebSocketReady = false;
+  late StompClient stompClient;
+
   @override
   void initState() {
     super.initState();
 
     handleGetMyPreChatRoom(chatRoomPage, chatRoomPageSize);
+    connectWs();
+  }
+
+  @override
+  void dispose() {
+    if (stompClient.connected) {
+      stompClient.deactivate();
+    }
+
+    super.dispose();
+  }
+
+  void connectWs() async{
+    String? myId = await SecureStorage.getId();
+
+    final wsAddress = dotenv.get("WS_ADDRESS");
+
+    stompClient = StompClient(
+      config: StompConfig(
+        url: "$wsAddress/ws",
+        onConnect: (StompFrame frame) {
+          
+          stompClient.subscribe(
+            destination: "/topic/chat/room/preview/$myId",
+            callback: (frame) {
+              final body = frame.body;
+              if (body != null) {
+                final decodedData = json.decode(body);
+                final PreChatRoom updatedRoom = PreChatRoom.fromJson(decodedData);
+
+                setState(() {
+                  preChatRooms.removeWhere((r) => r.id == updatedRoom.id);
+                  preChatRooms.insert(0, updatedRoom);
+                });
+              }
+            }
+          );
+
+          setState(() {
+            isWebSocketReady = true;
+          });
+        },
+        onWebSocketError: (err) {
+          ToastMessage.show("서버와 연결이 불안정합니다.\n다시 시도해주세요");
+        }
+      )
+    );
+
+    stompClient.activate();
   }
 
   void handleGetMyPreChatRoom(int page, int size) async {
@@ -55,7 +111,7 @@ class _ChattingListScreenState extends State<ChattingListScreen> {
             preChatRooms = [];
             chatRoomTotalPages = pageResponse.totalPages;
           });
-          handleGetMyPreChatRoom(page, size);
+          handleGetMyPreChatRoom(lastPage, size);
           return;
         }
       }

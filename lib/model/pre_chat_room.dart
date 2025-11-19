@@ -10,12 +10,15 @@ class PreChatRoom {
   final String? lastMessage;
   final DateTime? lastSentAt;
 
+  final int unreadCount;
+
   PreChatRoom({
     required this.id,
     required this.friend,
     required this.createdAt,
     this.lastMessage,
-    this.lastSentAt
+    this.lastSentAt,
+    this.unreadCount = 0
   });
 
   factory PreChatRoom.fromJson(Map<String, dynamic> json) {
@@ -28,7 +31,8 @@ class PreChatRoom {
       lastMessage: json['lastMessage'],
       lastSentAt: json['lastSentAt'] != null
         ? DateTime.parse(json['lastSentAt'])
-        : null
+        : null,
+      unreadCount: json['unreadCount'] ?? 0
     );
   }
 }

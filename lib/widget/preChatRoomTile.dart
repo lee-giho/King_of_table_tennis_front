@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:king_of_table_tennis/model/pre_chat_room.dart';
 import 'package:king_of_table_tennis/model/user_info_dto.dart';
+import 'package:king_of_table_tennis/util/AppColors.dart';
+import 'package:king_of_table_tennis/util/intl.dart';
+import 'package:king_of_table_tennis/widget/profileImageCircle.dart';
 
-class PreChatRoomTile extends StatefulWidget {
+class PreChatRoomTile extends StatelessWidget {
   final PreChatRoom preChatRoom;
   final double profileImageSize;
   final double fontSize;
+
   const PreChatRoomTile({
     super.key,
     required this.preChatRoom,
@@ -14,15 +17,35 @@ class PreChatRoomTile extends StatefulWidget {
     this.fontSize = 16
   });
 
-  @override
-  State<PreChatRoomTile> createState() => _PreChatRoomTileState();
-}
+  String formatChatListTime(DateTime dt) {
+    final now = DateTime.now();
 
-class _PreChatRoomTileState extends State<PreChatRoomTile> {
+    final today = DateTime(now.year, now.month, now.day);
+    final targetDate = DateTime(dt.year, dt.month, dt.day);
+
+    final difference = today.difference(targetDate).inDays;
+
+    if (difference == 0) {
+      return formatSimpleDateTime(dt);
+    } else if (difference == 1) {
+      return "어제";
+    } else {
+      final year = dt.year;
+      final month = dt.month.toString().padLeft(2, '0');
+      final day = dt.day.toString().padLeft(2, '0');
+
+      if (year == now.year) {
+        return "$month월 $day일";
+      } else {
+        return "$year. $month. $day.";
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
 
-    final UserInfoDTO friend = widget.preChatRoom.friend;
+    final UserInfoDTO friend = preChatRoom.friend;
 
     return Container(
       padding: const EdgeInsets.all(8),
@@ -31,30 +54,9 @@ class _PreChatRoomTileState extends State<PreChatRoomTile> {
       ),
       child: Row(
         children: [
-          ClipOval( // 프로필 사진
-            child: friend.profileImage == "default"
-              ? Container(
-                  width: widget.profileImageSize,
-                  height: widget.profileImageSize,
-                  decoration: BoxDecoration(
-                    border: Border.all(
-                      width: 1
-                    ),
-                    shape: BoxShape.circle
-                  ),
-                  child: Icon(
-                      Icons.person,
-                      size: widget.profileImageSize * 0.73
-                    ),
-              )
-              : Image(
-                  width: widget.profileImageSize,
-                  height: widget.profileImageSize,
-                  fit: BoxFit.cover,
-                  image: NetworkImage(
-                    "${dotenv.env["API_ADDRESS"]}/image/profile/${friend.profileImage}"
-                  )
-                )
+          ProfileImageCircle(
+            userInfoDTO: friend,
+            profileImageSize: profileImageSize,
           ),
           SizedBox(width: 15),
           Expanded(
@@ -62,23 +64,59 @@ class _PreChatRoomTileState extends State<PreChatRoomTile> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  friend.nickName,
-                  style: TextStyle(
-                    fontSize: widget.fontSize,
-                    fontWeight: FontWeight.bold
-                  ),
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        friend.nickName,
+                        style: TextStyle(
+                          fontSize: fontSize,
+                          fontWeight: FontWeight.bold
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    if (preChatRoom.lastSentAt != null)
+                      Text(
+                        formatChatListTime(preChatRoom.lastSentAt!),
+                        style: TextStyle(
+                          fontSize: 11
+                        ),
+                      )
+                  ],
                 ),
-                Text(
-                  widget.preChatRoom.lastMessage ?? "",
-                  overflow: TextOverflow.ellipsis,
-                  maxLines: 1,
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        preChatRoom.lastMessage ?? "",
+                        overflow: TextOverflow.ellipsis,
+                        maxLines: 1,
+                      ),
+                    ),
+                    if (preChatRoom.unreadCount > 0)
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: AppColors.racketRed,
+                          borderRadius: BorderRadius.circular(99)
+                        ),
+                        child: Text(
+                          preChatRoom.unreadCount.toString(),
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 11,
+                            fontWeight: FontWeight.bold
+                          ),
+                        ),
+                      )
+                  ],
                 )
               ],
             )
           )
-        ],
-      ),
+        ]
+      )
     );
   }
 }
