@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:king_of_table_tennis/screen/change_myInfo_screen.dart';
-import 'package:king_of_table_tennis/screen/my_post_info_screen.dart';
 import 'package:king_of_table_tennis/screen/my_review_info_screen.dart';
 import 'package:king_of_table_tennis/screen/my_tableTennis_info_screen.dart';
 import 'package:king_of_table_tennis/screen/post_and_comment_screen.dart';

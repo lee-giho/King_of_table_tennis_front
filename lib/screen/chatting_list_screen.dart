@@ -70,8 +70,32 @@ class _ChattingListScreenState extends State<ChattingListScreen> {
                 final PreChatRoom updatedRoom = PreChatRoom.fromJson(decodedData);
 
                 setState(() {
-                  preChatRooms.removeWhere((r) => r.id == updatedRoom.id);
-                  preChatRooms.insert(0, updatedRoom);
+                  final idx = preChatRooms.indexWhere((r) => r.id == updatedRoom.id);
+
+                  // 리스트에 없는 방이면 새로 추가
+                  if (idx == -1) {
+                    preChatRooms.insert(0, updatedRoom);
+                    return;
+                  }
+
+                  final current = preChatRooms[idx];
+
+                  bool isNewMessage = false;
+
+                  if (current.lastSentAt == null && updatedRoom.lastSentAt != null) {
+                    // 처음으로 메시지가 오는 경우
+                    isNewMessage = true;
+                  } else if (current.lastSentAt != null && updatedRoom.lastSentAt != null && updatedRoom.lastSentAt!.isAfter(current.lastSentAt!)) {
+                    // 새 메시지가 오는 경우
+                    isNewMessage = true;
+                  }
+
+                  if (isNewMessage) {
+                    preChatRooms.removeAt(idx);
+                    preChatRooms.insert(0, updatedRoom);
+                  } else {
+                    preChatRooms[idx] = updatedRoom;
+                  }
                 });
               }
             }
@@ -124,6 +148,16 @@ class _ChattingListScreenState extends State<ChattingListScreen> {
       });
     } else {
       log("채팅방 미리보기 가져오기 실패");
+    }
+  }
+
+  Future<void> handleDeleteChatRoom(String chatRoomId, String friendNickName) async {
+    final response = await apiRequest(() => deleteChatRoom(chatRoomId), context);
+
+    if (response.statusCode == 204) {
+      ToastMessage.show("$friendNickName와(과)의 채팅방이 삭제되었습니다.");
+    } else {
+      ToastMessage.show("채팅방을 삭제하는 중 오류가 발생했습니다.\n다시 시도해주세요.");
     }
   }
 
@@ -193,7 +227,12 @@ class _ChattingListScreenState extends State<ChattingListScreen> {
                                     children: [
                                       SlidableAction(
                                         onPressed: (context) {
-                                          print("나가기");
+                                          handleDeleteChatRoom(
+                                            preChatRoom.id,
+                                            preChatRoom.friend.nickName
+                                          ).then((_) {
+                                            handleGetMyPreChatRoom(chatRoomPage, chatRoomPageSize);
+                                          });
                                         },
                                         backgroundColor: Colors.red,
                                         icon: Icons.output,

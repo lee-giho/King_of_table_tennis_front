@@ -60,3 +60,21 @@ Future<http.Response> getChatRoomUsersInfo(String chatRoomId) async {
 
   return response;
 }
+
+Future<http.Response> deleteChatRoom(String chatRoomId) async {
+  String? accessToken = await SecureStorage.getAccessToken();
+
+  // .env에서 서버 URL 가져오기
+  final apiAddress = Uri.parse("${dotenv.get("API_ADDRESS")}/api/chat/rooms/$chatRoomId");
+  final headers = {
+    'Authorization': 'Bearer ${accessToken}',
+    'Content-Type': 'application/json'
+  };
+
+  final response = await http.delete(
+    apiAddress,
+    headers: headers
+  );
+
+  return response;
+}
