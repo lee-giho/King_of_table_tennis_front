@@ -245,8 +245,8 @@ class _ChattingListScreenState extends State<ChattingListScreen> {
                                     children: [
                                       Expanded(
                                         child: InkWell(
-                                          onTap: () {
-                                            Navigator.push(
+                                          onTap: () async {
+                                            final bool result = await Navigator.push(
                                               context,
                                               MaterialPageRoute(
                                                 builder: (context) => ChatScreen(
@@ -254,6 +254,10 @@ class _ChattingListScreenState extends State<ChattingListScreen> {
                                                 )
                                               )
                                             );
+
+                                            if (result == true) {
+                                              handleGetMyPreChatRoom(chatRoomPage, chatRoomPageSize);
+                                            }
                                           },
                                           borderRadius: BorderRadius.circular(15),
                                           child: PreChatRoomTile(

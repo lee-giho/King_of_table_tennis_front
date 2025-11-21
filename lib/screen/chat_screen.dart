@@ -16,6 +16,7 @@ import 'package:king_of_table_tennis/util/apiRequest.dart';
 import 'package:king_of_table_tennis/util/secure_storage.dart';
 import 'package:king_of_table_tennis/util/toastMessage.dart';
 import 'package:king_of_table_tennis/widget/chatMessageBox.dart';
+import 'package:king_of_table_tennis/widget/customDivider.dart';
 import 'package:king_of_table_tennis/widget/profileImageCircle.dart';
 import 'package:stomp_dart_client/stomp_dart_client.dart';
 
@@ -334,6 +335,16 @@ class _ChatScreenState extends State<ChatScreen> {
     );
   }
 
+  Future<void> handleDeleteChatRoom(String chatRoomId, String friendNickName) async {
+    final response = await apiRequest(() => deleteChatRoom(chatRoomId), context);
+
+    if (response.statusCode == 204) {
+      ToastMessage.show("$friendNickName와(과)의 채팅방이 삭제되었습니다.");
+    } else {
+      ToastMessage.show("채팅방을 삭제하는 중 오류가 발생했습니다.\n다시 시도해주세요.");
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -347,7 +358,74 @@ class _ChatScreenState extends State<ChatScreen> {
               fontWeight: FontWeight.bold
             )
           )
-        )
+        ),
+        actions: [
+          Builder(
+            builder: (context) => IconButton(
+              onPressed: () {
+                Scaffold.of(context).openEndDrawer();
+              },
+              icon: Icon(
+                Icons.menu
+              )
+            )
+          )
+        ],
+      ),
+      endDrawer: SizedBox(
+        width: MediaQuery.of(context).size.width * 0.8,
+        child: Drawer(
+          child: SafeArea(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    if (chatRoomUsersInfo != null) ...[
+                      ListTile(
+                        leading: ProfileImageCircle(
+                          userInfoDTO: chatRoomUsersInfo!.friendInfo,
+                          profileImageSize: 40,
+                        ),
+                        title: Text(
+                          chatRoomUsersInfo!.friendInfo.nickName,
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold
+                          )
+                        ),
+                        subtitle: Text(
+                          chatRoomUsersInfo!.friendInfo.email
+                        )
+                      ),
+                      const CustomDivider()
+                    ]
+                  ]
+                ),
+                ListTile(
+                  leading: const Icon(
+                    Icons.logout
+                  ),
+                  title: const Text(
+                    "채팅방 나가기"
+                  ),
+                  textColor: Colors.red,
+                  iconColor: Colors.red,
+                  onTap: () {
+                    handleDeleteChatRoom(
+                      widget.chatRoomId,
+                      chatRoomUsersInfo!.friendInfo.id
+                    ).then((_) {
+                      Navigator.pop(context);
+                      Navigator.pop(context, true);
+                    });
+                  },
+                )
+              ],
+            )
+          ),
+        ),
       ),
       body: !isUserInfoReady && !isWebSocketReady
         ? Center(

@@ -261,7 +261,7 @@ class _ChattingFriendListScreenState extends State<ChattingFriendListScreen> {
         context,
         MaterialPageRoute(
           builder: (context) => ChatScreen(
-            chatRoomId: chatRoomId,            
+            chatRoomId: chatRoomId,
           )
         )
       );
