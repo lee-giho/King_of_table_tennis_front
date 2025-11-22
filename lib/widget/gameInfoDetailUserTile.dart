@@ -137,7 +137,7 @@ class _GameInfoDetailUserTileState extends State<GameInfoDetailUserTile> {
                       Text(
                         widget.userInfo.id.isEmpty
                           ? ""
-                          : "${(widget.userInfo.winCount + widget.userInfo.defeatCount).toString()}전",
+                          : "${widget.userInfo.totalGames}전",
                         style: TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.bold

@@ -476,7 +476,7 @@ class _ChangeMyInfoScreenState extends State<ChangeMyInfoScreen> {
                               Row(
                                 children: [
                                   Text(
-                                    "${myInfo!.winCount + myInfo!.defeatCount}전",
+                                    "${myInfo!.totalGames}전",
                                     style: TextStyle(
                                       fontSize: 18,
                                       color: Colors.grey[700]

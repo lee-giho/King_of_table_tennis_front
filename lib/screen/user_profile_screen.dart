@@ -283,7 +283,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                                   Row(
                                     children: [
                                       Text(
-                                        "${userInfo!.winCount + userInfo!.defeatCount}전",
+                                        "${userInfo!.totalGames}전",
                                         style: TextStyle(
                                           fontSize: 18,
                                           color: Colors.grey[700]

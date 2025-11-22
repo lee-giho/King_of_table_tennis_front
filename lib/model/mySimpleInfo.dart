@@ -2,6 +2,7 @@ class MySimpleInfo {
   final String nickName;
   final String profileImage;
   final String racketType;
+  final int totalGames;
   final int winCount;
   final int defeatCount;
 
@@ -9,6 +10,7 @@ class MySimpleInfo {
     required this.nickName,
     required this.profileImage,
     required this.racketType,
+    required this.totalGames,
     required this.winCount,
     required this.defeatCount
   });
@@ -18,6 +20,7 @@ class MySimpleInfo {
       nickName: json['nickName'],
       profileImage: json['profileImage'],
       racketType: json['racketType'],
+      totalGames: json['totalGames'],
       winCount: json['winCount'],
       defeatCount: json['defeatCount']
     );
@@ -28,6 +31,7 @@ class MySimpleInfo {
       nickName: '',
       profileImage: '',
       racketType: '',
+      totalGames: 0,
       winCount: 0,
       defeatCount: 0
     );

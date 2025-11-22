@@ -246,7 +246,7 @@ class _ChattingListScreenState extends State<ChattingListScreen> {
                                       Expanded(
                                         child: InkWell(
                                           onTap: () async {
-                                            final bool result = await Navigator.push(
+                                            final result = await Navigator.push(
                                               context,
                                               MaterialPageRoute(
                                                 builder: (context) => ChatScreen(

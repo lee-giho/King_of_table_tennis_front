@@ -234,7 +234,7 @@ class _TableTennisGameInfoDetailScreenState extends State<TableTennisGameInfoDet
             ),
             const Spacer(),
             Text(
-              "${userInfo.winCount + userInfo.defeatCount}전 ${userInfo.winCount}승 ${userInfo.defeatCount}패"
+              "${userInfo.totalGames}전 ${userInfo.winCount}승 ${userInfo.defeatCount}패"
             ),
             SizedBox(width: 15),
             const Icon(

@@ -74,7 +74,7 @@ class _UserInfoInMyPageState extends State<UserInfoInMyPage> {
                         widget.mySimpleInfo.racketType,
                       ),
                       Text(
-                        "${widget.mySimpleInfo.winCount + widget.mySimpleInfo.defeatCount}전 ${widget.mySimpleInfo.winCount}승 ${widget.mySimpleInfo.defeatCount}패"
+                        "${widget.mySimpleInfo.totalGames}전 ${widget.mySimpleInfo.winCount}승 ${widget.mySimpleInfo.defeatCount}패"
                       ),
                     ],
                   )
