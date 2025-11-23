@@ -55,7 +55,7 @@ class PreChatRoomTile extends StatelessWidget {
       child: Row(
         children: [
           ProfileImageCircle(
-            userInfoDTO: friend,
+            profileImage: friend.profileImage,
             profileImageSize: profileImageSize,
           ),
           SizedBox(width: 15),

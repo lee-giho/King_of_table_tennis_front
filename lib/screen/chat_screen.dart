@@ -385,7 +385,7 @@ class _ChatScreenState extends State<ChatScreen> {
                     if (chatRoomUsersInfo != null) ...[
                       ListTile(
                         leading: ProfileImageCircle(
-                          userInfoDTO: chatRoomUsersInfo!.friendInfo,
+                          profileImage: chatRoomUsersInfo!.friendInfo.profileImage,
                           profileImageSize: 40,
                         ),
                         title: Text(
@@ -504,7 +504,7 @@ class _ChatScreenState extends State<ChatScreen> {
                                   if (!isMine) ...[
                                     showProfile
                                       ? ProfileImageCircle(
-                                          userInfoDTO: chatRoomUsersInfo!.friendInfo,
+                                          profileImage: chatRoomUsersInfo!.friendInfo.profileImage,
                                           profileImageSize: 40,
                                         )
                                       : const SizedBox(width: 40),

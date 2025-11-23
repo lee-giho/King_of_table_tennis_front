@@ -1,20 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:king_of_table_tennis/model/user_info_dto.dart';
 
 class ProfileImageCircle extends StatelessWidget {
-  final UserInfoDTO userInfoDTO;
+  final String profileImage;
   final double profileImageSize;
   const ProfileImageCircle({
     super.key,
-    required this.userInfoDTO,
+    required this.profileImage,
     this.profileImageSize = 25
   });
 
   @override
   Widget build(BuildContext context) {
     return ClipOval( // 프로필 사진
-      child: userInfoDTO.profileImage == "default"
+      child: profileImage == "default"
         ? Container(
             width: profileImageSize,
             height: profileImageSize,
@@ -34,7 +33,7 @@ class ProfileImageCircle extends StatelessWidget {
             height: profileImageSize,
             fit: BoxFit.cover,
             image: NetworkImage(
-              "${dotenv.env["API_ADDRESS"]}/image/profile/${userInfoDTO.profileImage}"
+              "${dotenv.env["API_ADDRESS"]}/image/profile/$profileImage"
             )
           )
     );
