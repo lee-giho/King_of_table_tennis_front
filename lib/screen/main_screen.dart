@@ -43,7 +43,7 @@ class _MainScreenState extends State<MainScreen> {
             icon: Icon(
               Icons.history
             ),
-            label: "경기내역"
+            label: "전적"
           ),
           BottomNavigationBarItem(
             icon: Icon(
