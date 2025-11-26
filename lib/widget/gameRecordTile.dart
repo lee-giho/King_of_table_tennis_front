@@ -14,7 +14,6 @@ class GameRecordTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    print(gameRecordInfo.isWin);
     return Container(
       padding: const EdgeInsets.all(8),
       margin: const EdgeInsets.symmetric(vertical: 5),

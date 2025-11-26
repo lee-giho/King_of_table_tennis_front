@@ -99,7 +99,7 @@ class _ChattingFriendListScreenState extends State<ChattingFriendListScreen> {
             searchUsers = [];
             searchUserTotalPages = pageResponse.totalPages;
           });
-          handleSearchUsers(keyword, onlyFriend, page, size);
+          handleSearchUsers(keyword, onlyFriend, lastPage, size);
           return;
         }
       }
