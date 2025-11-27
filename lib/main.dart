@@ -11,7 +11,9 @@ void main() async {
   // 세로 모드를 기본으로 설정
   await SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
-    DeviceOrientation.portraitDown
+    DeviceOrientation.portraitDown,
+    DeviceOrientation.landscapeLeft,
+    DeviceOrientation.landscapeRight
   ]);
 
   runApp(const MyApp());

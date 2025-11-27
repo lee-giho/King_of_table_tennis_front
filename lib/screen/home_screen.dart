@@ -10,13 +10,17 @@ import 'package:king_of_table_tennis/enum/post_type.dart';
 import 'package:king_of_table_tennis/model/game_detail_info_by_page_dto.dart';
 import 'package:king_of_table_tennis/model/page_response.dart';
 import 'package:king_of_table_tennis/model/post.dart';
+import 'package:king_of_table_tennis/model/video_info.dart';
 import 'package:king_of_table_tennis/screen/post_detail_screen.dart';
 import 'package:king_of_table_tennis/screen/post_screen.dart';
 import 'package:king_of_table_tennis/screen/search_table_tennis_court_screen.dart';
 import 'package:king_of_table_tennis/screen/table_tennis_game_info_detail_screen.dart';
+import 'package:king_of_table_tennis/screen/youtube_video_list_screen.dart';
 import 'package:king_of_table_tennis/util/apiRequest.dart';
+import 'package:king_of_table_tennis/widget/customYoutubePlayer.dart';
 import 'package:king_of_table_tennis/widget/gamePreviewTile.dart';
 import 'package:stomp_dart_client/stomp_dart_client.dart';
+import 'package:youtube_explode_dart/youtube_explode_dart.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -46,12 +50,18 @@ class _HomeScreenState extends State<HomeScreen> {
   StompClient? stompClient;
   String? subscribedGameId;
 
+  List<VideoInfo> youtubeVideos = [];
+  bool isYoutubeLoading = false;
+
+  static const String youtubePlaylistId = "PLZLcRTVuQdKlAOAChXLi8dmuvG8wxavIf";
+
   @override
   void initState() {
     super.initState();
 
     handleGetGameDetailInfoByPage(gamePage, gamePageSize);
     handleGetPost(postPage, postPageSize, categories);
+    handleLoadYoutubeVideos();
   }
 
   @override
@@ -167,6 +177,45 @@ class _HomeScreenState extends State<HomeScreen> {
     stompClient!.activate();
   }
 
+  Future<void> handleLoadYoutubeVideos() async {
+    setState(() {
+      isYoutubeLoading = true;
+    });
+
+    final yt = YoutubeExplode();
+    final List<VideoInfo> result = [];
+
+    try {
+      final stream = yt.playlists.getVideos(youtubePlaylistId);
+
+      await for (final video in stream) {
+        result.add(
+          VideoInfo(
+            id: video.id.value,
+            title: video.title
+          )
+        );
+
+        if (result.length == 3) break;
+      }
+
+      if (!mounted) return;
+
+      setState(() {
+        youtubeVideos = result;
+      });
+    } catch (e, s) {
+      log("유튜브 영상 가져오기 실패: $e\n$s");
+    } finally {
+      yt.close();
+      if (mounted) {
+        setState(() {
+          isYoutubeLoading = false;
+        });
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -180,7 +229,6 @@ class _HomeScreenState extends State<HomeScreen> {
             padding: const EdgeInsets.symmetric(horizontal: 20),
             child: Column(
               children: [
-                Center(child: Text("홈 화면")),
                 Row( // 검색바
                   children: [
                     Expanded(
@@ -457,6 +505,78 @@ class _HomeScreenState extends State<HomeScreen> {
                           ).toList()
                         )
                     )
+                  ],
+                ),
+                SizedBox(height: 30),
+                Column( // 유튜브 영상
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        Text(
+                          "관련 영상",
+                          style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold
+                          ),
+                        ),
+                        GestureDetector(
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => YoutubeVideoListScreen(
+                                  youtubePlaylistId: youtubePlaylistId
+                                )
+                              )
+                            );
+                          },
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              Text(
+                                "더보기",
+                                style: TextStyle(
+                                  fontSize: 16
+                                ),
+                              ),
+                              Icon(
+                                Icons.add
+                              ),
+                            ],
+                          ),
+                        )
+                      ],
+                    ),
+                    if (isYoutubeLoading)
+                      Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: const Center(
+                          child: CircularProgressIndicator(),
+                        )
+                      )
+                    else if (youtubeVideos.isEmpty)
+                      const Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: Text(
+                          "불러온 영상이 없습니다."
+                        )
+                      )
+                    else
+                      GridView.count(
+                        crossAxisCount: 3,
+                        crossAxisSpacing: 10,
+                        mainAxisSpacing: 20,
+                        shrinkWrap: true,
+                        physics: NeverScrollableScrollPhysics(),
+                        childAspectRatio: 9/12,
+                        children: youtubeVideos.map((v) {
+                          return CustomYoutubePlayer(
+                            videoInfo: v
+                          );
+                        }).toList()
+                      )
                   ],
                 )
               ],
