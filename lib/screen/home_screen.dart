@@ -335,17 +335,19 @@ class _HomeScreenState extends State<HomeScreen> {
                               color: Colors.transparent,
                               borderRadius: BorderRadius.circular(20),
                               child: InkWell(
-                                onTap: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) => TableTennisGameInfoDetailScreen(
-                                        gameInfoId: gameDetailInfoByPageDTO!.gameInfo.id,
-                                        isMine: gameDetailInfoByPageDTO!.isMine
-                                      )
-                                    )
-                                  );
-                                },
+                                onTap: gameDetailInfoByPageDTO != null
+                                  ? () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) => TableTennisGameInfoDetailScreen(
+                                            gameInfoId: gameDetailInfoByPageDTO!.gameInfo.id,
+                                            isMine: gameDetailInfoByPageDTO!.isMine
+                                          )
+                                        )
+                                      );
+                                    }
+                                  : null,
                                 borderRadius: BorderRadius.circular(20),
                                 child: GamePreviewTile(
                                   gameDetailInfoByPageDTO: gameDetailInfoByPageDTO

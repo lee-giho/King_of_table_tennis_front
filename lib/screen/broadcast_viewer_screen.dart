@@ -45,6 +45,22 @@ class _BroadcastViewerScreenState extends State<BroadcastViewerScreen> {
     _initViewer();
   }
 
+  @override
+  void dispose() {
+    _remoteRenderer.srcObject = null;
+    _remoteRenderer.dispose();
+    _peerConnection?.close();
+    stompClient.deactivate();
+
+    // 세로모드 고정
+    SystemChrome.setPreferredOrientations([
+      DeviceOrientation.portraitUp,
+      DeviceOrientation.portraitDown
+    ]);
+
+    super.dispose();
+  }
+
   Future<void> _initViewer() async {
     viewerId = await SecureStorage.getId();
     await _remoteRenderer.initialize();
@@ -104,8 +120,16 @@ class _BroadcastViewerScreenState extends State<BroadcastViewerScreen> {
           data['sdpMLineIndex']
         );
 
-        if (_peerConnection?.getRemoteDescription() != null) {
-          await _peerConnection!.addCandidate(candidate);
+        final pc = _peerConnection;
+        if (pc == null) {
+          _candidateQueue.add(candidate);
+          return;
+        }
+
+        final remoteDesc = await pc.getRemoteDescription();
+
+        if (remoteDesc != null) {
+          await pc.addCandidate(candidate);
         } else {
           _candidateQueue.add(candidate);
         }
@@ -137,7 +161,7 @@ class _BroadcastViewerScreenState extends State<BroadcastViewerScreen> {
       destination: "/topic/broadcast/score/$roomId",
       callback: (frame) async {
         final data = jsonDecode(frame.body!);
-        
+        print("스코어 변경 $data");
         UpdateScore updateScore = UpdateScore.fromJson(data);
 
         setState(() {
@@ -160,9 +184,6 @@ class _BroadcastViewerScreenState extends State<BroadcastViewerScreen> {
         print("세트 스코어 변경 $data");
 
         setState(() {
-          widget.broadcastRoomInfo.defender.score = 0;
-          widget.broadcastRoomInfo.challenger.score = 0;
-
           if (updateSetScore.side == "defender") {
             widget.broadcastRoomInfo.defender.setScore = updateSetScore.newSetScore;
           } else {
@@ -222,22 +243,6 @@ class _BroadcastViewerScreenState extends State<BroadcastViewerScreen> {
     };
 
     return pc;
-  }
-
-  @override
-  void dispose() {
-    _remoteRenderer.srcObject = null;
-    _remoteRenderer.dispose();
-    _peerConnection?.close();
-    stompClient.deactivate();
-
-    // 세로모드 고정
-    SystemChrome.setPreferredOrientations([
-      DeviceOrientation.portraitUp,
-      DeviceOrientation.portraitDown
-    ]);
-
-    super.dispose();
   }
 
   @override

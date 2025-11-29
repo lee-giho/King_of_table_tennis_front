@@ -6,14 +6,18 @@ import 'package:flutter/services.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
 import 'package:king_of_table_tennis/api/broadcast_api.dart';
+import 'package:king_of_table_tennis/api/game_api.dart';
 import 'package:king_of_table_tennis/enum/game_state.dart';
 import 'package:king_of_table_tennis/model/broadcastRoomInfo.dart';
 import 'package:king_of_table_tennis/model/end_game.dart';
+import 'package:king_of_table_tennis/model/finish_game_request.dart';
+import 'package:king_of_table_tennis/model/set_score_dto.dart';
 import 'package:king_of_table_tennis/model/update_score.dart';
 import 'package:king_of_table_tennis/model/update_set_score.dart';
 import 'package:king_of_table_tennis/util/apiRequest.dart';
 import 'package:king_of_table_tennis/util/checkScore.dart';
 import 'package:king_of_table_tennis/util/secure_storage.dart';
+import 'package:king_of_table_tennis/util/toastMessage.dart';
 import 'package:king_of_table_tennis/widget/scoreBoard.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:stomp_dart_client/stomp_dart_client.dart';
@@ -40,7 +44,9 @@ class _BroadcastShowerScreenState extends State<BroadcastShowerScreen> {
   bool micEnabled = true;
   bool rendererInitialized = false;
 
-    @override
+  List<SetScoreDto> setScoreHistory = [];
+
+  @override
   void initState() {
     super.initState();
 
@@ -151,7 +157,14 @@ class _BroadcastShowerScreenState extends State<BroadcastShowerScreen> {
         );
 
         final pc = _peerConnections[viewerId];
-        if (pc != null && pc.getRemoteDescription != null) {
+        if (pc == null) {
+          _candidateQueue.putIfAbsent(viewerId, () => []).add(candidate);
+          return;
+        }
+
+        final remoteDesc = await pc.getRemoteDescription();
+
+        if (remoteDesc != null) {
           await pc.addCandidate(candidate);
         } else {
           _candidateQueue.putIfAbsent(viewerId, () => []).add(candidate);
@@ -252,16 +265,28 @@ class _BroadcastShowerScreenState extends State<BroadcastShowerScreen> {
       }
   }
 
+  Future<void> handleFinishGame(FinishGameRequest finishGameRequest) async {
+    final response = await apiRequest(() => finishGame(widget.broadcastRoomInfo.gameInfoId, finishGameRequest), context);
+
+    if (response.statusCode == 204) {
+      _deleteBroadcastRoom();
+    } else {
+      log(response.body);
+
+      ToastMessage.show("경기 정보 저장을 실패했습니다.");
+    }
+  }
+
   void updateScore(UpdateScore updateScore) {
     stompClient.send(
-      destination: "/app//broadcast/score/${widget.broadcastRoomInfo.gameInfoId}",
+      destination: "/app/broadcast/score/${widget.broadcastRoomInfo.gameInfoId}",
       body: json.encode(updateScore.toJson())
     );
   }
 
   void updateSetScore(UpdateSetScore updateSetScore) {
     stompClient.send(
-      destination: "/app//broadcast/setScore/${widget.broadcastRoomInfo.gameInfoId}",
+      destination: "/app/broadcast/setScore/${widget.broadcastRoomInfo.gameInfoId}",
       body: json.encode(updateSetScore.toJson())
     );
   }
@@ -298,6 +323,14 @@ class _BroadcastShowerScreenState extends State<BroadcastShowerScreen> {
     
     if (result == "LEFT WIN") {
       setState(() {
+        setScoreHistory.add(
+          SetScoreDto(
+            setNumber: setScoreHistory.length + 1,
+            defenderScore: widget.broadcastRoomInfo.defender.score,
+            challengerScore: widget.broadcastRoomInfo.challenger.score
+          )
+        );
+
         widget.broadcastRoomInfo.defender.score = 0;
         widget.broadcastRoomInfo.challenger.score = 0;
 
@@ -305,6 +338,7 @@ class _BroadcastShowerScreenState extends State<BroadcastShowerScreen> {
           ? widget.broadcastRoomInfo.defender.setScore += 1
           : widget.broadcastRoomInfo.challenger.setScore += 1;
       });
+
       updateSetScore(
         UpdateSetScore(
           side: widget.broadcastRoomInfo.leftIsDefender
@@ -315,6 +349,10 @@ class _BroadcastShowerScreenState extends State<BroadcastShowerScreen> {
             : widget.broadcastRoomInfo.challenger.setScore
         )
       );
+
+      updateScore(UpdateScore(side: "defender", newScore: 0));
+      updateScore(UpdateScore(side: "challenger", newScore: 0));
+
       if (widget.broadcastRoomInfo.defender.setScore < 2 && widget.broadcastRoomInfo.challenger.setScore < 2) {
         sendMessage(
           widget.broadcastRoomInfo.leftIsDefender
@@ -324,6 +362,14 @@ class _BroadcastShowerScreenState extends State<BroadcastShowerScreen> {
       }
     } else if (result == "RIGHT WIN") {
       setState(() {
+        setScoreHistory.add(
+          SetScoreDto(
+            setNumber: setScoreHistory.length + 1,
+            defenderScore: widget.broadcastRoomInfo.defender.score,
+            challengerScore: widget.broadcastRoomInfo.challenger.score
+          )
+        );
+
         widget.broadcastRoomInfo.defender.score = 0;
         widget.broadcastRoomInfo.challenger.score = 0;
 
@@ -331,13 +377,7 @@ class _BroadcastShowerScreenState extends State<BroadcastShowerScreen> {
           ? widget.broadcastRoomInfo.challenger.setScore += 1
           : widget.broadcastRoomInfo.defender.setScore += 1;
       });
-      if (widget.broadcastRoomInfo.defender.setScore < 2 && widget.broadcastRoomInfo.challenger.setScore < 2) {
-        sendMessage(
-          widget.broadcastRoomInfo.leftIsDefender
-            ? "${widget.broadcastRoomInfo.challenger.nickName}님 세트 승리"
-            : "${widget.broadcastRoomInfo.defender.nickName}님 세트 승리"
-        );
-      }
+
       updateSetScore(
         UpdateSetScore(
           side: widget.broadcastRoomInfo.leftIsDefender
@@ -348,6 +388,17 @@ class _BroadcastShowerScreenState extends State<BroadcastShowerScreen> {
             : widget.broadcastRoomInfo.defender.setScore
         )
       );
+
+      updateScore(UpdateScore(side: "defender", newScore: 0));
+      updateScore(UpdateScore(side: "challenger", newScore: 0));
+
+      if (widget.broadcastRoomInfo.defender.setScore < 2 && widget.broadcastRoomInfo.challenger.setScore < 2) {
+        sendMessage(
+          widget.broadcastRoomInfo.leftIsDefender
+            ? "${widget.broadcastRoomInfo.challenger.nickName}님 세트 승리"
+            : "${widget.broadcastRoomInfo.defender.nickName}님 세트 승리"
+        );
+      }
     } else if (result == "DEUCE") {
       sendMessage("듀스!!");
     }
@@ -563,7 +614,13 @@ class _BroadcastShowerScreenState extends State<BroadcastShowerScreen> {
             Center(
               child: ElevatedButton(
                 onPressed: () {
-                  _deleteBroadcastRoom();
+                  handleFinishGame(
+                    FinishGameRequest(
+                      defenderSetScore: widget.broadcastRoomInfo.defender.setScore,
+                      challengerSetScore: widget.broadcastRoomInfo.challenger.setScore,
+                      sets: setScoreHistory
+                    )
+                  );
                 },
                 style: ElevatedButton.styleFrom(
                   minimumSize: const Size(200, 50),
