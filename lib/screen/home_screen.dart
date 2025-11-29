@@ -225,7 +225,7 @@ class _HomeScreenState extends State<HomeScreen> {
           FocusScope.of(context).unfocus();
         },
         child: SafeArea(
-          child: Container( // 전체 화면
+          child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20),
             child: Column(
               children: [
@@ -314,271 +314,279 @@ class _HomeScreenState extends State<HomeScreen> {
                   ],
                 ),
                 SizedBox(height: 30),
-                Row( // 경기 미리보기
-                  children: [
-                    IconButton(
-                      onPressed: gamePage == 0
-                        ? null
-                        : () {
-                            handleGetGameDetailInfoByPage(--gamePage, gamePageSize);
-                          },
-                      icon: Icon(
-                        Icons.arrow_back_ios
-                      )
-                    ),
-                    Expanded(
-                      child: Material(
-                        color: Colors.transparent,
-                        borderRadius: BorderRadius.circular(20),
-                        child: InkWell(
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => TableTennisGameInfoDetailScreen(
-                                  gameInfoId: gameDetailInfoByPageDTO!.gameInfo.id,
-                                  isMine: gameDetailInfoByPageDTO!.isMine
-                                )
-                              )
-                            );
-                          },
-                          borderRadius: BorderRadius.circular(20),
-                          child: GamePreviewTile(
-                            gameDetailInfoByPageDTO: gameDetailInfoByPageDTO
+                Expanded(
+                  child: ListView(
+                    keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+                    children: [
+                      Row( // 경기 미리보기
+                        children: [
+                          IconButton(
+                            onPressed: gamePage == 0
+                              ? null
+                              : () {
+                                  handleGetGameDetailInfoByPage(--gamePage, gamePageSize);
+                                },
+                            icon: Icon(
+                              Icons.arrow_back_ios
+                            )
                           ),
-                        ),
-                      ),
-                    ),
-                    IconButton(
-                      onPressed: gamePage+1 == gameTotalPages
-                        ? null
-                        : () {
-                            handleGetGameDetailInfoByPage(++gamePage, gamePageSize);
-                          },
-                      icon: Icon(
-                        Icons.arrow_forward_ios
-                      )
-                    )
-                  ],
-                ),
-                SizedBox(height: 30),
-                Column( // 게시글
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        Text(
-                          "게시글",
-                          style: TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold
-                          ),
-                        ),
-                        GestureDetector(
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => PostScreen()
-                              )
-                            );
-                          },
-                          child: Row(
-                            crossAxisAlignment: CrossAxisAlignment.center,
-                            children: [
-                              Text(
-                                "더보기",
-                                style: TextStyle(
-                                  fontSize: 16
+                          Expanded(
+                            child: Material(
+                              color: Colors.transparent,
+                              borderRadius: BorderRadius.circular(20),
+                              child: InkWell(
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => TableTennisGameInfoDetailScreen(
+                                        gameInfoId: gameDetailInfoByPageDTO!.gameInfo.id,
+                                        isMine: gameDetailInfoByPageDTO!.isMine
+                                      )
+                                    )
+                                  );
+                                },
+                                borderRadius: BorderRadius.circular(20),
+                                child: GamePreviewTile(
+                                  gameDetailInfoByPageDTO: gameDetailInfoByPageDTO
                                 ),
-                              ),
-                              Icon(
-                                Icons.add
-                              ),
-                            ],
-                          ),
-                        )
-                      ],
-                    ),
-                    Container(
-                      width: double.infinity,
-                      padding: EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        border: Border.all(color: Colors.black),
-                        borderRadius: BorderRadius.circular(15),
-                      ),
-                      child: posts == null
-                        ? const Text(
-                            "등록된 게시글이 없습니다."
-                          )
-                        : Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: posts!.map((p) => InkWell(
-                            onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => PostDetailScreen(
-                                    postId: p.id,
-                                    
-                                  )
-                                )
-                              );
-                            },
-                            child: Padding(
-                              padding: const EdgeInsets.symmetric(vertical: 10),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    p.title,
-                                    style: TextStyle(
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.bold
-                                    ),
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                  Row(
-                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      Row(
-                                        children: [
-                                          ClipOval( // 프로필 사진
-                                            child: p.writer.profileImage == "default"
-                                              ? Container(
-                                                  width: 22,
-                                                  height: 22,
-                                                  decoration: BoxDecoration(
-                                                    border: Border.all(
-                                                      width: 1
-                                                    ),
-                                                    shape: BoxShape.circle
-                                                  ),
-                                                  child: const Icon(
-                                                      Icons.person,
-                                                      size: 16
-                                                    ),
-                                              )
-                                              : Image(
-                                                  width: 22,
-                                                  height: 22,
-                                                  fit: BoxFit.cover,
-                                                  image: NetworkImage(
-                                                    "${dotenv.env["API_ADDRESS"]}/image/profile/${p.writer.profileImage}"
-                                                  )
-                                                )
-                                          ),
-                                          SizedBox(width: 5),
-                                          Text(
-                                            p.writer.nickName,
-                                            style: TextStyle(
-                                              fontSize: 16
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                      Container(
-                                        padding: const EdgeInsets.all(5),
-                                        decoration: BoxDecoration(
-                                          border: Border.all(
-                                            width: 1,
-                                            color: Colors.black
-                                          ),
-                                          borderRadius: BorderRadius.circular(15),
-                                          color: p.category.color
-                                        ),
-                                        child: Text(
-                                          p.category.label,
-                                          style: TextStyle(
-                                            fontSize: 10
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ],
                               ),
                             ),
-                          )
-                          ).toList()
-                        )
-                    )
-                  ],
-                ),
-                SizedBox(height: 30),
-                Column( // 유튜브 영상
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        Text(
-                          "관련 영상",
-                          style: TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold
                           ),
-                        ),
-                        GestureDetector(
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => YoutubeVideoListScreen(
-                                  youtubePlaylistId: youtubePlaylistId
-                                )
-                              )
-                            );
-                          },
-                          child: Row(
+                          IconButton(
+                            onPressed: gamePage+1 == gameTotalPages
+                              ? null
+                              : () {
+                                  handleGetGameDetailInfoByPage(++gamePage, gamePageSize);
+                                },
+                            icon: Icon(
+                              Icons.arrow_forward_ios
+                            )
+                          )
+                        ],
+                      ),
+                      SizedBox(height: 30),
+                      Column( // 게시글
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             crossAxisAlignment: CrossAxisAlignment.center,
                             children: [
                               Text(
-                                "더보기",
+                                "게시글",
                                 style: TextStyle(
-                                  fontSize: 16
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold
                                 ),
                               ),
-                              Icon(
-                                Icons.add
-                              ),
+                              GestureDetector(
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => PostScreen()
+                                    )
+                                  );
+                                },
+                                child: Row(
+                                  crossAxisAlignment: CrossAxisAlignment.center,
+                                  children: [
+                                    Text(
+                                      "더보기",
+                                      style: TextStyle(
+                                        fontSize: 16
+                                      ),
+                                    ),
+                                    Icon(
+                                      Icons.add
+                                    ),
+                                  ],
+                                ),
+                              )
                             ],
                           ),
-                        )
-                      ],
-                    ),
-                    if (isYoutubeLoading)
-                      Padding(
-                        padding: const EdgeInsets.all(16),
-                        child: const Center(
-                          child: CircularProgressIndicator(),
-                        )
+                          Container(
+                            width: double.infinity,
+                            padding: EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              border: Border.all(color: Colors.black),
+                              borderRadius: BorderRadius.circular(15),
+                            ),
+                            child: posts == null
+                              ? const Text(
+                                  "등록된 게시글이 없습니다."
+                                )
+                              : Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: posts!.map((p) => InkWell(
+                                  onTap: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => PostDetailScreen(
+                                          postId: p.id,
+                                          
+                                        )
+                                      )
+                                    );
+                                  },
+                                  child: Padding(
+                                    padding: const EdgeInsets.symmetric(vertical: 10),
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          p.title,
+                                          style: TextStyle(
+                                            fontSize: 18,
+                                            fontWeight: FontWeight.bold
+                                          ),
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                        Row(
+                                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                          children: [
+                                            Row(
+                                              children: [
+                                                ClipOval( // 프로필 사진
+                                                  child: p.writer.profileImage == "default"
+                                                    ? Container(
+                                                        width: 22,
+                                                        height: 22,
+                                                        decoration: BoxDecoration(
+                                                          border: Border.all(
+                                                            width: 1
+                                                          ),
+                                                          shape: BoxShape.circle
+                                                        ),
+                                                        child: const Icon(
+                                                            Icons.person,
+                                                            size: 16
+                                                          ),
+                                                    )
+                                                    : Image(
+                                                        width: 22,
+                                                        height: 22,
+                                                        fit: BoxFit.cover,
+                                                        image: NetworkImage(
+                                                          "${dotenv.env["API_ADDRESS"]}/image/profile/${p.writer.profileImage}"
+                                                        )
+                                                      )
+                                                ),
+                                                SizedBox(width: 5),
+                                                Text(
+                                                  p.writer.nickName,
+                                                  style: TextStyle(
+                                                    fontSize: 16
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                            Container(
+                                              padding: const EdgeInsets.all(5),
+                                              decoration: BoxDecoration(
+                                                border: Border.all(
+                                                  width: 1,
+                                                  color: Colors.black
+                                                ),
+                                                borderRadius: BorderRadius.circular(15),
+                                                color: p.category.color
+                                              ),
+                                              child: Text(
+                                                p.category.label,
+                                                style: TextStyle(
+                                                  fontSize: 10
+                                                ),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                )
+                                ).toList()
+                              )
+                          )
+                        ],
+                      ),
+                      SizedBox(height: 30),
+                      Column( // 유튜브 영상
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              Text(
+                                "관련 영상",
+                                style: TextStyle(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold
+                                ),
+                              ),
+                              GestureDetector(
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => YoutubeVideoListScreen(
+                                        youtubePlaylistId: youtubePlaylistId
+                                      )
+                                    )
+                                  );
+                                },
+                                child: Row(
+                                  crossAxisAlignment: CrossAxisAlignment.center,
+                                  children: [
+                                    Text(
+                                      "더보기",
+                                      style: TextStyle(
+                                        fontSize: 16
+                                      ),
+                                    ),
+                                    Icon(
+                                      Icons.add
+                                    ),
+                                  ],
+                                ),
+                              )
+                            ],
+                          ),
+                          if (isYoutubeLoading)
+                            Padding(
+                              padding: const EdgeInsets.all(16),
+                              child: const Center(
+                                child: CircularProgressIndicator(),
+                              )
+                            )
+                          else if (youtubeVideos.isEmpty)
+                            const Padding(
+                              padding: const EdgeInsets.all(16),
+                              child: Text(
+                                "불러온 영상이 없습니다."
+                              )
+                            )
+                          else
+                            GridView.count(
+                              crossAxisCount: 3,
+                              crossAxisSpacing: 10,
+                              mainAxisSpacing: 20,
+                              shrinkWrap: true,
+                              physics: NeverScrollableScrollPhysics(),
+                              childAspectRatio: 9/12,
+                              children: youtubeVideos.map((v) {
+                                return CustomYoutubePlayer(
+                                  videoInfo: v,
+                                  enableExpand: false,
+                                );
+                              }).toList()
+                            )
+                        ],
                       )
-                    else if (youtubeVideos.isEmpty)
-                      const Padding(
-                        padding: const EdgeInsets.all(16),
-                        child: Text(
-                          "불러온 영상이 없습니다."
-                        )
-                      )
-                    else
-                      GridView.count(
-                        crossAxisCount: 3,
-                        crossAxisSpacing: 10,
-                        mainAxisSpacing: 20,
-                        shrinkWrap: true,
-                        physics: NeverScrollableScrollPhysics(),
-                        childAspectRatio: 9/12,
-                        children: youtubeVideos.map((v) {
-                          return CustomYoutubePlayer(
-                            videoInfo: v
-                          );
-                        }).toList()
-                      )
-                  ],
-                )
+                    ],
+                  ),
+                ),
               ],
             ),
           )

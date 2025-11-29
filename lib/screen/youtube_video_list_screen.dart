@@ -3,6 +3,7 @@ import 'dart:developer';
 
 import 'package:flutter/material.dart';
 import 'package:king_of_table_tennis/model/video_info.dart';
+import 'package:king_of_table_tennis/widget/customDivider.dart';
 import 'package:king_of_table_tennis/widget/customYoutubePlayer.dart';
 import 'package:youtube_explode_dart/youtube_explode_dart.dart';
 
@@ -124,8 +125,13 @@ class _YoutubeVideoListScreenState extends State<YoutubeVideoListScreen> {
         final video = videos[index];
         return Padding(
           padding: const EdgeInsets.only(bottom: 16),
-          child: CustomYoutubePlayer(
-            videoInfo: video
+          child: Column(
+            children: [
+              CustomYoutubePlayer(
+                videoInfo: video
+              ),
+              CustomDivider()
+            ],
           ),
         );
       }

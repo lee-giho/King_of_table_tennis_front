@@ -6,10 +6,12 @@ import 'package:youtube_player_flutter/youtube_player_flutter.dart';
 
 class CustomYoutubePlayer extends StatefulWidget {
   final VideoInfo videoInfo;
+  final bool enableExpand;
 
   const CustomYoutubePlayer({
     super.key,
-    required this.videoInfo
+    required this.videoInfo,
+    this.enableExpand = true
   });
 
   @override
@@ -95,13 +97,22 @@ class _CustomYoutubePlayerState extends State<CustomYoutubePlayer> {
         const SizedBox(height: 10),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 8),
-          child: ExpandableTitle(
-            text: widget.videoInfo.title,
-            style: const TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold
-            ),
-          )
+          child: widget.enableExpand
+            ? ExpandableTitle(
+                text: widget.videoInfo.title,
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold
+                ),
+              )
+            : Text(
+                widget.videoInfo.title,
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  overflow: TextOverflow.ellipsis
+                ),
+              )
         )
       ],
     );

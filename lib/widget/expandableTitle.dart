@@ -4,12 +4,14 @@ class ExpandableTitle extends StatefulWidget {
   final String text;
   final int trimLines;
   final TextStyle? style;
+  final bool enableExpand;
 
   const ExpandableTitle({
     Key? key,
     required this.text,
     this.trimLines = 1,
     this.style,
+    this.enableExpand = true
   }) : super(key: key);
 
   @override
@@ -39,7 +41,7 @@ class _ExpandableTitleState extends State<ExpandableTitle>
         shouldTrim = textPainter.didExceedMaxLines;
 
         return GestureDetector(
-          onTap: shouldTrim
+          onTap: (shouldTrim && widget.enableExpand)
           ? () {
               setState(() {
                 isExpanded = !isExpanded;
