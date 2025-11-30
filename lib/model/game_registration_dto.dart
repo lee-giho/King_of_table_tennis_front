@@ -1,4 +1,5 @@
 class GameRegistrationDTO {
+  final String title;
   final int gameSet;
   final int gameScore;
   final String place;
@@ -6,6 +7,7 @@ class GameRegistrationDTO {
   final DateTime gameDate;
 
   GameRegistrationDTO({
+    required this.title,
     required this.gameSet,
     required this.gameScore,
     required this.place,
@@ -14,6 +16,7 @@ class GameRegistrationDTO {
   });
 
   GameRegistrationDTO copyWith({
+    String? title,
     int? gameSet,
     int? gameScore,
     String? place,
@@ -21,6 +24,7 @@ class GameRegistrationDTO {
     DateTime? gameDate
   }) {
     return GameRegistrationDTO(
+      title: title ?? this.title,
       gameSet: gameSet ?? this.gameSet,
       gameScore: gameScore ?? this.gameScore,
       place: place ?? this.place,
@@ -32,6 +36,7 @@ class GameRegistrationDTO {
   // JSON -> 객체 변환
   factory GameRegistrationDTO.fromJson(Map<String, dynamic> json) {
     return GameRegistrationDTO(
+      title: json['title'] ?? '',
       gameSet: json['gameSet'] ?? 0,
       gameScore: json['gameScore'] ?? 0,
       place: json['place'] ?? '',
@@ -43,6 +48,7 @@ class GameRegistrationDTO {
   // 객체 -> JSON 변환
   Map<String, dynamic> toJson() {
     return {
+      'title': title,
       'gameSet': gameSet,
       'gameScore': gameScore,
       'place': place,

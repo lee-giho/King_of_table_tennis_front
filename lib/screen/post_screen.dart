@@ -524,7 +524,15 @@ class _PostScreenState extends State<PostScreen> {
             MaterialPageRoute(
               builder: (context) => PostRegistrationScreen()
             )
-          );
+          ).then((_) {
+            handleGetPost(
+              page: postPage,
+              size: postPageSize,
+              categories: selectedCategories,
+              sort: selectedSort,
+              keyword: currentKeywordOrNull()
+            );
+          });
         },
         child: Icon(
           Icons.add,

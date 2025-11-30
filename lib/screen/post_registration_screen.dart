@@ -1,4 +1,3 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:king_of_table_tennis/api/post_api.dart';
 import 'package:king_of_table_tennis/enum/post_type.dart';

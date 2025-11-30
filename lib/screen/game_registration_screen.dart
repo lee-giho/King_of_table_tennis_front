@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:king_of_table_tennis/api/game_api.dart';
 import 'package:king_of_table_tennis/model/game_registration_dto.dart';
+import 'package:king_of_table_tennis/model/random_game_title_response.dart';
 import 'package:king_of_table_tennis/util/apiRequest.dart';
 import 'package:king_of_table_tennis/util/appColors.dart';
 import 'package:king_of_table_tennis/util/intl.dart';
@@ -27,6 +28,8 @@ class GameRegistrationScreen extends StatefulWidget {
 }
 
 class _GameRegistrationScreenState extends State<GameRegistrationScreen> {
+
+  var titleController = TextEditingController();
 
   DateTime now = DateTime.now();
   late DateTime selectDate;
@@ -60,6 +63,7 @@ class _GameRegistrationScreenState extends State<GameRegistrationScreen> {
     });
 
     handleGetBlackListDateTime(widget.tableTennisCourtId);
+    handleGetRandomTitle();
   }
 
   void handleGetBlackListDateTime(String tableTennisCourtId) async {
@@ -77,6 +81,21 @@ class _GameRegistrationScreenState extends State<GameRegistrationScreen> {
 
     } else {
       log("선택 불가능한 날짜 가져오기 실패: ${response.body}");
+    }
+  }
+
+  void handleGetRandomTitle() async {
+    final response = await apiRequest(() => getRandomTitle(), context);
+
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
+      final randomGameTitleResponse = RandomGameTitleResponse.fromJson(data);
+      
+      setState(() {
+        titleController.text = randomGameTitleResponse.randomTitle;
+      });
+    } else {
+      log("랜덤 제목 가져오기 실패");
     }
   }
 
@@ -106,10 +125,10 @@ class _GameRegistrationScreenState extends State<GameRegistrationScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Align(
+        title: Align(
           alignment: Alignment.topLeft,
           child: Text(
-            "탁구 경기 생성",
+            widget.tableTennisCourtName,
             style: TextStyle(
               fontSize: 24,
               fontWeight: FontWeight.bold
@@ -117,276 +136,294 @@ class _GameRegistrationScreenState extends State<GameRegistrationScreen> {
           ),
         ),
       ),
-      body: SafeArea(
-        child: Container( // 전체화면
-          width: double.infinity,
-          padding: const EdgeInsets.symmetric(horizontal: 20),
-          child: Column(
-            children: [
-              Expanded(
-                child: SingleChildScrollView(
-                  physics: const ClampingScrollPhysics(),
-                  child: Column(
-                    children: [
-                      Column(
-                        children: [
-                          Text(
-                            "장소",
-                            style: TextStyle(
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold
-                            ),
-                          ),
-                          SizedBox(height: 5),
-                          Text(
-                            widget.tableTennisCourtName,
-                            style: TextStyle(
-                              fontSize: 20,
-                              color: Colors.black
-                            ),
-                          )
-                        ],
-                      ),
-                      SizedBox(height: 30),
-                      Column(
-                        children: [
-                          Text(
-                            "날짜 선택",
-                            style: TextStyle(
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold
-                            ),
-                          ),
-                          SizedBox(height: 5),
-                          ElevatedButton(
-                            onPressed: () async {
-                              final DateTime? picked = await showCustomDateTimePicker(
-                                context: context,
-                                selectDate: selectDate,
-                                blackList: selectedGameDate
-                              );
-                      
-                              if (picked != null) {
-                                setState(() {
-                                  selectDate = picked;
-                                });
-                              }
-                            },
-                            style: ElevatedButton.styleFrom(
-                              elevation: 4,
-                              side: BorderSide(
-                                width: 0.2,
-                                color: Colors.black
-                              ),
-                              foregroundColor: AppColors.tableBlue,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(10)
-                              )
-                            ),
-                            child: Text(
-                              formatDateTime(selectDate),
+      body: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: () {
+          FocusScope.of(context).unfocus();
+        },
+        child: SafeArea(
+          child: Container( // 전체화면
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: Column(
+              children: [
+                Expanded(
+                  child: SingleChildScrollView(
+                    physics: const ClampingScrollPhysics(),
+                    child: Column(
+                      children: [
+                        SizedBox(height: 30),
+                        Column(
+                          children: [
+                            Text(
+                              "제목",
                               style: TextStyle(
                                 fontSize: 20,
-                                color: Colors.black
+                                fontWeight: FontWeight.bold
                               ),
+                            ),
+                            TextField(
+                              controller: titleController,
+                              decoration: InputDecoration(
+                                hintText: "제목을 입력해주세요",
+                                suffixIcon: IconButton(
+                                  onPressed: () {
+                                    handleGetRandomTitle();
+                                  },
+                                  icon: Icon(
+                                    Icons.refresh
+                                  )
+                                )
+                              ),
+                              cursorColor: AppColors.tableBlue,
+                              maxLength: 50,
+                              minLines: 1,
+                              maxLines: 2,
                             )
-                          ),
-                        ],
-                      ),
-                      SizedBox(height: 30),
-                      Column(
-                        children: [
-                          Text(
-                            "경기 설정",
-                            style: TextStyle(
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold
-                            ),
-                          ),
-                          SizedBox(height: 5),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                            children: [
-                              Row( // 세트 설정
-                                children: [
-                                  ElevatedButton(
-                                    onPressed: () async {
-                                      final int? picked = await showCustomNumberPicker(
-                                        context: context,
-                                        options: gameSet,
-                                        initialValue: selectGameSet
-                                      );
-                                                    
-                                      if (picked != null) {
-                                        setState(() {
-                                          selectGameSet = picked;
-                                        });
-                                      }
-                                    },
-                                    style: ElevatedButton.styleFrom(
-                                      elevation: 4,
-                                      side: BorderSide(
-                                        width: 0.2,
-                                        color: Colors.black
-                                      ),
-                                      foregroundColor: AppColors.tableBlue,
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(10)
-                                      )
-                                    ),
-                                    child: Text(
-                                      selectGameSet.toString(),
-                                      style: TextStyle(
-                                        fontSize: 20,
-                                        color: Colors.black
-                                      ),
-                                    )
-                                  ),
-                                  const SizedBox(width: 6),
-                                  Text(
-                                    "세트",
-                                    style: TextStyle(
-                                      fontSize: 20,
-                                      fontWeight: FontWeight.bold
-                                    ),
-                                  )
-                                ],
-                              ),
-                              Row( // 점수 설정
-                                children: [
-                                  ElevatedButton(
-                                    onPressed: () async {
-                                      final int? picked = await showCustomNumberPicker(
-                                        context: context,
-                                        options: gameScore,
-                                        initialValue: selectGameScore
-                                      );
-                                                    
-                                      if (picked != null) {
-                                        setState(() {
-                                          selectGameScore = picked;
-                                        });
-                                      }
-                                    },
-                                    style: ElevatedButton.styleFrom(
-                                      elevation: 4,
-                                      side: BorderSide(
-                                        width: 0.2,
-                                        color: Colors.black
-                                      ),
-                                      foregroundColor: AppColors.tableBlue,
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(10)
-                                      )
-                                    ),
-                                    child: Text(
-                                      selectGameScore.toString(),
-                                      style: TextStyle(
-                                        fontSize: 20,
-                                        color: Colors.black
-                                      ),
-                                    )
-                                  ),
-                                  const SizedBox(width: 6),
-                                  Text(
-                                    "점",
-                                    style: TextStyle(
-                                      fontSize: 20,
-                                      fontWeight: FontWeight.bold
-                                    ),
-                                  )
-                                ],
-                              ),
-                            ],
-                          )
-                        ],
-                      ),
-                      SizedBox(height: 30),
-                      Column(
-                        children: [
-                          Text(
-                            "게임 수락 설정",
-                            style: TextStyle(
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold
-                            ),
-                          ),
-                          SizedBox(height: 5),
-                          ElevatedButton(
-                            onPressed: () async {
-                              final String? picked = await showCustomStringPicker(
-                                context: context,
-                                options: acceptanceType,
-                                initialValue: selectAcceptanceType
-                              );
-                      
-                              if (picked != null) {
-                                setState(() {
-                                  selectAcceptanceType = picked;
-                                });
-                              }
-                            },
-                            style: ElevatedButton.styleFrom(
-                              elevation: 4,
-                              side: BorderSide(
-                                width: 0.2,
-                                color: Colors.black
-                              ),
-                              foregroundColor: AppColors.tableBlue,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(10)
-                              )
-                            ),
-                            child: Text(
-                              selectAcceptanceType,
+                          ],
+                        ),
+                        SizedBox(height: 30),
+                        Column(
+                          children: [
+                            Text(
+                              "날짜 선택",
                               style: TextStyle(
                                 fontSize: 20,
-                                color: Colors.black
+                                fontWeight: FontWeight.bold
                               ),
+                            ),
+                            SizedBox(height: 5),
+                            ElevatedButton(
+                              onPressed: () async {
+                                final DateTime? picked = await showCustomDateTimePicker(
+                                  context: context,
+                                  selectDate: selectDate,
+                                  blackList: selectedGameDate
+                                );
+                        
+                                if (picked != null) {
+                                  setState(() {
+                                    selectDate = picked;
+                                  });
+                                }
+                              },
+                              style: ElevatedButton.styleFrom(
+                                elevation: 4,
+                                side: BorderSide(
+                                  width: 0.2,
+                                  color: Colors.black
+                                ),
+                                foregroundColor: AppColors.tableBlue,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10)
+                                )
+                              ),
+                              child: Text(
+                                formatDateTime(selectDate),
+                                style: TextStyle(
+                                  fontSize: 20,
+                                  color: Colors.black
+                                ),
+                              )
+                            ),
+                          ],
+                        ),
+                        SizedBox(height: 30),
+                        Column(
+                          children: [
+                            Text(
+                              "경기 설정",
+                              style: TextStyle(
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold
+                              ),
+                            ),
+                            SizedBox(height: 5),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                              children: [
+                                Row( // 세트 설정
+                                  children: [
+                                    ElevatedButton(
+                                      onPressed: () async {
+                                        final int? picked = await showCustomNumberPicker(
+                                          context: context,
+                                          options: gameSet,
+                                          initialValue: selectGameSet
+                                        );
+                                                      
+                                        if (picked != null) {
+                                          setState(() {
+                                            selectGameSet = picked;
+                                          });
+                                        }
+                                      },
+                                      style: ElevatedButton.styleFrom(
+                                        elevation: 4,
+                                        side: BorderSide(
+                                          width: 0.2,
+                                          color: Colors.black
+                                        ),
+                                        foregroundColor: AppColors.tableBlue,
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(10)
+                                        )
+                                      ),
+                                      child: Text(
+                                        selectGameSet.toString(),
+                                        style: TextStyle(
+                                          fontSize: 20,
+                                          color: Colors.black
+                                        ),
+                                      )
+                                    ),
+                                    const SizedBox(width: 6),
+                                    Text(
+                                      "세트",
+                                      style: TextStyle(
+                                        fontSize: 20,
+                                        fontWeight: FontWeight.bold
+                                      ),
+                                    )
+                                  ],
+                                ),
+                                Row( // 점수 설정
+                                  children: [
+                                    ElevatedButton(
+                                      onPressed: () async {
+                                        final int? picked = await showCustomNumberPicker(
+                                          context: context,
+                                          options: gameScore,
+                                          initialValue: selectGameScore
+                                        );
+                                                      
+                                        if (picked != null) {
+                                          setState(() {
+                                            selectGameScore = picked;
+                                          });
+                                        }
+                                      },
+                                      style: ElevatedButton.styleFrom(
+                                        elevation: 4,
+                                        side: BorderSide(
+                                          width: 0.2,
+                                          color: Colors.black
+                                        ),
+                                        foregroundColor: AppColors.tableBlue,
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(10)
+                                        )
+                                      ),
+                                      child: Text(
+                                        selectGameScore.toString(),
+                                        style: TextStyle(
+                                          fontSize: 20,
+                                          color: Colors.black
+                                        ),
+                                      )
+                                    ),
+                                    const SizedBox(width: 6),
+                                    Text(
+                                      "점",
+                                      style: TextStyle(
+                                        fontSize: 20,
+                                        fontWeight: FontWeight.bold
+                                      ),
+                                    )
+                                  ],
+                                ),
+                              ],
                             )
-                          ),
-                        ],
-                      ),
-                    ],
+                          ],
+                        ),
+                        SizedBox(height: 30),
+                        Column(
+                          children: [
+                            Text(
+                              "게임 수락 설정",
+                              style: TextStyle(
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold
+                              ),
+                            ),
+                            SizedBox(height: 5),
+                            ElevatedButton(
+                              onPressed: () async {
+                                final String? picked = await showCustomStringPicker(
+                                  context: context,
+                                  options: acceptanceType,
+                                  initialValue: selectAcceptanceType
+                                );
+                        
+                                if (picked != null) {
+                                  setState(() {
+                                    selectAcceptanceType = picked;
+                                  });
+                                }
+                              },
+                              style: ElevatedButton.styleFrom(
+                                elevation: 4,
+                                side: BorderSide(
+                                  width: 0.2,
+                                  color: Colors.black
+                                ),
+                                foregroundColor: AppColors.tableBlue,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10)
+                                )
+                              ),
+                              child: Text(
+                                selectAcceptanceType,
+                                style: TextStyle(
+                                  fontSize: 20,
+                                  color: Colors.black
+                                ),
+                              )
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
                   ),
                 ),
-              ),
-              ElevatedButton(
-                onPressed: () {
-                  handleCreateGame(
-                    GameRegistrationDTO(
-                      gameSet: selectGameSet,
-                      gameScore: selectGameScore,
-                      place: selectPlace,
-                      acceptanceType: acceptanceTypeMap[selectAcceptanceType]!,
-                      gameDate: selectDate
+                ElevatedButton(
+                  onPressed: () {
+                    handleCreateGame(
+                      GameRegistrationDTO(
+                        title: titleController.text,
+                        gameSet: selectGameSet,
+                        gameScore: selectGameScore,
+                        place: selectPlace,
+                        acceptanceType: acceptanceTypeMap[selectAcceptanceType]!,
+                        gameDate: selectDate
+                      )
+                    );
+                  },
+                  style: ElevatedButton.styleFrom(
+                    minimumSize: const Size.fromHeight(50),
+                    side: BorderSide(
+                      width: 0.2,
+                      color: Colors.black
+                    ),
+                    backgroundColor: AppColors.racketRed,
+                    foregroundColor: AppColors.tableBlue,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(5)
                     )
-                  );
-                },
-                style: ElevatedButton.styleFrom(
-                  minimumSize: const Size.fromHeight(50),
-                  side: BorderSide(
-                    width: 0.2,
-                    color: Colors.black
                   ),
-                  backgroundColor: AppColors.racketRed,
-                  foregroundColor: AppColors.tableBlue,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(5)
+                  child: const Text(
+                    "등록하기",
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white
+                    ),
                   )
-                ),
-                child: const Text(
-                  "등록하기",
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white
-                  ),
                 )
-              )
-            ],
-          ),
-        )
+              ],
+            ),
+          )
+        ),
       ),
     );
   }

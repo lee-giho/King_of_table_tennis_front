@@ -135,7 +135,7 @@ class _GamePreviewTileState extends State<GamePreviewTile> {
       height: 150,
       child: Center(
         child: Text(
-          "게임 준비중",
+          "경기 준비중",
           style: TextStyle(
             fontSize: 24,
             fontWeight: FontWeight.bold
