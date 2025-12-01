@@ -5,6 +5,7 @@ import 'package:king_of_table_tennis/model/user_info_dto.dart';
 import 'package:king_of_table_tennis/screen/game_review_registration_screen.dart';
 import 'package:king_of_table_tennis/util/appColors.dart';
 import 'package:king_of_table_tennis/util/intl.dart';
+import 'package:king_of_table_tennis/widget/expandableTitle.dart';
 
 class GameAfterInfoTile extends StatefulWidget {
   final GameDetailInfoByUserDTO gameDetailInfoByUserDTO;
@@ -54,31 +55,16 @@ class _GameAfterInfoTileState extends State<GameAfterInfoTile> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(5),
-                    decoration: BoxDecoration(
-                      border: Border.all(
-                        width: 1,
-                        color: Colors.black
-                      ),
-                      borderRadius: BorderRadius.circular(15),
-                      color: isWin
-                        ? const Color.fromARGB(50, 30, 77, 135)
-                        : const Color.fromARGB(50, 186, 63, 65)
-                    ),
-                    child: Text(
-                      isWin
-                        ? "승리"
-                        : "패배",
-                      style: TextStyle(
-                        fontSize: 12
-                      ),
-                    ),
-                  )
-                ],
+              Expanded(
+                child: ExpandableTitle(
+                  text: widget.gameDetailInfoByUserDTO.gameInfo.title,
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold
+                  ),
+                ),
               ),
+              SizedBox(width: 8),
               ElevatedButton(
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.racketRed.withAlpha(200),
@@ -120,6 +106,31 @@ class _GameAfterInfoTileState extends State<GameAfterInfoTile> {
                 )
               )
             ]
+          ),
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(5),
+                decoration: BoxDecoration(
+                  border: Border.all(
+                    width: 1,
+                    color: Colors.black
+                  ),
+                  borderRadius: BorderRadius.circular(15),
+                  color: isWin
+                    ? const Color.fromARGB(50, 30, 77, 135)
+                    : const Color.fromARGB(50, 186, 63, 65)
+                ),
+                child: Text(
+                  isWin
+                    ? "승리"
+                    : "패배",
+                  style: TextStyle(
+                    fontSize: 12
+                  ),
+                ),
+              )
+            ],
           ),
           SizedBox(height: 8),
           Row(

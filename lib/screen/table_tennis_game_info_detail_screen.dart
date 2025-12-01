@@ -18,6 +18,8 @@ import 'package:king_of_table_tennis/util/appColors.dart';
 import 'package:king_of_table_tennis/util/intl.dart';
 import 'package:king_of_table_tennis/util/secure_storage.dart';
 import 'package:king_of_table_tennis/util/toastMessage.dart';
+import 'package:king_of_table_tennis/widget/customDivider.dart';
+import 'package:king_of_table_tennis/widget/expandableTitle.dart';
 import 'package:king_of_table_tennis/widget/paginationBar.dart';
 import 'package:king_of_table_tennis/widget/gameInfoDetailUserTile.dart';
 import 'package:stomp_dart_client/stomp_dart_client.dart';
@@ -382,6 +384,14 @@ class _TableTennisGameInfoDetailScreenState extends State<TableTennisGameInfoDet
                     child: SingleChildScrollView(
                       child: Column(
                           children: [
+                            ExpandableTitle(
+                              text: gameDetailInfo!.gameInfo.title,
+                              style: TextStyle(
+                                fontSize: 24,
+                                fontWeight: FontWeight.bold
+                              ),
+                            ),
+                            CustomDivider(),
                             Padding(
                               padding: const EdgeInsets.symmetric(vertical: 30),
                               child: Row(

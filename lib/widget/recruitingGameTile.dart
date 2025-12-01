@@ -3,6 +3,7 @@ import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:king_of_table_tennis/api/game_api.dart';
+import 'package:king_of_table_tennis/enum/game_state.dart';
 import 'package:king_of_table_tennis/model/game_info_dto.dart';
 import 'package:king_of_table_tennis/model/recruiting_game_dto.dart';
 import 'package:king_of_table_tennis/util/apiRequest.dart';
@@ -83,8 +84,26 @@ class _RecruitingGameTileState extends State<RecruitingGameTile> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                if (widget.recruitingGameDTO.gameState == GameState.DOING.toValue)
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      Icon(
+                        Icons.cell_tower,
+                        color: Colors.red,
+                      ),
+                      SizedBox(width: 5),
+                      Text(
+                        "LIVE",
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: Colors.red
+                        ),
+                      ),
+                    ],
+                ),
                 Text(
-                  creatorId,
+                  gameInfo.title,
                   style: TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.bold
@@ -94,6 +113,20 @@ class _RecruitingGameTileState extends State<RecruitingGameTile> {
                   softWrap: false,
                 ),
                 SizedBox(height: 10),
+                Row(
+                  children: [
+                    Icon(
+                      Icons.person
+                    ),
+                    Text(
+                      creatorId,
+                      overflow: TextOverflow.ellipsis,
+                      maxLines: 1,
+                      softWrap: false,
+                    ),
+                  ],
+                ),
+                SizedBox(height: 5),
                 Row(
                   children: [
                     Icon(

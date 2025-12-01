@@ -5,6 +5,7 @@ import 'package:king_of_table_tennis/model/game_detail_info_by_user_dto.dart';
 import 'package:king_of_table_tennis/model/user_info_dto.dart';
 import 'package:king_of_table_tennis/util/AppColors.dart';
 import 'package:king_of_table_tennis/util/intl.dart';
+import 'package:king_of_table_tennis/widget/expandableTitle.dart';
 
 class GameBeforeInfoTile extends StatefulWidget {
   final GameDetailInfoByUserDTO gameDetailInfoByUserDTO;
@@ -122,48 +123,14 @@ class _GameBeforeInfoTileState extends State<GameBeforeInfoTile> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(5),
-                    decoration: BoxDecoration(
-                      border: Border.all(
-                        width: 1,
-                        color: Colors.black
-                      ),
-                      borderRadius: BorderRadius.circular(15),
-                      color: widget.gameDetailInfoByUserDTO.gameState.state == GameState.RECRUITING
-                        ? const Color.fromARGB(50, 186, 63, 65)
-                        : const Color.fromARGB(50, 30, 77, 135)
-                    ),
-                    child: Text(
-                      widget.gameDetailInfoByUserDTO.gameState.state == GameState.RECRUITING
-                        ? "상대 모집 중"
-                        : "경기 대기 중",
-                      style: TextStyle(
-                        fontSize: 12
-                      ),
-                    ),
+              Expanded(
+                child: ExpandableTitle(
+                  text: widget.gameDetailInfoByUserDTO.gameInfo.title,
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold
                   ),
-                  SizedBox(width: 10),
-                  if (widget.gameDetailInfoByUserDTO.gameState.state == GameState.RECRUITING)
-                    Container(
-                      padding: const EdgeInsets.all(5),
-                      decoration: BoxDecoration(
-                        border: Border.all(
-                          width: 1,
-                          color: Colors.black
-                        ),
-                        borderRadius: BorderRadius.circular(15),
-                      ),
-                      child: Text(
-                        "신청자: ${widget.gameDetailInfoByUserDTO.applicationCount}명",
-                        style: TextStyle(
-                          fontSize: 12
-                        ),
-                      ),
-                    ),
-                ],
+                ),
               ),
               buildMoreMenu(
                 context: context,
@@ -171,6 +138,49 @@ class _GameBeforeInfoTileState extends State<GameBeforeInfoTile> {
                   widget.onDeleteGame!.call();
                 }
               )
+            ],
+          ),
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(5),
+                decoration: BoxDecoration(
+                  border: Border.all(
+                    width: 1,
+                    color: Colors.black
+                  ),
+                  borderRadius: BorderRadius.circular(15),
+                  color: widget.gameDetailInfoByUserDTO.gameState.state == GameState.RECRUITING
+                    ? const Color.fromARGB(50, 186, 63, 65)
+                    : const Color.fromARGB(50, 30, 77, 135)
+                ),
+                child: Text(
+                  widget.gameDetailInfoByUserDTO.gameState.state == GameState.RECRUITING
+                    ? "상대 모집 중"
+                    : "경기 대기 중",
+                  style: TextStyle(
+                    fontSize: 12
+                  ),
+                ),
+              ),
+              SizedBox(width: 10),
+              if (widget.gameDetailInfoByUserDTO.gameState.state == GameState.RECRUITING)
+                Container(
+                  padding: const EdgeInsets.all(5),
+                  decoration: BoxDecoration(
+                    border: Border.all(
+                      width: 1,
+                      color: Colors.black
+                    ),
+                    borderRadius: BorderRadius.circular(15),
+                  ),
+                  child: Text(
+                    "신청자: ${widget.gameDetailInfoByUserDTO.applicationCount}명",
+                    style: TextStyle(
+                      fontSize: 12
+                    ),
+                  ),
+                ),
             ],
           ),
           Row(
