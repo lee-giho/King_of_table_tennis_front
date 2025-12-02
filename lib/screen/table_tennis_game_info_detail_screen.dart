@@ -108,22 +108,33 @@ class _TableTennisGameInfoDetailScreenState extends State<TableTennisGameInfoDet
     stompClient.activate();
   }
 
+  void handleStartGame(String gameInfoId, GameState state) async {
+    final response = await apiRequest(() => startGame(gameInfoId), context);
+
+    if (response.statusCode == 204) {
+      startBroadcast(gameInfoId, state);
+    } else {
+      ToastMessage.show("경기가 시작되지 않았습니다.");
+    }
+  }
+
   Future<void> startBroadcast(String gameInfoId, GameState state) async {
     String? accessToken = await SecureStorage.getAccessToken();
 
-    stompClient.send(
-      destination: "/app/state",
-      body: json.encode({
-        "gameInfoId": gameInfoId,
-        "state": state.toValue
-      }),
-      headers: {
-        'Authorization': 'Bearer $accessToken'
-      }
-    );
-
     final response = await apiRequest(() => createBroadcastRoom(gameInfoId), context);
     if (response.statusCode == 200) {
+      
+      stompClient.send(
+        destination: "/app/state",
+        body: json.encode({
+          "gameInfoId": gameInfoId,
+          "state": state.toValue
+        }),
+        headers: {
+          'Authorization': 'Bearer $accessToken'
+        }
+      );
+
       final data = json.decode(response.body);
       BroadcastRoomInfo broadcastRoomInfo = BroadcastRoomInfo.fromJson(data);
       
@@ -561,7 +572,7 @@ class _TableTennisGameInfoDetailScreenState extends State<TableTennisGameInfoDet
                   ElevatedButton(
                     onPressed: gameDetailInfo!.gameState.state == GameState.WAITING && gameDetailInfo!.gameInfo.gameDate.isAfter(DateTime.now()) && widget.isMine
                       ? () {
-                          startBroadcast(widget.gameInfoId, GameState.DOING);
+                          handleStartGame(widget.gameInfoId, GameState.DOING);
                         }
                       : gameDetailInfo!.gameState.state == GameState.DOING
                         ? () {

@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:king_of_table_tennis/api/game_api.dart';
 import 'package:king_of_table_tennis/model/page_response.dart';
 import 'package:king_of_table_tennis/model/recruiting_game_dto.dart';
@@ -11,6 +12,7 @@ import 'package:king_of_table_tennis/util/apiRequest.dart';
 import 'package:king_of_table_tennis/util/toastMessage.dart';
 import 'package:king_of_table_tennis/widget/paginationBar.dart';
 import 'package:king_of_table_tennis/widget/recruitingGameTile.dart';
+import 'package:stomp_dart_client/stomp_dart_client.dart';
 
 class TableTennisCourtDetailRegisteredGameScreen extends StatefulWidget {
   final String tableTennisCourtId;
@@ -34,11 +36,75 @@ class _TableTennisCourtDetailRegisteredGameScreenState extends State<TableTennis
 
   List<RecruitingGameDTO> recruitingGames = [];
 
+  StompClient? stompClient;
+  bool wsConnected = false;
+  final Map<String, StompUnsubscribe> stateSubs = {};
+
   @override
   void initState() {
     super.initState();
 
+    connectWs();
     handleGetRecruitingGameList(widget.tableTennisCourtId, type, recruitingGamePage, recruitingGamePageSize);
+  }
+
+  @override
+  void dispose() {
+    stateSubs.forEach((_, unsub) => unsub());
+    stateSubs.clear();
+    stompClient?.deactivate();
+    super.dispose();
+  }
+
+  void connectWs() {
+    final wsAddress = dotenv.get("WS_ADDRESS");
+
+    stompClient = StompClient(
+      config: StompConfig(
+        url: "$wsAddress/ws",
+        onConnect: (StompFrame frame) {
+          debugPrint("Ws 연결 성공");
+          wsConnected = true;
+          resubscribeGameStates();
+        },
+        onStompError: (f) => debugPrint("STOMP error: ${f.body}"),
+        onWebSocketError: (e) => debugPrint("WS error: $e")
+      )
+    );
+
+    stompClient!.activate();
+  }
+
+  void resubscribeGameStates() {
+    if (!wsConnected || stompClient == null) return;
+
+    // 기존 구독 정리
+    stateSubs.forEach((_, unsub) => unsub());
+    stateSubs.clear();
+
+    for (final game in recruitingGames) {
+      final gameId = game.gameInfo.id;
+
+      final unsub = stompClient!.subscribe(
+        destination: "/topic/game/state/$gameId",
+        callback: (frame) {
+          final body = frame.body;
+          if (body == null) return;
+
+          final decoded = jsonDecode(body);
+          print("게임 $gameId 상태 변경: $decoded");
+
+          handleGetRecruitingGameList(
+            widget.tableTennisCourtId,
+            type,
+            recruitingGamePage,
+            recruitingGamePageSize
+          );
+        }
+      );
+
+      stateSubs[gameId] = unsub;
+    }
   }
 
   void handleGetRecruitingGameList(String tableTennisCourtId, String type, int page, int pageSize) async {
@@ -73,6 +139,9 @@ class _TableTennisCourtDetailRegisteredGameScreenState extends State<TableTennis
         recruitingGameTotalPages = pageResponse.totalPages;
         recruitingGamePage = page;
       });
+
+      // 리스트 바뀔 때마다 현재 페이지 게임들로 다시 웹소켓 구독
+      resubscribeGameStates();
     } else {
       ToastMessage.show("등록된 경기 가져오기 실패");
     }

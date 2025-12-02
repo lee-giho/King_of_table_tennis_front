@@ -97,6 +97,24 @@ Future<http.Response> getRecruitingGameList(String tableTennisCourtId, String ty
   return response;
 }
 
+Future<http.Response> startGame(String gameInfoId) async {
+  String? accessToken = await SecureStorage.getAccessToken();
+
+  // .env에서 서버 URL 가져오기
+  final apiAddress = Uri.parse("${dotenv.get("API_ADDRESS")}/api/game/$gameInfoId/start");
+  final headers = {
+    'Authorization': 'Bearer ${accessToken}',
+    'Content-Type': 'application/json'
+  };
+
+  final response = await http.patch(
+    apiAddress,
+    headers: headers
+  );
+
+  return response;
+}
+
 Future<http.Response> finishGame(String gameInfoId, FinishGameRequest finishGameRequest) async {
   String? accessToken = await SecureStorage.getAccessToken();
 

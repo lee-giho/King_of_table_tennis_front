@@ -59,9 +59,7 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
 
-    handleGetGameDetailInfoByPage(gamePage, gamePageSize);
-    handleGetPost(postPage, postPageSize, categories);
-    handleLoadYoutubeVideos();
+    refreshScreen();
   }
 
   @override
@@ -72,6 +70,12 @@ class _HomeScreenState extends State<HomeScreen> {
     searchKeywordFocus.dispose();
 
     super.dispose();
+  }
+
+  void refreshScreen() {
+    handleGetGameDetailInfoByPage(gamePage, gamePageSize);
+    handleGetPost(postPage, postPageSize, categories);
+    handleLoadYoutubeVideos();
   }
 
   void handleGetGameDetailInfoByPage(int page, int size) async {
@@ -303,7 +307,9 @@ class _HomeScreenState extends State<HomeScreen> {
                                 keyword: searchKeywordController.text
                               )
                             )
-                          );
+                          ).then((_) {
+                            refreshScreen();
+                          });
                         },
                         icon: Icon(
                           Icons.search,
@@ -345,7 +351,9 @@ class _HomeScreenState extends State<HomeScreen> {
                                             isMine: gameDetailInfoByPageDTO!.isMine
                                           )
                                         )
-                                      );
+                                      ).then((_) {
+                                        refreshScreen();
+                                      });
                                     }
                                   : null,
                                 borderRadius: BorderRadius.circular(20),
@@ -388,7 +396,9 @@ class _HomeScreenState extends State<HomeScreen> {
                                     MaterialPageRoute(
                                       builder: (context) => PostScreen()
                                     )
-                                  );
+                                  ).then((_) {
+                                    refreshScreen();
+                                  });
                                 },
                                 child: Row(
                                   crossAxisAlignment: CrossAxisAlignment.center,
@@ -430,7 +440,9 @@ class _HomeScreenState extends State<HomeScreen> {
                                           
                                         )
                                       )
-                                    );
+                                    ).then((_) {
+                                      refreshScreen();
+                                    });
                                   },
                                   child: Padding(
                                     padding: const EdgeInsets.symmetric(vertical: 10),
@@ -536,7 +548,9 @@ class _HomeScreenState extends State<HomeScreen> {
                                         youtubePlaylistId: youtubePlaylistId
                                       )
                                     )
-                                  );
+                                  ).then((_) {
+                                    refreshScreen();
+                                  });
                                 },
                                 child: Row(
                                   crossAxisAlignment: CrossAxisAlignment.center,
